@@ -17,7 +17,7 @@
       background: #f0f2f5;
       display: flex;
       justify-content: center;
-      padding: 30px 15px;
+      padding: 30px 15px 80px; /* space for footer */
     }
 
     .profile-page {
@@ -133,19 +133,43 @@
       font-size: 16px;
     }
 
-    @media (max-width: 600px) {
-      .profile-name {
-        font-size: 22px;
-      }
+    /* ✅ FOOTER FIX SPACING */
+    body {
+      padding-bottom: 80px;
+    }
 
-      .profile-pic {
-        width: 90px;
-        height: 90px;
-        font-size: 40px;
-      }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #ddd;
+    }
+
+    .footer-container {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      padding: 12px 0;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .footer-link {
+      text-align: center;
+      text-decoration: none;
+      color: black;
+      font-size: 12px;
+    }
+
+    .footer-icon {
+      font-size: 18px;
+      display: block;
     }
   </style>
 </head>
+
 <body>
 
   <div class="profile-page">
@@ -157,65 +181,65 @@
     </div>
 
     <div class="tabs">
-      <div class="tab active" onclick="showTab('reviews')">
-        Reviews
-      </div>
-      <div class="tab" onclick="showTab('about')">
-        About
-      </div>
+      <div class="tab active" onclick="showTab('reviews')">Reviews</div>
+      <div class="tab" onclick="showTab('about')">About</div>
     </div>
 
     <div class="tab-content" id="reviews">
-
       <div class="review-card">
         <div class="review-avatar">🙂</div>
-
         <div class="review-content">
           <div class="review-name">Sarah M.</div>
           <div class="stars">★★★★★</div>
-
           <div class="review-text">
-            Great seller! Fast response time and the item was exactly
-            as described. Would definitely buy again.
+            Great seller! Fast response time and everything was perfect.
           </div>
         </div>
       </div>
 
       <div class="review-card">
         <div class="review-avatar">😀</div>
-
         <div class="review-content">
           <div class="review-name">James T.</div>
           <div class="stars">★★★★☆</div>
-
           <div class="review-text">
-            Smooth transaction and friendly communication.
-            Pickup was easy and convenient.
+            Smooth transaction and easy pickup.
           </div>
         </div>
       </div>
-
     </div>
 
     <div class="tab-content about-section" id="about">
-      <p>
-        Trusted marketplace seller with multiple successful transactions.
-      </p>
-
+      <p>Trusted marketplace seller with multiple successful transactions.</p>
       <br>
-
-      <p>
-        Selling board games since 2012!
+      <p>Selling board games since 2012!</p>
     </div>
 
   </div>
 
+  <!-- ✅ FOOTER -->
+  <footer>
+
+    <div class="footer-container">
+
+      <a href="BoardPost.html" class="footer-link">
+        <span class="footer-icon">📋</span>
+        Board
+      </a>
+
+      <a href="profilePage.html" class="footer-link">
+        <span class="footer-icon">👤</span>
+        Profile
+      </a>
+
+    </div>
+
+  </footer>
+
   <script>
     function showTab(tabName) {
-
       const reviews = document.getElementById("reviews");
       const about = document.getElementById("about");
-
       const tabs = document.querySelectorAll(".tab");
 
       tabs.forEach(tab => tab.classList.remove("active"));

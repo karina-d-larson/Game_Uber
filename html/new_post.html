@@ -1,0 +1,164 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>BoardLink - Create Listing</title>
+    <link rel="stylesheet" href="boardlink.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    </head>
+    <body class="bg-background text-on-background font-body-md min-h-screen pb-24">
+    <!-- TopAppBar Shell -->
+    <header class="bg-surface dark:bg-surface w-full sticky top-0 z-50 shadow-sm">
+    <div class="flex items-center justify-between px-md py-sm max-w-screen-xl mx-auto">
+    <div class="flex items-center gap-4">
+    <button class="active:scale-95 transition-transform">
+    <span class="material-symbols-outlined text-primary dark:text-primary-fixed">close</span>
+    </button>
+    <h1 class="font-headline-md text-headline-md text-primary dark:text-primary-fixed">Create Listing</h1>
+    </div>
+    <div class="font-display-lg text-display-lg text-secondary dark:text-secondary-fixed">BoardLink</div>
+    <div class="w-10"></div> <!-- Spacer for symmetry -->
+    </div>
+    </header>
+    <main class="max-w-screen-xl mx-auto px-gutter-mobile md:px-gutter-desktop py-xl">
+    <div class="max-w-2xl mx-auto">
+    <!-- Listing Type Selector (Toggle) -->
+    <div class="flex bg-surface-container-high p-1 rounded-xl mb-xl">
+    <button class="flex-1 py-3 text-center rounded-lg bg-surface shadow-sm font-semibold text-secondary">
+                        UP FOR LENDING
+                    </button>
+    <button class="flex-1 py-3 text-center rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+                        WANT TO RENT
+                    </button>
+    </div>
+    <form class="space-y-xl">
+    <!-- Image Upload Area -->
+    <div class="group relative aspect-video bg-surface-container-low border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-secondary transition-colors overflow-hidden">
+    <img class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-10" data-alt="A brightly lit, minimalist studio space for product photography with clean white backgrounds and soft diffused lighting. High-end camera equipment is visible in the periphery, suggesting a professional environment for capturing board game box art and components. The mood is industrial yet clean and inviting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5AskxegN_GNGS0yItNT7I96fiHqflGxAISzuplgl0WTCdbI2R1kP2o5_16-nwqWVrSuKxnJzsakKKNtrfcVHxdg5V9IyUFCPp3_vj5Z_URR340_Lr65hHaraH4P6Cd76UwaobBkv59dQBBwjW0f6xBVar0vDlLgdp4ZyxquW82Ybd2XDw9d6A3Es7VGDw0X3FzQbXRx1mfXkBM_clNQgotM0RFJvsTHEPXeQtgbSg9iO8gCdEhpRwupFqcvHV1jLzaUpZPRPmqXo">
+    <span class="material-symbols-outlined text-outline-variant group-hover:text-secondary text-5xl mb-2" style="font-variation-settings: 'FILL' 0;">add_a_photo</span>
+    <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Upload Game Photos</p>
+    <p class="text-[10px] text-outline mt-1">Recommended: Front box art &amp; open components</p>
+    </div>
+    <!-- Basic Info Bento Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+    <div class="col-span-full">
+    <label class="block font-label-md text-label-md text-on-surface-variant mb-2">Game Title</label>
+    <input class="w-full bg-surface border border-outline-variant rounded-lg px-md py-3 focus:border-secondary focus:ring-1 focus:ring-secondary transition-all outline-none" placeholder="e.g. Scythe, Terraforming Mars" type="text">
+    </div>
+    <div>
+    <label class="block font-label-md text-label-md text-on-surface-variant mb-2">Genre</label>
+    <select class="w-full bg-surface border border-outline-variant rounded-lg px-md py-3 focus:border-secondary transition-all outline-none appearance-none">
+    <option>Strategy</option>
+    <option>Party</option>
+    <option>Worker Placement</option>
+    <option>Cooperative</option>
+    </select>
+    </div>
+    <div>
+    <label class="block font-label-md text-label-md text-on-surface-variant mb-2">Condition</label>
+    <select class="w-full bg-surface border border-outline-variant rounded-lg px-md py-3 focus:border-secondary transition-all outline-none appearance-none">
+    <option>Like New</option>
+    <option>Good</option>
+    <option>Well Used</option>
+    <option>Acceptable</option>
+    </select>
+    </div>
+    </div>
+    <!-- Arrangement Types -->
+    <div>
+    <label class="block font-label-md text-label-md text-on-surface-variant mb-3">Arrangement Options</label>
+    <div class="grid grid-cols-3 gap-md">
+    <label class="flex flex-col items-center p-4 rounded-xl border border-outline-variant bg-surface cursor-pointer hover:border-secondary transition-all group">
+    <input checked="" class="hidden peer" name="arrangement" type="checkbox" value="rent">
+    <span class="material-symbols-outlined mb-2 text-outline-variant group-hover:text-secondary peer-checked:text-secondary">payments</span>
+    <span class="text-label-md">Rent</span>
+    <div class="absolute inset-0 rounded-xl ring-2 ring-secondary opacity-0 peer-checked:opacity-100 pointer-events-none"></div>
+    </label>
+    <label class="flex flex-col items-center p-4 rounded-xl border border-outline-variant bg-surface cursor-pointer hover:border-secondary transition-all group">
+    <input class="hidden peer" name="arrangement" type="checkbox" value="trade">
+    <span class="material-symbols-outlined mb-2 text-outline-variant group-hover:text-secondary peer-checked:text-secondary">swap_horiz</span>
+    <span class="text-label-md">Trade</span>
+    <div class="absolute inset-0 rounded-xl ring-2 ring-secondary opacity-0 peer-checked:opacity-100 pointer-events-none"></div>
+    </label>
+    <label class="flex flex-col items-center p-4 rounded-xl border border-outline-variant bg-surface cursor-pointer hover:border-secondary transition-all group">
+    <input class="hidden peer" name="arrangement" type="checkbox" value="free">
+    <span class="material-symbols-outlined mb-2 text-outline-variant group-hover:text-secondary peer-checked:text-secondary">volunteer_activism</span>
+    <span class="text-label-md">Free lend</span>
+    <div class="absolute inset-0 rounded-xl ring-2 ring-secondary opacity-0 peer-checked:opacity-100 pointer-events-none"></div>
+    </label>
+    </div>
+    </div>
+    <!-- Price and Description -->
+    <div class="space-y-md">
+    <div>
+    <label class="block font-label-md text-label-md text-on-surface-variant mb-2">Price per day (Optional)</label>
+    <div class="relative">
+    <span class="absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">$</span>
+    <input class="w-full bg-surface border border-outline-variant rounded-lg pl-8 pr-md py-3 focus:border-secondary focus:ring-1 focus:ring-secondary transition-all outline-none" placeholder="0.00" type="number">
+    </div>
+    </div>
+    <div>
+    <label class="block font-label-md text-label-md text-on-surface-variant mb-2">Description</label>
+    <textarea class="w-full bg-surface border border-outline-variant rounded-lg px-md py-3 focus:border-secondary focus:ring-1 focus:ring-secondary transition-all outline-none" placeholder="Tell us about the game condition, missing pieces, or house rules..." rows="4"></textarea>
+    </div>
+    </div>
+    <!-- Meetup and Location -->
+    <div class="space-y-md border-t border-outline-variant pt-xl">
+    <h3 class="font-headline-md text-headline-md">Logistics</h3>
+    <div>
+    <label class="block font-label-md text-label-md text-on-surface-variant mb-2">Meetup Preferences</label>
+    <input class="w-full bg-surface border border-outline-variant rounded-lg px-md py-3 focus:border-secondary focus:ring-1 focus:ring-secondary transition-all outline-none" placeholder="e.g. Near Central Station, weekends only" type="text">
+    </div>
+    <div>
+    <label class="block font-label-md text-label-md text-on-surface-variant mb-2">Primary Location</label>
+    <div class="flex gap-2">
+    <div class="flex-1 relative">
+    <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">location_on</span>
+    <input class="w-full bg-surface border border-outline-variant rounded-lg pl-10 pr-md py-3 focus:border-secondary focus:ring-1 focus:ring-secondary transition-all outline-none" type="text" value="San Francisco, CA">
+    </div>
+    <button class="px-md bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors" type="button">
+    <span class="material-symbols-outlined">my_location</span>
+    </button>
+    </div>
+    <!-- Mini Map Preview -->
+    <div class="mt-md h-32 rounded-xl bg-surface-container-highest overflow-hidden relative shadow-inner">
+    <img class="w-full h-full object-cover grayscale opacity-60" data-location="San Francisco" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB5kUOzZkXYIp-NR1Z6-mszXKgmCrr6US93K2aV9p6eZGa-F8YHssdI8nekFbW12LbKtgljVn7YsyCIQJcmLJ7_rmAzojTndSeWqcAiU77jkoXcZsmNo5sCMKI5fkLPcLIKg3QmOPsZhRH1vYbEshXzCmlKizGmK0TmOGgjrpnpztN7hrZDFZiNpKvCSI64ZOH5YHiGqJud7QpOyi0LCieGTO0-2LsLKIZYF-4t7mK4mKq5i0IbFPEYkytsOiB0eBEtSfqDp9_XKo">
+    <div class="absolute inset-0 flex items-center justify-center">
+    <span class="material-symbols-outlined text-secondary text-3xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
+    </div>
+    </div>
+    </div>
+    </div>
+    <!-- Form Actions -->
+    <div class="flex flex-col gap-sm pt-xl pb-12">
+    <button class="w-full bg-secondary text-on-secondary py-4 rounded-xl font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg" type="submit">
+                            Post Listing
+                        </button>
+    <button class="w-full bg-transparent text-on-surface-variant py-4 rounded-xl font-semibold hover:bg-surface-container-high transition-all" type="button">
+                            Cancel
+                        </button>
+    </div>
+    </form>
+    </div>
+    </main>
+    <!-- BottomNavBar Shell -->
+    <nav class="fixed bottom-0 w-full z-50 rounded-t-xl border-t border-outline-variant dark:border-outline bg-surface dark:bg-surface shadow-lg">
+    <div class="flex justify-around items-center h-16 px-gutter-mobile pb-safe w-full">
+    <button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all active:scale-90 transition-transform duration-200">
+    <span class="material-symbols-outlined">dashboard</span>
+    <span class="font-label-md text-label-md">Dashboard</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all active:scale-90 transition-transform duration-200">
+    <span class="material-symbols-outlined">mail</span>
+    <span class="font-label-md text-label-md">Inbox</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed font-semibold hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all active:scale-90 transition-transform duration-200">
+    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_box</span>
+    <span class="font-label-md text-label-md">Add Post</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all active:scale-90 transition-transform duration-200">
+    <span class="material-symbols-outlined">person</span>
+    <span class="font-label-md text-label-md">Profile</span>
+    </button>
+    </div>
+    </nav>
+    </body></html>

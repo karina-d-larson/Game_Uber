@@ -1,0 +1,153 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="stylesheet" href="boardlink.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    </head>
+    <body class="bg-background text-on-background">
+    <!-- TopAppBar -->
+    <header class="w-full sticky top-0 z-50 bg-surface dark:bg-surface shadow-sm">
+    <div class="flex items-center justify-between px-md py-sm max-w-screen-xl mx-auto">
+    <div class="flex items-center gap-md">
+    <span class="font-display-lg text-display-lg text-secondary dark:text-secondary-fixed">BoardLink</span>
+    </div>
+    <div class="flex items-center gap-base">
+    <div class="relative hidden md:flex items-center">
+    <span class="material-symbols-outlined absolute left-3 text-on-surface-variant">search</span>
+    <input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full w-64 focus:ring-2 focus:ring-secondary text-body-md font-body-md" placeholder="Search games..." type="text">
+    </div>
+    <button class="material-symbols-outlined text-primary dark:text-primary-fixed p-2 hover:bg-surface-container-low transition-colors rounded-full active:scale-95 transition-transform">search</button>
+    <button class="material-symbols-outlined text-primary dark:text-primary-fixed p-2 hover:bg-surface-container-low transition-colors rounded-full active:scale-95 transition-transform">tune</button>
+    </div>
+    </div>
+    </header>
+    <main class="max-w-screen-xl mx-auto px-gutter-mobile md:px-gutter-desktop py-md pb-24">
+    <!-- Category Chips -->
+    <section class="flex overflow-x-auto gap-sm py-sm custom-scrollbar">
+    <button class="px-lg py-sm bg-primary text-on-primary rounded-full text-label-md font-label-md whitespace-nowrap active:scale-95 transition-transform">Strategy</button>
+    <button class="px-lg py-sm bg-surface-container-high text-on-surface-variant rounded-full text-label-md font-label-md whitespace-nowrap hover:bg-surface-container-highest active:scale-95 transition-transform">Party</button>
+    <button class="px-lg py-sm bg-surface-container-high text-on-surface-variant rounded-full text-label-md font-label-md whitespace-nowrap hover:bg-surface-container-highest active:scale-95 transition-transform">Family</button>
+    <button class="px-lg py-sm bg-surface-container-high text-on-surface-variant rounded-full text-label-md font-label-md whitespace-nowrap hover:bg-surface-container-highest active:scale-95 transition-transform">Co-op</button>
+    <button class="px-lg py-sm bg-surface-container-high text-on-surface-variant rounded-full text-label-md font-label-md whitespace-nowrap hover:bg-surface-container-highest active:scale-95 transition-transform">Card Games</button>
+    </section>
+    <!-- Marketplace Toggle -->
+    <section class="flex justify-center my-xl">
+    <div class="bg-surface-container-low p-1 rounded-xl flex">
+    <button class="px-xl py-2 bg-surface shadow-sm text-secondary font-semibold rounded-lg text-body-md">UP FOR LENDING</button>
+    <button class="px-xl py-2 text-on-surface-variant font-medium rounded-lg text-body-md">WANTED TO RENT</button>
+    </div>
+    </section>
+    <!-- Feed Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-xl">
+    <!-- Card: Catan -->
+    <article class="bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+    <div class="relative h-64 overflow-hidden">
+    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A macro overhead photograph of a Catan board game set up on a rustic wooden table. The hexagonal tiles represent diverse terrains like forests, mountains, and wheat fields, with small wooden settlements and roads in vibrant red and blue. The lighting is warm and cinematic, suggesting a cozy evening atmosphere for tabletop gaming. The composition is clean and focused, highlighting the tactile quality of the game components." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGWAe1S6-RM9yhP-k4BX0Sj_IGvJ0S9YKjB-RfWNv_9ln7GkmzK2DTgLhd9OZAi0YB6gRCSyu-QbXS4ow5dBYlOiIbYbXF8maPCwDxR-TYogBTyvP41LRYl3QlaUmSunjDkSRljFDmL5VVDtDyuxBEiMAF5_zuJiDrCoQoLUalkZKmB-HlCNUIh8L7yb5-cnQYvzfXPUmtsuqkatkbhqXnWQs_UJbyxIbS6KxV73_slMEYmTEJ-2s2gPt8nA5598o70ImuGJ-mQ9c">
+    <div class="absolute top-md right-md bg-secondary text-white px-md py-1 rounded-full text-label-md font-label-md">Rent</div>
+    </div>
+    <div class="p-md">
+    <div class="flex items-center justify-between mb-sm">
+    <div class="flex items-center gap-sm">
+    <img class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a friendly man in his early 30s with a warm smile, wearing a modern blue shirt. The background is a soft-focus minimalist living room with bright, natural lighting. The image conveys a sense of reliability and community-focused hospitality, aligned with a modern corporate brand aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkx0UXK1Lpk2ElXA9ROMqC4wi2ZrOF4-lcXU-qLY9iqetmJiI9RWq9dEMcAVfggnureaO9twDbvxDwLNCFqvKKP7i6wrxOjNnimFSvEdRwRsRRxQzEqy6wp5z0WSDkDSP493C65sTxk041gs2-ADCbEXcEJerjfpTB4lw1M_vd9qUH5kMeRxtnrPi0SAw4Ddywo5DQ3GkCnxWDrN-wN-hZe6zXTmgN67Yt0h9jCUY_VqRM4wXjKTut8c9VndifPzGtn0B3_I8RKzw">
+    <div>
+    <p class="font-semibold text-body-md">Alex Rivera</p>
+    <div class="flex items-center gap-xs">
+    <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+    <span class="text-label-md text-on-surface-variant">4.9</span>
+    </div>
+    </div>
+    </div>
+    <span class="text-label-md text-on-surface-variant">1.2 miles</span>
+    </div>
+    <h3 class="font-headline-md text-headline-md mb-xs">Catan (Standard)</h3>
+    <p class="text-on-surface-variant text-body-md line-clamp-2 mb-md">The classic game of discovery, settlement, and trade. Perfect for a game night with 3-4 friends.</p>
+    <div class="flex items-center justify-between mt-auto">
+    <span class="text-secondary font-bold text-headline-md">$5/day</span>
+    <button class="bg-secondary text-on-primary px-xl py-2 rounded-lg font-semibold hover:opacity-90 active:scale-95 transition-all text-body-md">Request</button>
+    </div>
+    </div>
+    </article>
+    <!-- Card: Wingspan -->
+    <article class="bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+    <div class="relative h-64 overflow-hidden">
+    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A beautifully illustrated board game box for Wingspan, featuring elegant bird art in a soft, painterly style. The box is placed on a minimalist white marble surface, surrounded by high-quality daylight. The colors are muted pastels, greens, and soft blues, creating a sophisticated and tranquil visual appeal. The mood is artistic and premium, focusing on the beauty of nature-themed gaming." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6Yhwx7lDmHTISSiirIy1FeIXGAs3t6fhIKBJuxRYq3uq42ib79RkwmoZq3j1-jjoQ90NwkA0yoFSJI7lpUUi3T8gb9ZCSvP1gr3tz_olEwKt3Hfj0AfnS3Sf9V56PKC75fbhegs9s3ovhcVAa7MVZIJVLvrUXq1dKf-jqkYxSi-uUrz66X1nCKAqvof8Pt9hqvwH-mksSenHx5ycUOWlH4uQ4MxwC3NTP7NXRPUHaAcalsSJg89A_b-AqQMQ95eGZKOcYeaUf82Y">
+    <div class="absolute top-md right-md bg-tertiary-fixed-dim text-on-tertiary-fixed px-md py-1 rounded-full text-label-md font-label-md">Trade</div>
+    </div>
+    <div class="p-md">
+    <div class="flex items-center justify-between mb-sm">
+    <div class="flex items-center gap-sm">
+    <img class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A portrait of a cheerful woman with glasses and a creative vibe, sitting in a bright studio space. She is smiling naturally, conveying a sense of trustworthiness and passion for hobbies. The lighting is soft and even, highlighting a clean, modern aesthetic with a focus on human connection and community." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-CQs5RQSPhiSz-Gy0c8SghfWa7FgmDRfhUotd6gLcWYjpzooEtNz9j0jFkJG7Nr0dMrK8ZCwRat2B12uERCBiq7LCTi4Os5XkrAms9uMv-jNPOHdhQmPfgknpYdu14JrmjAbTNd4324owIHyEG-08WbWcFGb1aeVpRhbpAnGf23uputhqbCdNNOLW5upd95vFSfR3jGgVi_MiMj3Dr50QzgsfotUUOEy_7v2_oICnL6Pk1llPtdc88_OURUlNOzwwLN3b8Y2G0cI">
+    <div>
+    <p class="font-semibold text-body-md">Sarah Chen</p>
+    <div class="flex items-center gap-xs">
+    <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+    <span class="text-label-md text-on-surface-variant">5.0</span>
+    </div>
+    </div>
+    </div>
+    <span class="text-label-md text-on-surface-variant">0.5 miles</span>
+    </div>
+    <h3 class="font-headline-md text-headline-md mb-xs">Wingspan</h3>
+    <p class="text-on-surface-variant text-body-md line-clamp-2 mb-md">Competitive bird-collection engine-building game. Mint condition, including Swift-Start pack.</p>
+    <div class="flex items-center justify-between mt-auto">
+    <span class="text-secondary font-bold text-headline-md">Trade Only</span>
+    <button class="bg-secondary text-on-primary px-xl py-2 rounded-lg font-semibold hover:opacity-90 active:scale-95 transition-all text-body-md">Request</button>
+    </div>
+    </div>
+    </article>
+    <!-- Card: Azul -->
+    <article class="bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+    <div class="relative h-64 overflow-hidden">
+    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A close-up of colorful resin tiles from the board game Azul, arranged in an intricate geometric pattern on a light gray background. The tiles are vibrant shades of blue, orange, and white with decorative patterns. The lighting is bright and crisp, highlighting the high-quality texture and tactile nature of the pieces. The image reflects a modern, systematic, and aesthetically pleasing board gaming experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ3kwk0l6v1BjaJTuygd7o3m5_rFbt-r_vX1iIQRJqCG4_9RHvwo_sSSm9aNzQYonGh0k-hf52Fdkvby_7O7pqBuGVYU09QvBArYoJJxPyNCxpiWqViAjWknZApWW4b3tudvucA0IlzzZXMu5lqrgYk2JX8bgjWGncduOhBmfZ8HUQORT01bzI0cQnMdka7Q2NFKctjpQXDtKCib0ackW0sOQ9mAtrdIuPQJZrrSq-EaBiCFw0bXekXIpVo6zInSHmHYUkhPRV4BY">
+    <div class="absolute top-md right-md bg-secondary-fixed text-on-secondary-fixed px-md py-1 rounded-full text-label-md font-label-md">Free Lend</div>
+    </div>
+    <div class="p-md">
+    <div class="flex items-center justify-between mb-sm">
+    <div class="flex items-center gap-sm">
+    <img class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A portrait of a young man with a friendly expression, wearing a casual gray sweater. He is standing against a neutral-colored wall in a bright, modern interior. The lighting is soft, creating a warm and inviting feel. He looks reliable and enthusiastic, perfect for a community-based game sharing platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP2MPi-06oKxYsopQL3fsvc-foEMm7EoTE-KuSmWGdJGd6RPcX3KDQ73jN2BAC21Xy_hHveoVrjjb1WgSB8SG1YebLaq_oY-b0t3kjIgReFFF4C5ONgPxZBvu0_2a9OjLXrkHCWrZMYJk6VxpVnFNcackljOTFsrv1ZdHparqKhvrIjY_Hb10IpylL_CaFHLG72PLSNxcbsQJGicU-vH5k6KMuPembQXFvZVfQ3sMPUfAswyRXwsWYjsJAoe-o9opZ8ARvX6ADmM8">
+    <div>
+    <p class="font-semibold text-body-md">Marcus Thorne</p>
+    <div class="flex items-center gap-xs">
+    <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+    <span class="text-label-md text-on-surface-variant">4.8</span>
+    </div>
+    </div>
+    </div>
+    <span class="text-label-md text-on-surface-variant">2.1 miles</span>
+    </div>
+    <h3 class="font-headline-md text-headline-md mb-xs">Azul</h3>
+    <p class="text-on-surface-variant text-body-md line-clamp-2 mb-md">Tactile tile-placement game based on Portuguese palace walls. Fast and easy to learn.</p>
+    <div class="flex items-center justify-between mt-auto">
+    <span class="text-secondary font-bold text-headline-md">Free</span>
+    <button class="bg-secondary text-on-primary px-xl py-2 rounded-lg font-semibold hover:opacity-90 active:scale-95 transition-all text-body-md">Request</button>
+    </div>
+    </div>
+    </article>
+    </div>
+    </main>
+    <!-- FAB -->
+    <button class="fixed bottom-24 right-6 w-14 h-14 bg-secondary text-white rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform duration-200 z-40">
+    <span class="material-symbols-outlined text-[32px]">add</span>
+    </button>
+    <!-- BottomNavBar -->
+    <nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface dark:bg-surface border-t border-outline-variant dark:border-outline shadow-lg">
+    <div class="flex justify-around items-center h-16 px-gutter-mobile pb-safe w-full">
+    <button class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed font-semibold hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all p-2 rounded-lg">
+    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+    <span class="font-label-md text-label-md">Dashboard</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all p-2 rounded-lg">
+    <span class="material-symbols-outlined">mail</span>
+    <span class="font-label-md text-label-md">Inbox</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all p-2 rounded-lg">
+    <span class="material-symbols-outlined">add_box</span>
+    <span class="font-label-md text-label-md">Add Post</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all p-2 rounded-lg">
+    <span class="material-symbols-outlined">person</span>
+    <span class="font-label-md text-label-md">Profile</span>
+    </button>
+    </div>
+    </nav>
+    </body></html>

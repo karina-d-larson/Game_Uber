@@ -1,0 +1,216 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="stylesheet" href="boardlink.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    </head>
+    <body class="font-body-md text-on-surface">
+    <!-- TopAppBar -->
+    <header class="w-full sticky top-0 z-50 bg-surface dark:bg-surface shadow-sm">
+    <div class="flex items-center justify-between px-md py-sm max-w-screen-xl mx-auto">
+    <div class="flex items-center gap-md">
+    <button class="material-symbols-outlined text-primary dark:text-primary-fixed p-xs hover:bg-surface-container-low transition-colors rounded-full">search</button>
+    </div>
+    <h1 class="font-display-lg text-display-lg text-secondary dark:text-secondary-fixed">BoardLink</h1>
+    <div class="flex items-center gap-md">
+    <button class="material-symbols-outlined text-primary dark:text-primary-fixed p-xs hover:bg-surface-container-low transition-colors rounded-full">tune</button>
+    </div>
+    </div>
+    </header>
+    <main class="max-w-screen-xl mx-auto px-md md:px-lg py-xl pb-32">
+    <!-- Page Header & Tab Filter -->
+    <section class="mb-xl">
+    <h2 class="font-headline-lg text-headline-lg mb-md">Community Requests</h2>
+    <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mb-lg">Discover fellow gamers in your area seeking specific titles. Help someone complete their weekend game night or find a new group.</p>
+    <div class="flex flex-wrap gap-sm">
+    <span class="px-md py-xs bg-secondary text-on-secondary rounded-full font-label-md text-label-md">All Requests</span>
+    <span class="px-md py-xs bg-surface-container-high text-on-surface-variant rounded-full font-label-md text-label-md hover:bg-surface-container-highest cursor-pointer">Strategy</span>
+    <span class="px-md py-xs bg-surface-container-high text-on-surface-variant rounded-full font-label-md text-label-md hover:bg-surface-container-highest cursor-pointer">Co-op</span>
+    <span class="px-md py-xs bg-surface-container-high text-on-surface-variant rounded-full font-label-md text-label-md hover:bg-surface-container-highest cursor-pointer">Party Games</span>
+    </div><section class="flex justify-center mt-xl">
+    <div class="bg-surface-container-low p-1 rounded-xl flex">
+    <button class="px-xl py-2 text-on-surface-variant font-medium rounded-lg text-body-md">UP FOR LENDING</button>
+    <button class="px-xl py-2 bg-surface shadow-sm text-secondary font-semibold rounded-lg text-body-md">WANTED TO RENT</button>
+    </div>
+    </section>
+    </section>
+    <!-- Requests Bento/Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+    <!-- Card 1 -->
+    <div class="request-card-gradient border border-outline-variant rounded-xl p-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+    <div class="flex items-start justify-between mb-lg">
+    <div class="flex items-center gap-md">
+    <img alt="User Avatar" class="w-12 h-12 rounded-full border-2 border-secondary" data-alt="A professional and friendly headshot of a young adult board game enthusiast in a bright modern home setting. The person is smiling warmly, conveying a sense of community and trust. The image is captured with shallow depth of field, using soft natural light to create a premium, clean aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHS2lhZjKG46A-w8jktUK_ojUmEN1eH3n5MB-TNMbwsFVzEoJROMO7PTCjjv42jLbrDvOZ-k3WQ5gmHcJCXqllY4OhcPt3jlHkLzVl0wsMzSrTfxn39niGV_eYQehUPuWBwoSJoUF5OxKa3rtzs0MxEkGHVkeJJzVTOfl8VNt2dUIlBYGz4T60C0Rtx-H_ttGLlwXMcQbtIRXMFF5HfM6_3DXu6Qgli1Qsy7Y67CJdRydOYvREaVC_P8cgQk3q6TBURC3xfqLCuS8">
+    <div>
+    <p class="font-headline-md text-headline-md text-primary">Alex Chen</p>
+    <div class="flex items-center gap-xs">
+    <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+    <span class="font-label-md text-label-md text-on-surface-variant">Top Requester</span>
+    </div>
+    </div>
+    </div>
+    <span class="px-sm py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-lg font-label-md text-label-md">Urgent</span>
+    </div>
+    <div class="mb-xl">
+    <p class="font-label-md text-label-md text-on-surface-variant mb-xs">LOOKING FOR</p>
+    <h3 class="font-headline-lg text-headline-lg text-primary mb-md">Gloomhaven: Jaws of the Lion</h3>
+    <div class="space-y-sm">
+    <div class="flex items-center gap-sm">
+    <span class="material-symbols-outlined text-secondary">handshake</span>
+    <p class="font-body-md text-body-md"><span class="font-semibold">Arrangement:</span> Weekend Loan / Trade</p>
+    </div>
+    <div class="flex items-center gap-sm">
+    <span class="material-symbols-outlined text-secondary">calendar_today</span>
+    <p class="font-body-md text-body-md"><span class="font-semibold">Timeframe:</span> This Friday - Monday</p>
+    </div>
+    </div>
+    </div>
+    <div class="flex items-center gap-md">
+    <button class="flex-1 bg-secondary text-on-secondary py-sm rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all">Message Alex</button>
+    <button class="p-sm bg-surface-container-high text-on-surface-variant rounded-lg hover:bg-surface-container-highest transition-colors active:scale-95">
+    <span class="material-symbols-outlined">favorite</span>
+    </button>
+    </div>
+    </div>
+    <!-- Card 2 -->
+    <div class="request-card-gradient border border-outline-variant rounded-xl p-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+    <div class="flex items-start justify-between mb-lg">
+    <div class="flex items-center gap-md">
+    <img alt="User Avatar" class="w-12 h-12 rounded-full border-2 border-secondary" data-alt="A portrait of a middle-aged woman with a kind expression, wearing a casual navy blue sweater. She is sitting in a sunlit living room with bookshelves filled with board games in the background. The lighting is warm and golden, highlighting a peaceful, community-focused lifestyle." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIrP5DN5XkB8_vRIxKkyC1LzhtZMql2jFOxHKlWzxEZvyN5eIYwhAggY0oh3CSbMnWVAY59Y8mHUGeGWiXEeLlBIjq5izo2VxsLBE4NrjEOpo377lB0B_icKM_d5mRnBdYMtEUnPm4BduRCZVp0FKJLSvWtFak7_H6sWdUoyspriOOFUoceZ9lwl2p_pEYc6XshEhl3j01rMGOnJwv0Ep4LDmJlnZmbLNBRdODAJJu3kbplwfSFFwJAXAz27MIsqyIe30ORqt5jMs">
+    <div>
+    <p class="font-headline-md text-headline-md text-primary">Sarah Miller</p>
+    <div class="flex items-center gap-xs">
+    <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+    <span class="font-label-md text-label-md text-on-surface-variant">4.9 Rating</span>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="mb-xl">
+    <p class="font-label-md text-label-md text-on-surface-variant mb-xs">LOOKING FOR</p>
+    <h3 class="font-headline-lg text-headline-lg text-primary mb-md">Wingspan + European Exp.</h3>
+    <div class="space-y-sm">
+    <div class="flex items-center gap-sm">
+    <span class="material-symbols-outlined text-secondary">groups</span>
+    <p class="font-body-md text-body-md"><span class="font-semibold">Arrangement:</span> Play-Together Group</p>
+    </div>
+    <div class="flex items-center gap-sm">
+    <span class="material-symbols-outlined text-secondary">schedule</span>
+    <p class="font-body-md text-body-md"><span class="font-semibold">Timeframe:</span> Recurring Weekends</p>
+    </div>
+    </div>
+    </div>
+    <div class="flex items-center gap-md">
+    <button class="flex-1 bg-secondary text-on-secondary py-sm rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all">Message Sarah</button>
+    <button class="p-sm bg-surface-container-high text-on-surface-variant rounded-lg hover:bg-surface-container-highest transition-colors active:scale-95">
+    <span class="material-symbols-outlined">favorite</span>
+    </button>
+    </div>
+    </div>
+    <!-- Card 3 -->
+    <div class="request-card-gradient border border-outline-variant rounded-xl p-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+    <div class="flex items-start justify-between mb-lg">
+    <div class="flex items-center gap-md">
+    <img alt="User Avatar" class="w-12 h-12 rounded-full border-2 border-secondary" data-alt="A creative headshot of a person with artistic glasses and a vibrant shirt. They are in a modern workspace with soft neon accents in the background, creating a soft-tech and playful atmosphere. The lighting is diffused and professional, emphasizing a modern corporate yet friendly gaming culture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3g1vQCVpM_Q6ZugZWtM6LmXlsBY2BgqiZlltEMyPm6zxTOeXi1hbjwP0KXsmgdyjx6dflxmnmea9QK68x6sc91EgFZPBLRfY1wgmGAVVGOWj5s-h7ppcx3D_lyjXRBy9xTB53Ec1QiBTzNlBpuarMn7yKrqDKoaUaFT6W9--7VsoB9h5Swg89zabSrsdY16IFQsFMYKakFNhMsZm4GZunCRSkQ6QUGBskc0kImu3Rkp_Gylht55alW_BmzyCb8rGq3QPiZXN2qG8">
+    <div>
+    <p class="font-headline-md text-headline-md text-primary">Jordan Wu</p>
+    <div class="flex items-center gap-xs">
+    <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+    <span class="font-label-md text-label-md text-on-surface-variant">Quick Responder</span>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="mb-xl">
+    <p class="font-label-md text-label-md text-on-surface-variant mb-xs">LOOKING FOR</p>
+    <h3 class="font-headline-lg text-headline-lg text-primary mb-md">Root: Underworld Expansion</h3>
+    <div class="space-y-sm">
+    <div class="flex items-center gap-sm">
+    <span class="material-symbols-outlined text-secondary">swap_horiz</span>
+    <p class="font-body-md text-body-md"><span class="font-semibold">Arrangement:</span> 1-Week Swap</p>
+    </div>
+    <div class="flex items-center gap-sm">
+    <span class="material-symbols-outlined text-secondary">event_available</span>
+    <p class="font-body-md text-body-md"><span class="font-semibold">Timeframe:</span> Anytime this Month</p>
+    </div>
+    </div>
+    </div>
+    <div class="flex items-center gap-md">
+    <button class="flex-1 bg-secondary text-on-secondary py-sm rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all">Message Jordan</button>
+    <button class="p-sm bg-surface-container-high text-on-surface-variant rounded-lg hover:bg-surface-container-highest transition-colors active:scale-95">
+    <span class="material-symbols-outlined">favorite</span>
+    </button>
+    </div>
+    </div>
+    <!-- Card 4 (Bento-style tall or wide) -->
+    <div class="request-card-gradient border border-outline-variant rounded-xl p-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between md:col-span-2 lg:col-span-1">
+    <div class="flex items-start justify-between mb-lg">
+    <div class="flex items-center gap-md">
+    <img alt="User Avatar" class="w-12 h-12 rounded-full border-2 border-secondary" data-alt="A portrait of a cheerful man in a modern kitchen setting, holding a cup of coffee. He has a welcoming smile. The background is slightly out of focus, showing a clean, high-end apartment with minimalist decor. The lighting is bright and airy, reflecting a premium lifestyle." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATM2VN-vO2kUzbYXcxuRxh5eu78fYHPtdVXipyAM1Cw2tflehIq8u-g0ucINKi_BAYMfSO8GxaM6IaQgxDMM1Fr7LbBPt4MkeUXNjzfaVpnjELN48h2NTrN1AqBjA_3VF4gyFgFv6-Uftn8R_5iSPURlIjLmYvg_xmMDH4nT15yg5gBCJrJiBiijG2CYhsEVLZ3zJI-F4stLYVitD0xwipFTC7l6rCsvHDtI7vLEycSfzdZtY1sSIA_wjoF6D0q7SWP7i7ySdqyGQ">
+    <div>
+    <p class="font-headline-md text-headline-md text-primary">Marcus Reed</p>
+    <div class="flex items-center gap-xs">
+    <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+    <span class="font-label-md text-label-md text-on-surface-variant">Lender Level 5</span>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="mb-xl">
+    <p class="font-label-md text-label-md text-on-surface-variant mb-xs">LOOKING FOR</p>
+    <h3 class="font-headline-lg text-headline-lg text-primary mb-md">Ark Nova</h3>
+    <div class="space-y-sm">
+    <div class="flex items-center gap-sm">
+    <span class="material-symbols-outlined text-secondary">payments</span>
+    <p class="font-body-md text-body-md"><span class="font-semibold">Arrangement:</span> Paid Rental / Deposit</p>
+    </div>
+    <div class="flex items-center gap-sm">
+    <span class="material-symbols-outlined text-secondary">hourglass_top</span>
+    <p class="font-body-md text-body-md"><span class="font-semibold">Timeframe:</span> Next 2 Weeks</p>
+    </div>
+    </div>
+    </div>
+    <div class="flex items-center gap-md">
+    <button class="flex-1 bg-secondary text-on-secondary py-sm rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all">Message Marcus</button>
+    <button class="p-sm bg-surface-container-high text-on-surface-variant rounded-lg hover:bg-surface-container-highest transition-colors active:scale-95">
+    <span class="material-symbols-outlined">favorite</span>
+    </button>
+    </div>
+    </div>
+    <!-- Extra Community Help Card -->
+    <div class="bg-primary-container rounded-xl p-lg flex flex-col items-center justify-center text-center text-on-primary-fixed border border-primary">
+    <span class="material-symbols-outlined text-[48px] text-tertiary-fixed mb-md" style="font-variation-settings: 'FILL' 1;">volunteer_activism</span>
+    <h3 class="font-headline-md text-headline-md mb-sm">Can't find what you need?</h3>
+    <p class="font-body-md text-body-md text-on-primary-container mb-lg">Post your own request and let the community reach out to you.</p>
+    <button class="w-full bg-tertiary-fixed text-on-tertiary-fixed py-md rounded-lg font-headline-md text-headline-md hover:bg-tertiary-fixed-dim transition-colors active:scale-95">Post Request</button>
+    </div>
+    </div>
+    </main>
+    <!-- BottomNavBar -->
+    <nav class="fixed bottom-0 w-full z-50 rounded-t-xl border-t border-outline-variant dark:border-outline bg-surface dark:bg-surface shadow-lg">
+    <div class="flex justify-around items-center h-16 px-gutter-mobile pb-safe w-full">
+    <a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-all px-4 py-2 rounded-lg" href="#">
+    <span class="material-symbols-outlined">dashboard</span>
+    <span class="font-label-md text-label-md">Dashboard</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-all px-4 py-2 rounded-lg" href="#">
+    <span class="material-symbols-outlined">mail</span>
+    <span class="font-label-md text-label-md">Inbox</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed font-semibold hover:bg-surface-container-high transition-all px-4 py-2 rounded-lg" href="#">
+    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_box</span>
+    <span class="font-label-md text-label-md">Add Post</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-all px-4 py-2 rounded-lg" href="#">
+    <span class="material-symbols-outlined">person</span>
+    <span class="font-label-md text-label-md">Profile</span>
+    </a>
+    </div>
+    </nav>
+    <!-- Floating Action Button for Mobile -->
+    <div class="fixed bottom-20 right-6 md:hidden">
+    <button class="w-14 h-14 bg-secondary text-on-secondary rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform">
+    <span class="material-symbols-outlined text-[32px]">edit</span>
+    </button>
+    </div>
+    </body></html>

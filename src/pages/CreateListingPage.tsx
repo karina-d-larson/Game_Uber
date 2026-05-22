@@ -142,7 +142,7 @@ export function CreateListingPage() {
                   Game Title
                 </label>
                 <input
-                  className="w-full rounded-lg border border-outline-variant bg-surface px-md py-3 outline-none transition-all focus:border-secondary focus:ring-1 focus:ring-secondary"
+                  className="boardlink-field"
                   placeholder="e.g. Scythe, Terraforming Mars"
                   type="text"
                   value={form.title}
@@ -157,7 +157,7 @@ export function CreateListingPage() {
                   Genre
                 </label>
                 <select
-                  className="w-full appearance-none rounded-lg border border-outline-variant bg-surface px-md py-3 outline-none transition-all focus:border-secondary"
+                  className="boardlink-field appearance-none"
                   value={form.category}
                   onChange={(e) => updateField('category', e.target.value)}
                 >
@@ -171,7 +171,7 @@ export function CreateListingPage() {
                   Condition
                 </label>
                 <select
-                  className="w-full appearance-none rounded-lg border border-outline-variant bg-surface px-md py-3 outline-none transition-all focus:border-secondary"
+                  className="boardlink-field appearance-none"
                   value={form.condition}
                   onChange={(e) => updateField('condition', e.target.value)}
                 >
@@ -241,7 +241,7 @@ export function CreateListingPage() {
                       $
                     </span>
                     <input
-                      className="w-full rounded-lg border border-outline-variant bg-surface py-3 pr-md pl-8 outline-none transition-all focus:border-secondary focus:ring-1 focus:ring-secondary"
+                      className="boardlink-field pl-8"
                       placeholder="0.00"
                       type="number"
                       min="0"
@@ -260,7 +260,7 @@ export function CreateListingPage() {
                   Description
                 </label>
                 <textarea
-                  className="w-full rounded-lg border border-outline-variant bg-surface px-md py-3 outline-none transition-all focus:border-secondary focus:ring-1 focus:ring-secondary"
+                  className="boardlink-field min-h-[6rem] resize-y"
                   placeholder="Tell us about the game condition, missing pieces, or house rules..."
                   rows={4}
                   value={form.description}
@@ -279,7 +279,7 @@ export function CreateListingPage() {
                   Meetup Preferences
                 </label>
                 <input
-                  className="w-full rounded-lg border border-outline-variant bg-surface px-md py-3 outline-none transition-all focus:border-secondary focus:ring-1 focus:ring-secondary"
+                  className="boardlink-field"
                   placeholder="e.g. Near Central Station, weekends only"
                   type="text"
                   value={form.meetupPreferences}
@@ -299,7 +299,7 @@ export function CreateListingPage() {
                       className="absolute top-1/2 left-md -translate-y-1/2 text-outline"
                     />
                     <input
-                      className="w-full rounded-lg border border-outline-variant bg-surface py-3 pr-md pl-10 outline-none transition-all focus:border-secondary focus:ring-1 focus:ring-secondary"
+                      className="boardlink-field pl-10"
                       type="text"
                       value={form.location}
                       onChange={(e) => updateField('location', e.target.value)}

@@ -8,10 +8,24 @@
     color: #1b1b1d;
     font-family: 'Inter', sans-serif;
   }
+
+  /* Prototype typography utilities set tight line-heights; reset for form fields */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  textarea,
+  select {
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    letter-spacing: normal;
+    font-weight: 400;
+  }
 }
 
 @layer components {
   .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     display: inline-block;
     line-height: 1;
@@ -20,6 +34,8 @@
     word-wrap: normal;
     white-space: nowrap;
     direction: ltr;
+    /* Prevent Inter (body) from turning icon ligatures into literal words */
+    font-feature-settings: 'liga' 1;
   }
 
   .custom-scrollbar {
@@ -50,6 +66,32 @@
 
   .custom-shadow {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Shared field styling (matches prototype inputs) */
+  .boardlink-field {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid #c5c6cc;
+    background-color: #fbf9fa;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #1b1b1d;
+    outline: none;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  .boardlink-field:focus {
+    border-color: #0058be;
+    box-shadow: 0 0 0 1px #0058be;
+  }
+
+  .boardlink-field::placeholder {
+    color: #44474c;
+    opacity: 1;
   }
 }
 

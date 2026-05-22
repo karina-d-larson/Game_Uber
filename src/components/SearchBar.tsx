@@ -19,7 +19,7 @@ export function SearchBar({
           className="absolute left-3 text-on-surface-variant"
         />
         <input
-          className="w-64 rounded-full border-none bg-surface-container-low py-2 pr-4 pl-10 font-body-md text-body-md focus:ring-2 focus:ring-secondary"
+          className="w-64 rounded-full border-none bg-surface-container-low py-2.5 pr-4 pl-10 text-sm leading-normal text-on-surface focus:ring-2 focus:ring-secondary"
           placeholder={placeholder}
           type="search"
           value={value}

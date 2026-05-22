@@ -1,8 +1,47 @@
-import { demoListings } from '../data/demoListings'
+/**
+ * LISTING DATA LAYER — swap implementation here for Firebase
+ * ===========================================================
+ * Guide: docs/FIREBASE_INTEGRATION.md
+ *
+ * UI must NOT import Firestore directly. Pages use:
+ *   - useListings() from src/context/ListingsContext.tsx
+ *   - OR getListingById() from src/data/listings.ts (detail page Phase 1 only)
+ *
+ * YOUR TASKS (Firestore):
+ *   1. fetchListings()     → query collection `listings` (see firebaseCollections.ts)
+ *   2. getListingById(id)  → getDoc or query by document id
+ *   3. createListing()     → addDoc + ownerId from authService + image from storageService
+ *   4. map Firestore docs  → Listing type (src/types/listing.ts)
+ *
+ * Optional: real-time updates via onSnapshot in ListingsContext.refreshListings
+ *
+ * DEV FALLBACK: localStorage + mockListings below — remove when Firestore is live.
+ */
+
+import { mockListings } from '../data/listings'
 import type { CreateListingInput, Listing } from '../types/listing'
 import { readJson, writeJson } from '../utils/localStorage'
 
 const STORAGE_KEY = 'boardlink_listings'
+
+// ---------------------------------------------------------------------------
+// FIREBASE TODO: map Firestore document → Listing (use after you add Firestore)
+// ---------------------------------------------------------------------------
+// import type { DocumentData } from 'firebase/firestore'
+// export function mapDocToListing(id: string, data: DocumentData): Listing {
+//   return {
+//     id,
+//     title: data.title,
+//     category: data.category,
+//     // ...see docs/FIREBASE_INTEGRATION.md for full field list
+//     owner: {
+//       name: data.ownerName,
+//       rating: data.ownerRating,
+//       avatar: data.ownerAvatar,
+//     },
+//     // ...
+//   }
+// }
 
 function formatPrice(
   arrangementType: CreateListingInput['arrangementType'],
@@ -14,6 +53,7 @@ function formatPrice(
   return 'Contact for price'
 }
 
+/** TEMP: builds a listing locally until Firestore + auth provide owner fields */
 function buildListing(input: CreateListingInput): Listing {
   const id =
     typeof crypto !== 'undefined' && crypto.randomUUID
@@ -49,22 +89,35 @@ function buildListing(input: CreateListingInput): Listing {
   }
 }
 
-/** Load listings — localStorage first, then demo seed. Async for future Firestore. */
+/**
+ * FIREBASE TODO: replace body with getDocs(collection(db, 'listings'))
+ * Keep return type Promise<Listing[]>. Dashboard will use this via ListingsContext.
+ */
 export async function fetchListings(): Promise<Listing[]> {
   const saved = readJson<Listing[]>(STORAGE_KEY)
   if (saved && saved.length > 0) return saved
-  return demoListings
+  return mockListings
 }
 
+/** FIREBASE TODO: remove when using per-document writes in Firestore */
 export async function saveListings(listings: Listing[]): Promise<void> {
   writeJson(STORAGE_KEY, listings)
 }
 
+/**
+ * FIREBASE TODO: replace with getDoc(doc(db, 'listings', id)) + mapDocToListing
+ */
 export async function getListingById(id: string): Promise<Listing | undefined> {
   const listings = await fetchListings()
   return listings.find((listing) => listing.id === id)
 }
 
+/**
+ * FIREBASE TODO:
+ *   1. Upload image via storageService if file selected
+ *   2. addDoc with ownerId = auth current user
+ *   3. Return mapDocToListing result
+ */
 export async function createListing(
   input: CreateListingInput,
 ): Promise<Listing> {

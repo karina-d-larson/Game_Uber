@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CategoryChips } from '../components/CategoryChips'
-import { ListingCard } from '../components/ListingCard'
+import { ListingsFeed } from '../components/ListingsFeed'
 import { MarketplaceToggle } from '../components/MarketplaceToggle'
 import { Navbar } from '../components/Navbar'
 import { MaterialIcon } from '../components/MaterialIcon'
-import { useListings } from '../context/ListingsContext'
+import { mockListings } from '../data/listings'
 import type { ArrangementType, ListingMode } from '../types/listing'
 import { filterListings } from '../utils/listingFilters'
 
@@ -16,8 +16,17 @@ const ARRANGEMENT_FILTERS: { label: string; value: ArrangementType | null }[] = 
   { label: 'Free lend', value: 'free' },
 ]
 
+/**
+ * Marketplace feed (Phase 1).
+ *
+ * FIREBASE TODO (teammate): replace mockListings with useListings():
+ *   const { listings, loading } = useListings()
+ *   const visibleListings = useMemo(() => filterListings(listings, { ... }), [listings, ...])
+ * Show loading state from context while Firestore fetch runs.
+ *
+ * See: docs/FIREBASE_INTEGRATION.md — Milestone 1
+ */
 export function DashboardPage() {
-  const { listings, loading } = useListings()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string | null>(null)
   const [arrangementType, setArrangementType] = useState<ArrangementType | null>(
@@ -27,13 +36,13 @@ export function DashboardPage() {
 
   const visibleListings = useMemo(
     () =>
-      filterListings(listings, {
+      filterListings(mockListings, {
         search,
         category,
         arrangementType,
         listingMode,
       }),
-    [listings, search, category, arrangementType, listingMode],
+    [search, category, arrangementType, listingMode],
   )
 
   return (
@@ -65,21 +74,7 @@ export function DashboardPage() {
 
         <MarketplaceToggle mode={listingMode} onChange={setListingMode} />
 
-        {loading ? (
-          <p className="py-xl text-center text-body-md text-on-surface-variant">
-            Loading listings…
-          </p>
-        ) : visibleListings.length === 0 ? (
-          <p className="py-xl text-center text-body-md text-on-surface-variant">
-            No listings match your filters yet.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-xl md:grid-cols-2 lg:grid-cols-3">
-            {visibleListings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
-        )}
+        <ListingsFeed listings={visibleListings} />
       </main>
 
       <Link

@@ -6,19 +6,22 @@ import {
 } from '../utils/listingDisplay'
 import { MaterialIcon } from './MaterialIcon'
 
-type ListingCardProps = {
+type GameCardProps = {
   listing: Listing
 }
 
-export function ListingCard({ listing }: ListingCardProps) {
-  const distance =
-    listing.location.includes('miles') || listing.location.includes('away')
-      ? listing.location
-      : listing.location
-
+/**
+ * Marketplace feed card — markup from html/dashboard.html.
+ * No Firebase here: parent passes `listing` from mock data or ListingsContext.
+ */
+export function GameCard({ listing }: GameCardProps) {
   return (
     <article className="group overflow-hidden rounded-xl bg-surface shadow-sm transition-shadow hover:shadow-md">
-      <Link to={`/listings/${listing.id}`} className="block">
+      <Link
+        to={`/listings/${listing.id}`}
+        state={{ listing }}
+        className="block"
+      >
         <div className="relative h-64 overflow-hidden">
           <img
             src={listing.image}
@@ -53,7 +56,9 @@ export function ListingCard({ listing }: ListingCardProps) {
                 </div>
               </div>
             </div>
-            <span className="text-label-md text-on-surface-variant">{distance}</span>
+            <span className="text-label-md text-on-surface-variant">
+              {listing.location}
+            </span>
           </div>
           <h3 className="mb-xs font-headline-md text-headline-md">{listing.title}</h3>
           <p className="mb-md line-clamp-2 text-body-md text-on-surface-variant">

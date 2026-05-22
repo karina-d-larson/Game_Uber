@@ -7,6 +7,16 @@ import { InboxPage } from './pages/InboxPage'
 import { ListingDetailPage } from './pages/ListingDetailPage'
 import { ProfilePage } from './pages/ProfilePage'
 
+/**
+ * App routes. ListingsProvider wraps all pages that need listing data.
+ *
+ * FIREBASE TODO (teammate): when Auth is ready, wrap with AuthProvider, e.g.
+ *   <AuthProvider>
+ *     <ListingsProvider> ... </ListingsProvider>
+ *   </AuthProvider>
+ * Optional: <ProtectedRoute> for /listings/new
+ * See: docs/FIREBASE_INTEGRATION.md
+ */
 export default function App() {
   return (
     <ListingsProvider>

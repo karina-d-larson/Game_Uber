@@ -51,6 +51,14 @@ function StarRow({ count }: { count: number }) {
   )
 }
 
+/**
+ * Profile page — static mock content for now.
+ *
+ * FIREBASE TODO (teammate): load users/{uid} from Firestore in ProfileHeader
+ *   - Use route param or AuthContext for which profile to show
+ *   - Reviews subcollection or separate reviews query
+ * See: docs/FIREBASE_INTEGRATION.md — Milestone 2
+ */
 export function ProfilePage() {
   return (
     <>

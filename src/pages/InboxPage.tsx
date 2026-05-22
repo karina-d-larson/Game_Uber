@@ -1,6 +1,13 @@
 import { Navbar } from '../components/Navbar'
 
-/** Placeholder until messaging is built (Firebase later). */
+/**
+ * INBOX STUB — Firebase messaging not implemented yet.
+ *
+ * FIREBASE TODO (teammate): Milestone 4 in docs/FIREBASE_INTEGRATION.md
+ *   - Create messageService.ts
+ *   - Firestore collections: conversations / messages
+ *   - Migrate UI from html/inbox.html (keep Tailwind classes)
+ */
 export function InboxPage() {
   return (
     <>

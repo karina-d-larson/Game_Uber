@@ -1,3 +1,13 @@
+/**
+ * Create listing form — already wired to useListings().addListing().
+ *
+ * FIREBASE TODO (teammate):
+ *   - Require auth before submit (AuthContext)
+ *   - Wire image upload UI to storageService.uploadListingImage
+ *   - listingService.createListing will use Firestore + Storage
+ *
+ * See: docs/FIREBASE_INTEGRATION.md — Milestones 1–3
+ */
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'

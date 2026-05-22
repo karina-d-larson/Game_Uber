@@ -1,3 +1,15 @@
+/**
+ * Shared listing state for the React app.
+ *
+ * FIREBASE (teammate):
+ *   - This file should keep calling src/services/listingService.ts only.
+ *   - Optional: replace fetchListings with onSnapshot for live feed updates.
+ *   - Optional: add `error` to context value for failed Firestore reads.
+ *   - After Firestore works, update DashboardPage to use useListings() instead of mockListings.
+ *
+ * See: docs/FIREBASE_INTEGRATION.md
+ */
+
 import {
   createContext,
   useCallback,
@@ -33,6 +45,10 @@ export function ListingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refreshListings()
+
+    // FIREBASE TODO: optional real-time listener, e.g.
+    // const unsub = onSnapshot(collection(db, 'listings'), (snap) => { ... })
+    // return () => unsub()
   }, [refreshListings])
 
   const addListing = useCallback(

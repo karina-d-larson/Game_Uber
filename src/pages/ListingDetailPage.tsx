@@ -1,24 +1,24 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { MaterialIcon } from '../components/MaterialIcon'
-import { useListings } from '../context/ListingsContext'
+import { getListingById } from '../data/listings'
+import type { Listing } from '../types/listing'
 import { formatArrangementDetail } from '../utils/listingDisplay'
+
+type DetailLocationState = {
+  listing?: Listing
+}
 
 export function ListingDetailPage() {
   const { id } = useParams()
-  const { getListingById, loading } = useListings()
-  const listing = id ? getListingById(id) : undefined
+  const location = useLocation()
+  const state = location.state as DetailLocationState | null
 
-  if (loading) {
-    return (
-      <div className="min-h-dvh bg-background text-on-background">
-        <Navbar variant="detail" />
-        <p className="px-gutter-mobile py-xl text-body-md text-on-surface-variant">
-          Loading listing…
-        </p>
-      </div>
-    )
-  }
+  // Phase 1: listing from Link state, or mock getListingById (sync).
+  // FIREBASE TODO: on mount, if !state?.listing && id, call
+  //   listingService.getListingById(id) or useListings().getListingById(id)
+  // and show loading while fetching. See docs/FIREBASE_INTEGRATION.md
+  const listing = state?.listing ?? (id ? getListingById(id) : undefined)
 
   if (!listing) {
     return (

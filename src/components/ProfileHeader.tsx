@@ -1,5 +1,9 @@
 import { MaterialIcon } from './MaterialIcon'
 
+/**
+ * FIREBASE TODO: accept user profile props from Firestore users/{uid}
+ * instead of hardcoded @boardgame_guru / avatar URLs.
+ */
 export function ProfileHeader() {
   return (
     <section className="flex flex-col items-center gap-lg rounded-xl bg-surface-container-lowest p-lg custom-shadow md:flex-row md:items-start">

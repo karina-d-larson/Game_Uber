@@ -1,4 +1,4 @@
-import { CATEGORY_OPTIONS } from '../data/demoListings'
+import { CATEGORY_OPTIONS } from '../data/listings'
 
 type CategoryChipsProps = {
   selected: string | null

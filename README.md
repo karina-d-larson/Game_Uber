@@ -6,6 +6,16 @@ Team web app built with **React**, **Vite**, **Tailwind CSS**, and **PWA** suppo
 
 - [Node.js](https://nodejs.org/) **20+** (see `.nvmrc` if you use [nvm](https://github.com/nvm-sh/nvm))
 
+## Firebase integration (teammate handoff)
+
+If you are implementing **Firebase** (Auth, Firestore, Storage, messaging), start here:
+
+**[docs/FIREBASE_INTEGRATION.md](docs/FIREBASE_INTEGRATION.md)** — full checklist, data model, milestones, and which files to change.
+
+Copy `.env.example` → `.env` and follow comments in `src/services/listingService.ts`.
+
+---
+
 ## Getting started
 
 ```bash

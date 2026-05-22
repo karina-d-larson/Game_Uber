@@ -1,3 +1,10 @@
+/**
+ * Shared listing types — used by UI and Firebase service layer.
+ * Firestore field mapping: docs/FIREBASE_INTEGRATION.md
+ * When adding Firestore fields (e.g. ownerId, createdAt), extend types here
+ * and map in src/services/listingService.ts (mapDocToListing).
+ */
+
 /** How the listing is offered (matches prototype badges / filters). */
 export type ArrangementType = 'rent' | 'trade' | 'free'
 

@@ -1,6 +1,7 @@
 /**
  * Generic localStorage helpers.
- * Listing-specific persistence lives in listingService (Firestore-ready boundary).
+ * Listing persistence: src/services/listingService.ts (TEMP — remove when Firestore is live).
+ * Firebase teammate: docs/FIREBASE_INTEGRATION.md
  */
 
 export function readJson<T>(key: string): T | null {

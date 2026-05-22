@@ -43,10 +43,15 @@ public/              Static assets (favicon, PWA icons)
 html/                Static prototype screens (reference while building React)
   boardlink.css      Generated Tailwind output — run `npm run build:css` after token/class changes
 src/
-  App.tsx            Routes
-  components/        Reusable UI (e.g. BottomNav)
+  App.tsx            Routes + ListingsProvider
+  components/        Navbar, BottomNav, ListingCard, SearchBar, …
+  context/           ListingsContext (shared listing state)
+  data/              demoListings seed data
   layouts/           AppLayout wraps pages with shared chrome
-  pages/             One file per screen (migrate from html/)
+  pages/             Dashboard, CreateListing, Profile, ListingDetail, Inbox
+  services/          listingService (localStorage now, Firestore later)
+  types/             Listing model
+  utils/             localStorage, filters, display helpers
   main.tsx           React entry point
   index.css          Tailwind for the React app
   html.css           Tailwind input for html/ prototypes (reference only)

@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @config '../tailwind.config.ts';
 
-/* Layout width tokens — keep in sync with src/index.css */
+/* Container max-widths — keep in sync with src/index.css */
 @theme {
   --container-sm: 24rem;
   --container-md: 28rem;

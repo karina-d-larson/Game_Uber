@@ -10,6 +10,7 @@
     --color-white: #fff;
     --spacing: 0.25rem;
     --breakpoint-xl: 80rem;
+    --container-xl: 36rem;
     --container-2xl: 42rem;
     --text-sm: 0.875rem;
     --text-sm--line-height: calc(1.25 / 0.875);
@@ -440,11 +441,20 @@
   .w-full {
     width: 100%;
   }
+  .w-xl {
+    width: 32px;
+  }
+  .max-w-\(--container-xl\) {
+    max-width: var(--container-xl);
+  }
   .max-w-2xl {
     max-width: var(--container-2xl);
   }
   .max-w-screen-xl {
     max-width: var(--breakpoint-xl);
+  }
+  .max-w-xl {
+    max-width: 32px;
   }
   .min-w-0 {
     min-width: calc(var(--spacing) * 0);

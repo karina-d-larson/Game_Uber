@@ -2,9 +2,8 @@
 @config '../tailwind.config.ts';
 
 /*
- * Layout width tokens — used with max-w-(--container-*), e.g. max-w-(--container-xl).
- * Edit here for permanent max-width changes (survives npm run build:css).
- * Spacing keys in tailwind.config.ts (p-xl, gap-xl) do NOT control these.
+ * Container max-widths for layout. Use max-w-(--container-xl), not max-w-xl (that follows padding scale).
+ * Padding uses tailwind.config.ts spacing: p-xl, gap-md, etc.
  */
 @theme {
   --container-sm: 24rem;

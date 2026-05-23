@@ -65,16 +65,20 @@ export default {
         xl: '0.75rem',
         full: '9999px',
       },
+      /**
+       * BoardLink spacing scale (padding/margin/gap). Required for p-xl, gap-md, etc. to generate.
+       * Do not use max-w-xl / w-xl for layout width — use max-w-2xl, max-w-screen-xl, or
+       * max-w-(--container-xl) (see @theme in src/index.css).
+       */
       spacing: {
-        'max-width': '1280px',
-        'gutter-desktop': '24px',
-        lg: '24px',
-        sm: '12px',
-        xl: '32px',
-        xs: '4px',
-        base: '8px',
         'gutter-mobile': '16px',
+        'gutter-desktop': '24px',
+        xs: '4px',
+        sm: '12px',
+        base: '8px',
         md: '16px',
+        lg: '24px',
+        xl: '32px',
       },
       fontFamily: {
         'headline-lg-mobile': ['Inter', 'sans-serif'],

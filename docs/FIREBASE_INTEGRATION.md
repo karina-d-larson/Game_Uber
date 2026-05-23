@@ -11,10 +11,10 @@ This document is for the teammate implementing **Firebase** (Auth, Firestore, St
 ```
 Pages (Dashboard, CreateListing, Detail, Profile, Inbox)
     ↓ only use hooks / context — never import Firebase directly in pages
-ListingsContext  (+ future AuthContext)
-    ↓ calls async service functions
+ListingsContext + AuthContext
+    ↓ calls async service functions only
 src/services/listingService.ts   ← YOU implement Firestore here first
-src/services/authService.ts      ← YOU create (login, current user)
+src/services/authService.ts      ← YOU replace mock login/signup/logout/getCurrentUser
 src/services/storageService.ts   ← YOU create (game photos)
 src/lib/firebase.ts              ← YOU create (initializeApp, exports)
 ```
@@ -32,9 +32,11 @@ src/lib/firebase.ts              ← YOU create (initializeApp, exports)
 | Listing types | Done | `src/types/listing.ts` |
 | Create listing form | Done (localStorage + image preview) | `src/pages/CreateListingPage.tsx`, `src/utils/imageFile.ts` |
 | Listing detail UI | Done | `src/pages/ListingDetailPage.tsx` |
-| Profile UI (static) | Done | `src/pages/ProfilePage.tsx` |
+| Profile UI | Done (uses AuthContext user + logout) | `src/pages/ProfilePage.tsx` |
+| Auth UI (login/signup/splash) | Done (mock service) | `src/pages/LoginPage.tsx`, `SignupPage.tsx`, `AuthSplashPage.tsx` |
+| Auth routing | Done | `src/components/AuthGate.tsx`, `App.tsx` |
 | Inbox UI | Stub only | `src/pages/InboxPage.tsx` |
-| Firebase | **Not started** | — |
+| Firebase SDK | **Not started** | `src/lib/firebase.ts` stubs only |
 
 ### Dashboard and create flow (frontend — no Firebase yet)
 
@@ -43,6 +45,113 @@ src/lib/firebase.ts              ← YOU create (initializeApp, exports)
 - **Detail page** resolves listings from `ListingsContext` (includes user-created posts).
 
 **Your Firestore work:** replace implementations in `listingService.ts` only; pages should keep calling context/services. Remove base64 image blobs from Firestore docs — store Storage URLs in `listing.image`.
+
+### Authentication (frontend wired — mock persistence)
+
+- **Login / signup pages** call `useAuth()` → `authService.login|signup|logout|getCurrentUser()` (no Firebase in pages).
+- **Protected routes:** dashboard, inbox, create listing, profile, listing detail (`ProtectedRoute` in `src/components/AuthGate.tsx`).
+- **Guest routes:** `/login`, `/signup` redirect to `/` when already signed in (`GuestRoute`).
+- **Splash:** `AuthSplashPage` while `AuthContext` restores session on load.
+- **Logout:** Profile → Account section → `logout()` → `/login`.
+- **Mock persistence:** `localStorage` keys `boardlink_auth_session` + `boardlink_auth_users` (dev only — remove when Firebase Auth is live).
+
+---
+
+## Authentication — Firebase implementation guide
+
+### Service functions to implement (`src/services/authService.ts`)
+
+| Function | Current (mock) | Firebase replacement |
+|----------|----------------|----------------------|
+| `login(email, password)` | Read `boardlink_auth_users`, set session | `signInWithEmailAndPassword(auth, email, password)` → load profile |
+| `signup(email, password, username)` | Append mock user + session | `createUserWithEmailAndPassword` + `setDoc(users/{uid}, { username, ... })` |
+| `logout()` | `removeItem(boardlink_auth_session)` | `signOut(auth)` |
+| `getCurrentUser()` | Read session + mock users table | `auth.currentUser` or `onAuthStateChanged` + optional Firestore `users/{uid}` |
+
+**Do not rename these exports** — `AuthContext` and pages depend on them.
+
+### Expected `AuthUser` shape (`src/types/user.ts`)
+
+```ts
+{
+  id: string          // Firebase Auth uid
+  email: string
+  username: string    // handle without @
+  displayName: string
+  avatar: string      // URL (Storage or default)
+}
+```
+
+Map from Firebase Auth `User` + Firestore `users/{uid}` document. Keep fields stable so `ProfileHeader` and listing owner denormalization do not need UI changes.
+
+### Where auth persistence is handled
+
+| Layer | Mock (now) | Production (your work) |
+|-------|------------|-------------------------|
+| Session | `localStorage` key `boardlink_auth_session` | Firebase Auth browser persistence (automatic) |
+| User profile | `localStorage` key `boardlink_auth_users` | Firestore collection `users` |
+| App restore | `AuthContext` `useEffect` → `getCurrentUser()` | `onAuthStateChanged` in `AuthContext` (see FIREBASE TODO there) |
+| Route guards | `ProtectedRoute` / `GuestRoute` | **No change** — still use `useAuth().user` |
+
+### Environment variables & files required
+
+Same as core Firebase setup (`.env.example`):
+
+```env
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+Also required:
+
+- `npm install firebase`
+- `src/lib/firebase.ts` — export `auth` from `getAuth(app)`
+- Firebase Console → **Authentication** → enable **Email/Password**
+- Firestore `users` collection (see data model below)
+
+### AuthContext (`src/context/AuthContext.tsx`)
+
+Replace session restore `useEffect` with:
+
+```ts
+onAuthStateChanged(auth, async (firebaseUser) => {
+  if (!firebaseUser) { setUser(null); setLoading(false); return }
+  const profile = await /* getDoc users/{uid} or cache */
+  setUser(mapToAuthUser(firebaseUser, profile))
+  setLoading(false)
+})
+```
+
+Pages keep using `login`, `signup`, `logout` from context — implement those by calling updated `authService` only.
+
+### Route protection (`src/components/AuthGate.tsx`)
+
+No structural changes expected. Guards read `useAuth().user` and `loading` from context.
+
+### Listing owner linkage
+
+`listingService.buildListing` already calls `getCurrentUser()` for owner name/avatar.
+
+**FIREBASE TODO:** add `ownerId: currentUser.id` on Firestore documents when `createListing` uses `addDoc`.
+
+### Firestore `users` document (profile)
+
+Document ID: Auth `uid`.
+
+| Field | Type |
+|-------|------|
+| `username` | string |
+| `displayName` | string |
+| `avatar` | string |
+| `email` | string |
+| `rating` | number (optional) |
+| `reviewCount` | number (optional) |
+| `bio` | string (optional) |
+| `createdAt` | timestamp |
 
 ---
 
@@ -175,11 +284,13 @@ On first run, you may import `mockListings` from `src/data/listings.ts` into Fir
 
 ### Milestone 2 — Authentication
 
-- [ ] `authService.ts` + `AuthContext`
-- [ ] Sign up / sign in UI (new pages or modal — coordinate with team)
-- [ ] Wrap routes that need auth (`/listings/new`, edit own listing)
-- [ ] `createListing` sets `ownerId` from `auth.currentUser.uid`
-- [ ] `ProfilePage` loads `users/{uid}` instead of hardcoded `@boardgame_guru`
+- [x] ~~Sign up / sign in UI~~ (`LoginPage`, `SignupPage`)
+- [x] ~~`AuthContext` + `useAuth`~~
+- [x] ~~Protected / guest routes~~ (`AuthGate`, `ProtectedRoute`, `GuestRoute`)
+- [ ] Replace mock `authService` with Firebase Auth (`login`, `signup`, `logout`, `getCurrentUser`)
+- [ ] `onAuthStateChanged` in `AuthContext` (remove mock localStorage restore)
+- [ ] `createListing` sets `ownerId` from `auth.currentUser.uid` in Firestore
+- [ ] `ProfilePage` / `ProfileHeader` load extended fields from Firestore `users/{uid}` (optional bio, stats)
 
 ### Milestone 3 — Storage & images
 
@@ -208,11 +319,12 @@ On first run, you may import `mockListings` from `src/data/listings.ts` into Fir
 | Page | File | Your work |
 |------|------|-----------|
 | Dashboard | `src/pages/DashboardPage.tsx` | Uses `useListings()` — no change if service returns Firestore data |
-| Create listing | `src/pages/CreateListingPage.tsx` | Swap `readImageAsDataUrl` → `storageService`; add auth guard |
+| Create listing | `src/pages/CreateListingPage.tsx` | Swap `readImageAsDataUrl` → `storageService`; route already protected |
 | Listing detail | `src/pages/ListingDetailPage.tsx` | Optional async `listingService.getListingById` on mount; keep `location.state` cache |
 | Profile | `src/pages/ProfilePage.tsx` | Load user doc from Firestore; keep `ProfileHeader` markup |
 | Inbox | `src/pages/InboxPage.tsx` | Build real UI + `messageService` |
-| App shell | `src/App.tsx` | Wrap with `AuthProvider` when ready; optional protected routes |
+| Login / Signup | `src/pages/LoginPage.tsx`, `SignupPage.tsx` | No UI change; wire errors from Firebase Auth codes |
+| App shell | `src/App.tsx` | AuthProvider in place; no route restructure needed |
 
 **Do not redesign:** `GameCard`, `BottomNav`, `Navbar`, `tailwind.config.ts`, `html/` prototypes.
 
@@ -228,16 +340,19 @@ Already calls `listingService`. You may add:
 - Error state: `error: string | null`
 - `refreshListings()` after create (already exists)
 
-### `src/context/AuthContext.tsx` (you create)
+### `src/context/AuthContext.tsx` (implemented — swap service backend)
 
-Expose:
+Exposes:
 
 ```ts
-user: User | null
-loading: boolean
-signIn(email, password)
-signOut()
+user: AuthUser | null
+loading: boolean   // true during initial getCurrentUser / onAuthStateChanged
+login(email, password)
+signup(email, password, username)
+logout()
 ```
+
+Pages use `useAuth()` only — never import Firebase here.
 
 ---
 
@@ -269,6 +384,8 @@ service cloud.firestore {
 
 ## Testing checklist
 
+- [ ] `npm run dev` — signed-out users land on `/login`; after signup, dashboard loads
+- [ ] Logout returns to login; refresh keeps session (Firebase) or mock localStorage
 - [ ] `npm run dev` — feed loads from Firestore
 - [ ] Click card → detail shows correct listing
 - [ ] Create listing → appears on dashboard after refresh

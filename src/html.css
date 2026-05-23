@@ -1,6 +1,16 @@
 @import 'tailwindcss';
 @config '../tailwind.config.ts';
 
+/* Layout width tokens — keep in sync with src/index.css */
+@theme {
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-xl: 36rem;
+  --container-2xl: 42rem;
+  --container-board: 80rem;
+}
+
 @layer base {
   body {
     min-height: max(884px, 100dvh);

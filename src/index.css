@@ -1,6 +1,20 @@
 @import 'tailwindcss';
 @config '../tailwind.config.ts';
 
+/*
+ * Layout width tokens — used with max-w-(--container-*), e.g. max-w-(--container-xl).
+ * Edit here for permanent max-width changes (survives npm run build:css).
+ * Spacing keys in tailwind.config.ts (p-xl, gap-xl) do NOT control these.
+ */
+@theme {
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-xl: 36rem;
+  --container-2xl: 42rem;
+  --container-board: 80rem;
+}
+
 @layer base {
   body {
     min-height: max(884px, 100dvh);

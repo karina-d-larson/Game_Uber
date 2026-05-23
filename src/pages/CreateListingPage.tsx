@@ -2,7 +2,7 @@
  * Create listing form — wired to useListings().addListing() + listingService (localStorage).
  *
  * FIREBASE TODO (teammate):
- *   - Require auth before submit (AuthContext)
+ *   - Route already protected via ProtectedRoute; ensure Firebase session before submit
  *   - Replace readImageAsDataUrl + data URL in input with storageService.uploadListingImage
  *   - listingService.createListing will use Firestore + Storage download URL
  *

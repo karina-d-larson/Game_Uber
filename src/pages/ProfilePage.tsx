@@ -1,6 +1,9 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { ProfileHeader } from '../components/ProfileHeader'
 import { MaterialIcon } from '../components/MaterialIcon'
+import { useAuth } from '../context/AuthContext'
 
 const STATS = [
   { value: '98%', label: 'Lender Score' },
@@ -60,12 +63,43 @@ function StarRow({ count }: { count: number }) {
  * See: docs/FIREBASE_INTEGRATION.md — Milestone 2
  */
 export function ProfilePage() {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const [loggingOut, setLoggingOut] = useState(false)
+
+  if (!user) return null
+
+  async function handleLogout() {
+    setLoggingOut(true)
+    try {
+      await logout()
+      navigate('/login', { replace: true })
+    } finally {
+      setLoggingOut(false)
+    }
+  }
+
   return (
     <>
       <Navbar variant="profile" />
 
       <main className="mx-auto max-w-screen-xl space-y-xl px-gutter-mobile py-xl pb-24 md:px-gutter-desktop">
-        <ProfileHeader />
+        <ProfileHeader user={user} />
+
+        <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg custom-shadow">
+          <h3 className="mb-md font-headline-md text-headline-md text-primary">Account</h3>
+          <p className="mb-md font-body-md text-body-md text-on-surface-variant">
+            Signed in as {user.email}
+          </p>
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="w-full rounded-lg border border-outline-variant px-lg py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low disabled:opacity-60 md:w-auto"
+          >
+            {loggingOut ? 'Signing out…' : 'Log out'}
+          </button>
+        </section>
 
         <section className="grid grid-cols-2 gap-md md:grid-cols-4">
           {STATS.map((stat) => (

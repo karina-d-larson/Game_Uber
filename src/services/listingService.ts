@@ -21,6 +21,7 @@
 import { mockListings } from '../data/listings'
 import type { CreateListingInput, Listing } from '../types/listing'
 import { readJson, writeJson } from '../utils/localStorage'
+import { getCurrentUser } from './authService'
 
 const STORAGE_KEY = 'boardlink_listings'
 
@@ -54,11 +55,13 @@ function formatPrice(
 }
 
 /** TEMP: builds a listing locally until Firestore + auth provide owner fields */
-function buildListing(input: CreateListingInput): Listing {
+async function buildListing(input: CreateListingInput): Promise<Listing> {
   const id =
     typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : `listing-${Date.now()}`
+
+  const currentUser = await getCurrentUser()
 
   return {
     id,
@@ -71,11 +74,10 @@ function buildListing(input: CreateListingInput): Listing {
     pricePerDay: input.pricePerDay,
     description: input.description.trim(),
     owner: {
-      name: 'You',
-      username: '@boardgame_guru',
+      name: currentUser?.displayName ?? 'You',
+      username: currentUser ? `@${currentUser.username}` : undefined,
       rating: 4.8,
-      avatar:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuDKHIZ20m5AdsPygH7mo9GAuD80aTL1xPNpdImx_PbFWb2frljMf0-fa9nge7jYqMfhFyaoBDh6ebxk3Gw4W7FyskHsCV8GEnP61EJoS7kCkTtOeZ5DoilGGfNxKrkO4uQYnWY68kDyGSEOszS1csnfhTtXjjNVAxzPydRi1ChhsLJL0i2_KYXFjiuG3wqA0yiAkjW2HFNlQk3HJ6pv_AobcvOdPxIVOlOEGe78QMDjrvw8r3MQ9XRbkv05WoJl0boYQlLJFe_Z-7g',
+      avatar: currentUser?.avatar ?? '',
       verified: true,
     },
     location: input.location.trim(),
@@ -125,7 +127,7 @@ export async function createListing(
   input: CreateListingInput,
 ): Promise<Listing> {
   const listings = await fetchListings()
-  const listing = buildListing(input)
+  const listing = await buildListing(input)
   const next = [listing, ...listings]
   await saveListings(next)
   return listing

@@ -1,17 +1,23 @@
+import type { AuthUser } from '../types/user'
 import { MaterialIcon } from './MaterialIcon'
 
+type ProfileHeaderProps = {
+  user: AuthUser
+}
+
 /**
- * FIREBASE TODO: accept user profile props from Firestore users/{uid}
- * instead of hardcoded @boardgame_guru / avatar URLs.
+ * Profile hero — data from AuthContext (mock) or Firestore users/{uid} later.
+ *
+ * FIREBASE TODO: pass Firestore profile fields; keep this component presentational.
  */
-export function ProfileHeader() {
+export function ProfileHeader({ user }: ProfileHeaderProps) {
   return (
     <section className="flex flex-col items-center gap-lg rounded-xl bg-surface-container-lowest p-lg custom-shadow md:flex-row md:items-start">
       <div className="relative">
         <img
           alt="Avatar"
           className="h-32 w-32 rounded-full border-4 border-surface-container-high object-cover md:h-40 md:w-40"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKHIZ20m5AdsPygH7mo9GAuD80aTL1xPNpdImx_PbFWb2frljMf0-fa9nge7jYqMfhFyaoBDh6ebxk3Gw4W7FyskHsCV8GEnP61EJoS7kCkTtOeZ5DoilGGfNxKrkO4uQYnWY68kDyGSEOszS1csnfhTtXjjNVAxzPydRi1ChhsLJL0i2_KYXFjiuG3wqA0yiAkjW2HFNlQk3HJ6pv_AobcvOdPxIVOlOEGe78QMDjrvw8r3MQ9XRbkv05WoJl0boYQlLJFe_Z-7g"
+          src={user.avatar}
         />
         <div className="absolute right-2 bottom-2 flex items-center justify-center rounded-full border-2 border-surface-container-lowest bg-secondary p-1 text-on-secondary">
           <MaterialIcon name="verified" filled className="text-sm" />
@@ -19,7 +25,7 @@ export function ProfileHeader() {
       </div>
       <div className="flex-1 space-y-sm text-center md:text-left">
         <div className="flex flex-col gap-xs md:flex-row md:items-center md:gap-md">
-          <h2 className="font-headline-lg text-headline-lg">@boardgame_guru</h2>
+          <h2 className="font-headline-lg text-headline-lg">@{user.username}</h2>
           <span className="inline-flex items-center rounded-full bg-secondary-container/10 px-3 py-1 font-label-md text-label-md text-secondary-container">
             Marketplace Member
           </span>

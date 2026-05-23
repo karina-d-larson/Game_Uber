@@ -1,7 +1,7 @@
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { MaterialIcon } from '../components/MaterialIcon'
-import { getListingById } from '../data/listings'
+import { useListings } from '../context/ListingsContext'
 import type { Listing } from '../types/listing'
 import { formatArrangementDetail } from '../utils/listingDisplay'
 
@@ -13,12 +13,24 @@ export function ListingDetailPage() {
   const { id } = useParams()
   const location = useLocation()
   const state = location.state as DetailLocationState | null
+  const { getListingById, loading } = useListings()
 
-  // Phase 1: listing from Link state, or mock getListingById (sync).
-  // FIREBASE TODO: on mount, if !state?.listing && id, call
-  //   listingService.getListingById(id) or useListings().getListingById(id)
-  // and show loading while fetching. See docs/FIREBASE_INTEGRATION.md
-  const listing = state?.listing ?? (id ? getListingById(id) : undefined)
+  // Listing from navigation state, or context (localStorage + mocks via listingService).
+  // FIREBASE TODO: if !listing && id, await listingService.getListingById(id) with loading UI.
+  // See docs/FIREBASE_INTEGRATION.md
+  const listing =
+    state?.listing ?? (id ? getListingById(id) : undefined)
+
+  if (loading && !listing) {
+    return (
+      <div className="min-h-dvh bg-background text-on-background">
+        <Navbar variant="detail" />
+        <main className="mx-auto max-w-screen-xl px-gutter-mobile py-xl md:px-gutter-desktop">
+          <p className="font-body-md text-on-surface-variant">Loading listing…</p>
+        </main>
+      </div>
+    )
+  }
 
   if (!listing) {
     return (

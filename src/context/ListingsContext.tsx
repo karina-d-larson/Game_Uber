@@ -5,7 +5,7 @@
  *   - This file should keep calling src/services/listingService.ts only.
  *   - Optional: replace fetchListings with onSnapshot for live feed updates.
  *   - Optional: add `error` to context value for failed Firestore reads.
- *   - After Firestore works, update DashboardPage to use useListings() instead of mockListings.
+ *   - DashboardPage already uses useListings(); Firestore changes stay in listingService.
  *
  * See: docs/FIREBASE_INTEGRATION.md
  */

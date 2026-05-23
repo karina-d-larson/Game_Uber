@@ -30,24 +30,19 @@ src/lib/firebase.ts              ← YOU create (initializeApp, exports)
 | Marketplace feed UI | Done (Phase 1) | `src/components/GameCard.tsx`, `ListingsFeed.tsx` |
 | Mock listing data | Done | `src/data/listings.ts` → `mockListings` |
 | Listing types | Done | `src/types/listing.ts` |
-| Create listing form | Done (local) | `src/pages/CreateListingPage.tsx` |
+| Create listing form | Done (localStorage + image preview) | `src/pages/CreateListingPage.tsx`, `src/utils/imageFile.ts` |
 | Listing detail UI | Done | `src/pages/ListingDetailPage.tsx` |
 | Profile UI (static) | Done | `src/pages/ProfilePage.tsx` |
 | Inbox UI | Stub only | `src/pages/InboxPage.tsx` |
 | Firebase | **Not started** | — |
 
-### Important: dashboard still uses mock data directly
+### Dashboard and create flow (frontend — no Firebase yet)
 
-`src/pages/DashboardPage.tsx` imports `mockListings` from `src/data/listings.ts` for Phase 1.
+- **Dashboard** uses `useListings()` → `listingService.fetchListings()` (localStorage, else `mockListings`).
+- **Create listing** saves via `listingService.createListing()`; images are **data URLs** in localStorage until Storage (see `src/utils/imageFile.ts`).
+- **Detail page** resolves listings from `ListingsContext` (includes user-created posts).
 
-**After Firestore works**, change Dashboard to use `useListings()` from context (same pattern as `CreateListingPage`):
-
-```tsx
-const { listings, loading, refreshListings } = useListings()
-// filter `listings` with filterListings() — same as today with mockListings
-```
-
-`ListingsContext` already calls `listingService.fetchListings()` — once you implement Firestore inside that service, wiring the dashboard to context connects the feed to Firebase.
+**Your Firestore work:** replace implementations in `listingService.ts` only; pages should keep calling context/services. Remove base64 image blobs from Firestore docs — store Storage URLs in `listing.image`.
 
 ---
 
@@ -173,7 +168,7 @@ On first run, you may import `mockListings` from `src/data/listings.ts` into Fir
 - [ ] `fetchListings` → Firestore
 - [ ] `getListingById` → Firestore
 - [ ] `createListing` → Firestore + Storage for image
-- [ ] Update `DashboardPage` to use `useListings()` instead of `mockListings`
+- [x] ~~Update `DashboardPage` to use `useListings()`~~ (done — feed uses context)
 - [ ] Update `ListingDetailPage` to use `getListingById` from service (or context) on load / refresh
 - [ ] Remove or gate localStorage in `listingService` (dev fallback only)
 - [ ] Firestore security rules: read listings public; create only if `request.auth != null`
@@ -189,7 +184,7 @@ On first run, you may import `mockListings` from `src/data/listings.ts` into Fir
 ### Milestone 3 — Storage & images
 
 - [ ] `storageService.uploadListingImage`
-- [ ] Wire file input on `CreateListingPage` (currently decorative upload area)
+- [ ] Replace data URL upload on `CreateListingPage` with `storageService.uploadListingImage` (file input UI already exists)
 - [ ] Store URLs in `listing.image` and `listing.gallery`
 
 ### Milestone 4 — Inbox / messaging
@@ -212,9 +207,9 @@ On first run, you may import `mockListings` from `src/data/listings.ts` into Fir
 
 | Page | File | Your work |
 |------|------|-----------|
-| Dashboard | `src/pages/DashboardPage.tsx` | Switch `mockListings` → `useListings()`; show `loading` from context |
-| Create listing | `src/pages/CreateListingPage.tsx` | Already uses `addListing()`; add image upload + auth check |
-| Listing detail | `src/pages/ListingDetailPage.tsx` | Prefer `getListingById` from service on mount; keep `location.state` as optional cache |
+| Dashboard | `src/pages/DashboardPage.tsx` | Uses `useListings()` — no change if service returns Firestore data |
+| Create listing | `src/pages/CreateListingPage.tsx` | Swap `readImageAsDataUrl` → `storageService`; add auth guard |
+| Listing detail | `src/pages/ListingDetailPage.tsx` | Optional async `listingService.getListingById` on mount; keep `location.state` cache |
 | Profile | `src/pages/ProfilePage.tsx` | Load user doc from Firestore; keep `ProfileHeader` markup |
 | Inbox | `src/pages/InboxPage.tsx` | Build real UI + `messageService` |
 | App shell | `src/App.tsx` | Wrap with `AuthProvider` when ready; optional protected routes |

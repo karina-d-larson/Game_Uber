@@ -114,9 +114,12 @@ export async function getListingById(id: string): Promise<Listing | undefined> {
 
 /**
  * FIREBASE TODO:
- *   1. Upload image via storageService if file selected
+ *   1. Upload image via storageService if file selected (not base64 in Firestore)
  *   2. addDoc with ownerId = auth current user
  *   3. Return mapDocToListing result
+ *
+ * TEMP: `input.image` may be a data URL from CreateListingPage for localStorage persistence.
+ * Remove large base64 blobs from docs when Storage is live.
  */
 export async function createListing(
   input: CreateListingInput,

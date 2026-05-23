@@ -1,19 +1,20 @@
 /**
- * Create listing form — already wired to useListings().addListing().
+ * Create listing form — wired to useListings().addListing() + listingService (localStorage).
  *
  * FIREBASE TODO (teammate):
  *   - Require auth before submit (AuthContext)
- *   - Wire image upload UI to storageService.uploadListingImage
- *   - listingService.createListing will use Firestore + Storage
+ *   - Replace readImageAsDataUrl + data URL in input with storageService.uploadListingImage
+ *   - listingService.createListing will use Firestore + Storage download URL
  *
  * See: docs/FIREBASE_INTEGRATION.md — Milestones 1–3
  */
-import { useState, type FormEvent } from 'react'
+import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { MaterialIcon } from '../components/MaterialIcon'
 import { useListings } from '../context/ListingsContext'
 import type { ArrangementType, ListingMode } from '../types/listing'
+import { LISTING_IMAGE_ACCEPT, readImageAsDataUrl } from '../utils/imageFile'
 
 const GENRES = ['Strategy', 'Party', 'Worker Placement', 'Cooperative', 'Family']
 const CONDITIONS = ['Like New', 'Good', 'Well Used', 'Acceptable']
@@ -39,13 +40,14 @@ const initialForm: FormState = {
   pricePerDay: '',
   description: '',
   meetupPreferences: '',
-  location: 'San Francisco, CA',
+  location: '',
 }
 
 export function CreateListingPage() {
   const navigate = useNavigate()
   const { addListing } = useListings()
   const [form, setForm] = useState<FormState>(initialForm)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
 
@@ -62,12 +64,33 @@ export function CreateListingPage() {
     const next: Record<string, string> = {}
     if (!form.title.trim()) next.title = 'Game title is required.'
     if (!form.description.trim()) next.description = 'Description is required.'
+    if (!form.category.trim()) next.category = 'Category is required.'
+    if (!form.condition.trim()) next.condition = 'Condition is required.'
     if (!form.location.trim()) next.location = 'Location is required.'
-    if (form.arrangementType === 'rent' && !form.pricePerDay.trim()) {
-      next.pricePerDay = 'Price per day is required for rentals.'
-    }
+    if (!imagePreview) next.image = 'Please add a photo of the game.'
     setErrors(next)
     return Object.keys(next).length === 0
+  }
+
+  async function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const dataUrl = await readImageAsDataUrl(file)
+      setImagePreview(dataUrl)
+      setErrors((current) => {
+        const next = { ...current }
+        delete next.image
+        return next
+      })
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Could not load that image.'
+      setErrors((current) => ({ ...current, image: message }))
+    }
+
+    event.target.value = ''
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -76,21 +99,22 @@ export function CreateListingPage() {
 
     setSubmitting(true)
     try {
-      const created = await addListing({
+      await addListing({
         title: form.title,
         category: form.category,
         condition: form.condition,
         arrangementType: form.arrangementType,
         listingMode: form.listingMode,
         pricePerDay:
-          form.arrangementType === 'rent'
+          form.pricePerDay.trim() !== ''
             ? Number.parseFloat(form.pricePerDay)
             : undefined,
         description: form.description,
         location: form.location,
         meetupPreferences: form.meetupPreferences,
+        image: imagePreview ?? undefined,
       })
-      navigate(`/listings/${created.id}`)
+      navigate('/')
     } finally {
       setSubmitting(false)
     }
@@ -128,22 +152,54 @@ export function CreateListingPage() {
           </div>
 
           <form className="space-y-xl" onSubmit={handleSubmit} noValidate>
-            <div className="group relative flex aspect-video cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low transition-colors hover:border-secondary">
-              <img
-                className="absolute inset-0 h-full w-full object-cover opacity-0 group-hover:opacity-10"
-                alt=""
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5AskxegN_GNGS0yItNT7I96fiHqflGxAISzuplgl0WTCdbI2R1kP2o5_16-nwqWVrSuKxnJzsakKKNtrfcVHxdg5V9IyUFCPp3_vj5Z_URR340_Lr65hHaraH4P6Cd76UwaobBkv59dQBBwjW0f6xBVar0vDlLgdp4ZyxquW82Ybd2XDw9d6A3Es7VGDw0X3FzQbXRx1mfXkBM_clNQgotM0RFJvsTHEPXeQtgbSg9iO8gCdEhpRwupFqcvHV1jLzaUpZPRPmqXo"
-              />
-              <MaterialIcon
-                name="add_a_photo"
-                className="mb-2 text-5xl text-outline-variant group-hover:text-secondary"
-              />
-              <p className="font-label-md text-label-md tracking-wider text-on-surface-variant uppercase">
-                Upload Game Photos
-              </p>
-              <p className="mt-1 text-[10px] text-outline">
-                Recommended: Front box art &amp; open components
-              </p>
+            <div>
+              <label
+                htmlFor="listing-photo"
+                className="group relative flex aspect-video cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low transition-colors hover:border-secondary"
+              >
+                <input
+                  id="listing-photo"
+                  type="file"
+                  accept={LISTING_IMAGE_ACCEPT}
+                  className="sr-only"
+                  onChange={handleImageChange}
+                />
+                {imagePreview ? (
+                  <>
+                    <img
+                      className="absolute inset-0 h-full w-full object-cover"
+                      alt="Selected game photo preview"
+                      src={imagePreview}
+                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-primary/40 opacity-0 transition-opacity group-hover:opacity-100">
+                      <MaterialIcon
+                        name="add_a_photo"
+                        className="mb-2 text-4xl text-on-primary"
+                      />
+                      <p className="font-label-md text-label-md text-on-primary">
+                        Change photo
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <MaterialIcon
+                      name="add_a_photo"
+                      className="mb-2 text-5xl text-outline-variant group-hover:text-secondary"
+                    />
+                    <p className="font-label-md text-label-md tracking-wider text-on-surface-variant uppercase">
+                      Upload Game Photos
+                    </p>
+                    <p className="mt-1 text-[10px] text-outline">
+                      Recommended: Front box art &amp; open components
+                    </p>
+                  </>
+                )}
+              </label>
+              {errors.image && (
+                <p className="mt-1 text-body-md text-error">{errors.image}</p>
+              )}
+              {/* FIREBASE TODO: pass File to storageService.uploadListingImage before createListing */}
             </div>
 
             <div className="grid grid-cols-1 gap-md md:grid-cols-2">
@@ -175,6 +231,9 @@ export function CreateListingPage() {
                     <option key={genre}>{genre}</option>
                   ))}
                 </select>
+                {errors.category && (
+                  <p className="mt-1 text-body-md text-error">{errors.category}</p>
+                )}
               </div>
               <div>
                 <label className="mb-2 block font-label-md text-label-md text-on-surface-variant">
@@ -189,6 +248,9 @@ export function CreateListingPage() {
                     <option key={condition}>{condition}</option>
                   ))}
                 </select>
+                {errors.condition && (
+                  <p className="mt-1 text-body-md text-error">{errors.condition}</p>
+                )}
               </div>
             </div>
 
@@ -260,9 +322,6 @@ export function CreateListingPage() {
                       onChange={(e) => updateField('pricePerDay', e.target.value)}
                     />
                   </div>
-                  {errors.pricePerDay && (
-                    <p className="mt-1 text-body-md text-error">{errors.pricePerDay}</p>
-                  )}
                 </div>
               )}
               <div>
@@ -310,6 +369,7 @@ export function CreateListingPage() {
                     />
                     <input
                       className="boardlink-field pl-10"
+                      placeholder="City, neighborhood, or campus"
                       type="text"
                       value={form.location}
                       onChange={(e) => updateField('location', e.target.value)}
@@ -318,6 +378,7 @@ export function CreateListingPage() {
                   <button
                     className="rounded-lg bg-surface-container-high px-md transition-colors hover:bg-surface-container-highest"
                     type="button"
+                    aria-label="Use current location (not implemented)"
                   >
                     <MaterialIcon name="my_location" />
                   </button>

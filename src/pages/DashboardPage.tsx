@@ -5,7 +5,7 @@ import { ListingsFeed } from '../components/ListingsFeed'
 import { MarketplaceToggle } from '../components/MarketplaceToggle'
 import { Navbar } from '../components/Navbar'
 import { MaterialIcon } from '../components/MaterialIcon'
-import { mockListings } from '../data/listings'
+import { useListings } from '../context/ListingsContext'
 import type { ArrangementType, ListingMode } from '../types/listing'
 import { filterListings } from '../utils/listingFilters'
 
@@ -17,16 +17,13 @@ const ARRANGEMENT_FILTERS: { label: string; value: ArrangementType | null }[] = 
 ]
 
 /**
- * Marketplace feed (Phase 1).
+ * Marketplace feed — reads listings from ListingsContext (localStorage + mocks via listingService).
  *
- * FIREBASE TODO (teammate): replace mockListings with useListings():
- *   const { listings, loading } = useListings()
- *   const visibleListings = useMemo(() => filterListings(listings, { ... }), [listings, ...])
- * Show loading state from context while Firestore fetch runs.
- *
+ * FIREBASE TODO (teammate): no page changes needed if listingService.fetchListings uses Firestore.
  * See: docs/FIREBASE_INTEGRATION.md — Milestone 1
  */
 export function DashboardPage() {
+  const { listings, loading } = useListings()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string | null>(null)
   const [arrangementType, setArrangementType] = useState<ArrangementType | null>(
@@ -36,13 +33,13 @@ export function DashboardPage() {
 
   const visibleListings = useMemo(
     () =>
-      filterListings(mockListings, {
+      filterListings(listings, {
         search,
         category,
         arrangementType,
         listingMode,
       }),
-    [search, category, arrangementType, listingMode],
+    [listings, search, category, arrangementType, listingMode],
   )
 
   return (
@@ -74,7 +71,13 @@ export function DashboardPage() {
 
         <MarketplaceToggle mode={listingMode} onChange={setListingMode} />
 
-        <ListingsFeed listings={visibleListings} />
+        {loading ? (
+          <p className="py-xl text-center text-body-md text-on-surface-variant">
+            Loading listings…
+          </p>
+        ) : (
+          <ListingsFeed listings={visibleListings} />
+        )}
       </main>
 
       <Link

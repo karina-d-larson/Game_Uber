@@ -15,11 +15,32 @@
 }
 
 @layer base {
+  :root {
+    --bottom-nav-height: 4rem;
+  }
+
+  html {
+    min-height: 100dvh;
+  }
+
   body {
-    min-height: max(884px, 100dvh);
+    min-height: 100dvh;
     background-color: #fbf9fa;
     color: #1b1b1d;
     font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  .app-shell__content {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-shell--stack .app-shell__content {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   /* Prototype typography utilities set tight line-heights; reset for form fields */
@@ -110,4 +131,12 @@
 
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility top-safe {
+  top: env(safe-area-inset-top, 0px);
 }

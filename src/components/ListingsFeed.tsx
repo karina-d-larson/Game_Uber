@@ -1,5 +1,5 @@
 import type { Listing } from '../types/listing'
-import { GameCard } from './GameCard'
+import { ListingCard } from './ListingCard'
 
 type ListingsFeedProps = {
   listings: Listing[]
@@ -7,7 +7,7 @@ type ListingsFeedProps = {
 }
 
 /**
- * Phase 1 marketplace grid — renders GameCard components from mock data.
+ * Marketplace grid — renders listing cards.
  */
 export function ListingsFeed({
   listings,
@@ -24,7 +24,7 @@ export function ListingsFeed({
   return (
     <div className="grid grid-cols-1 gap-xl md:grid-cols-2 lg:grid-cols-3">
       {listings.map((listing) => (
-        <GameCard key={listing.id} listing={listing} />
+        <ListingCard key={listing.id} listing={listing} />
       ))}
     </div>
   )

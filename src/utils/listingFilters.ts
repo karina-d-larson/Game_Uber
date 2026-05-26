@@ -15,7 +15,8 @@ export function filterListings(
   const query = filters.search.trim().toLowerCase()
 
   return listings.filter((listing) => {
-    if (listing.listingMode !== filters.listingMode) return false
+    const type = listing.listingType ?? listing.listingMode
+    if (type !== filters.listingMode) return false
 
     if (filters.category && listing.category !== filters.category) {
       return false
@@ -34,7 +35,7 @@ export function filterListings(
       listing.title.toLowerCase().includes(query) ||
       listing.description.toLowerCase().includes(query) ||
       listing.category.toLowerCase().includes(query) ||
-      listing.owner.name.toLowerCase().includes(query)
+      listing.ownerName.toLowerCase().includes(query)
     )
   })
 }

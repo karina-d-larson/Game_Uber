@@ -41,6 +41,7 @@ export function formatArrangementDetail(type: ArrangementType): string {
 }
 
 export function getOwnerDistance(listing: Listing): string {
-  if (listing.location.includes('miles')) return listing.location
-  return listing.location
+  const location = listing.location?.trim()
+  if (!location) return ''
+  return location
 }

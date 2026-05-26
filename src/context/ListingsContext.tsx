@@ -20,14 +20,21 @@ import {
   type ReactNode,
 } from 'react'
 import * as listingService from '../services/listingService'
-import type { CreateListingInput, Listing } from '../types/listing'
+import type {
+  CreateListingInput,
+  Listing,
+  UpdateListingInput,
+} from '../types/listing'
 
 type ListingsContextValue = {
   listings: Listing[]
+  featuredListings: Listing[]
   loading: boolean
+  error: string | null
   refreshListings: () => Promise<void>
-  addListing: (input: CreateListingInput) => Promise<Listing>
-  getListingById: (id: string) => Listing | undefined
+  createListing: (input: CreateListingInput) => Promise<Listing>
+  updateListing: (id: string, input: UpdateListingInput) => Promise<Listing>
+  deleteListing: (id: string) => Promise<void>
 }
 
 const ListingsContext = createContext<ListingsContextValue | null>(null)
@@ -35,12 +42,20 @@ const ListingsContext = createContext<ListingsContextValue | null>(null)
 export function ListingsProvider({ children }: { children: ReactNode }) {
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const refreshListings = useCallback(async () => {
     setLoading(true)
-    const data = await listingService.fetchListings()
-    setListings(data)
-    setLoading(false)
+    setError(null)
+    try {
+      const data = await listingService.fetchListings()
+      setListings(data)
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to load listings.'
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -60,20 +75,41 @@ export function ListingsProvider({ children }: { children: ReactNode }) {
     [],
   )
 
-  const getListingById = useCallback(
-    (id: string) => listings.find((listing) => listing.id === id),
-    [listings],
+  const createListing = addListing
+
+  const featuredListings = useMemo(() => {
+    return [...listings].sort((a, b) => b.createdAt - a.createdAt).slice(0, 3)
+  }, [listings])
+
+  const updateListing = useCallback(
+    async (id: string, input: UpdateListingInput) => {
+      const updated = await listingService.updateListing(id, input)
+      setListings((current) => current.map((l) => (l.id === id ? updated : l)))
+      return updated
+    },
+    [],
+  )
+
+  const deleteListing = useCallback(
+    async (id: string) => {
+      await listingService.deleteListing(id)
+      setListings((current) => current.filter((l) => l.id !== id))
+    },
+    [],
   )
 
   const value = useMemo(
     () => ({
       listings,
+      featuredListings,
       loading,
+      error,
       refreshListings,
-      addListing,
-      getListingById,
+      createListing,
+      updateListing,
+      deleteListing,
     }),
-    [listings, loading, refreshListings, addListing, getListingById],
+    [listings, featuredListings, loading, error, refreshListings, createListing, updateListing, deleteListing],
   )
 
   return (

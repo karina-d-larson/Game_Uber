@@ -1,22 +1,23 @@
 import { Link, Outlet } from 'react-router-dom'
 import { MaterialIcon } from '../components/MaterialIcon'
+import { ROUTES } from '../routes/paths'
 
 /** Centered mobile-first shell for login and signup. */
 export function AuthLayout() {
   return (
     <div className="flex min-h-dvh flex-col bg-background text-on-background">
-      <header className="px-gutter-mobile pt-xl md:px-gutter-desktop">
+      <header className="px-gutter-mobile pt-safe md:px-gutter-desktop">
         <Link
-          to="/login"
-          className="inline-flex items-center gap-sm font-headline-md text-headline-md text-primary"
+          to={ROUTES.login}
+          className="inline-flex min-h-11 items-center gap-sm font-headline-md text-headline-md text-primary"
         >
-          <MaterialIcon name="grid_view" className="text-secondary" />
+          <MaterialIcon name="grid_view" className="text-secondary" aria-hidden="true" />
           BoardLink
         </Link>
       </header>
 
-      <main className="flex flex-1 flex-col justify-center px-gutter-mobile py-xl md:px-gutter-desktop">
-        <div className="mx-auto w-64">
+      <main className="flex flex-1 flex-col justify-center px-gutter-mobile py-xl pb-safe md:px-gutter-desktop">
+        <div className="mx-auto w-full max-w-md">
           <Outlet />
         </div>
       </main>

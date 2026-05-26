@@ -206,25 +206,26 @@ Document ID: auto-generated or slug; must match `Listing.id` in the app.
 | Field | Type | Notes |
 |-------|------|--------|
 | `title` | string | |
+| `description` | string | |
 | `category` | string | Strategy, Party, Family, etc. |
 | `condition` | string | |
-| `arrangementType` | string | `rent` \| `trade` \| `free` |
-| `listingMode` | string | `lending` \| `wanted` |
-| `pricePerDay` | number? | optional |
-| `price` | string | display string, e.g. `$5/day` |
-| `description` | string | |
-| `location` | string | |
-| `meetupPreferences` | string? | |
-| `image` | string | Storage download URL |
-| `gallery` | string[]? | optional extra image URLs |
-| `players` | string? | |
-| `playTime` | string? | |
+| `availability` | string | `available` \| `unavailable` |
+| `listingType` | string | `lending` \| `wanted` |
+| `imageUrls` | string[] | Storage download URLs (at least 1) |
 | `ownerId` | string | Firebase Auth uid |
 | `ownerName` | string | denormalized for cards |
-| `ownerAvatar` | string | denormalized URL |
-| `ownerRating` | number | denormalized |
 | `createdAt` | timestamp | server timestamp |
-| `updatedAt` | timestamp | |
+| `updatedAt` | timestamp | optional |
+
+Optional legacy fields (if you keep the old UI badges):
+
+| Field | Type | Notes |
+|-------|------|--------|
+| `arrangementType` | string | `rent` \| `trade` \| `free` |
+| `pricePerDay` | number? | optional |
+| `price` | string? | optional display string |
+| `location` | string? | optional |
+| `meetupPreferences` | string? | optional |
 
 Map Firestore documents ↔ `Listing` type in `listingService.ts` (see `mapDocToListing` TODO in that file).
 
@@ -257,11 +258,28 @@ All functions live in **`src/services/listingService.ts`**. Pages must keep call
 | `fetchListings()` | localStorage → fallback `mockListings` | Query `listings` ordered by `createdAt` desc; map to `Listing[]` |
 | `getListingById(id)` | loads from `fetchListings` | `getDoc(listings/{id})` or query by id |
 | `createListing(input)` | append to localStorage | Upload image → add doc with `ownerId` from auth |
-| `saveListings()` | writes entire array to localStorage | **Remove or repurpose** — prefer single-doc writes, not bulk localStorage |
-| `updateListing(id, input)` | not implemented | Optional: add when needed |
-| `deleteListing(id)` | not implemented | Optional: add when needed |
+| `updateListing(id, input)` | updates localStorage | `updateDoc` (owner-only) |
+| `deleteListing(id)` | deletes from localStorage | `deleteDoc` (owner-only) |
 
 Keep functions **async** (`Promise<>`) even if sync today — components already expect that.
+
+### Where realtime listeners may attach (later)
+
+- `src/context/ListingsContext.tsx`: `refreshListings()` is the single place to swap from a one-time fetch to a realtime `onSnapshot` listener.
+- Detail page: optional per-document `onSnapshot(doc(db,'listings',id))` for live availability.
+
+### Pagination opportunities (future scaling)
+
+- `fetchListings()` can accept `{ limit, startAfter }` and return `{ listings, nextCursor }`.
+- Firestore: `query(listings, orderBy('createdAt','desc'), limit(n))` and `startAfter(lastDoc)`.
+
+### Storage upload expectations
+
+Current frontend calls `storageService.uploadListingImage(file, userId, listingId)` and expects a **public URL** string.
+
+FIREBASE TODO:
+- Path: `listings/{userId}/{listingId}/{filename}`
+- Return: `getDownloadURL(ref)`
 
 ### Seed data (optional)
 

@@ -74,7 +74,11 @@ export const CATEGORY_OPTIONS = [
   'Card Games',
 ] as const
 
-/** Look up a listing by id for the detail route (Phase 1 mock data). */
+/**
+ * @deprecated DEV helper only.
+ * FIREBASE TODO: remove once all reads go through listingService.getListingById().
+ * Do NOT import this helper in pages/components.
+ */
 export function getListingById(id: string): Listing | undefined {
   return mockListings.find((listing) => listing.id === id)
 }

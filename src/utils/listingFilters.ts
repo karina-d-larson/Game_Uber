@@ -7,7 +7,14 @@ export type ListingFilterState = {
   listingMode: ListingMode
 }
 
-/** Filter marketplace listings for the dashboard feed. */
+/**
+ * Filter marketplace listings for the dashboard feed.
+ *
+ * FIREBASE TODO:
+ * - For larger datasets, move primary filtering into listingService.fetchListings().
+ * - Keep this utility as a local refinement layer after service results.
+ * - Do NOT call Firestore in this utility.
+ */
 export function filterListings(
   listings: Listing[],
   filters: ListingFilterState,

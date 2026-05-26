@@ -1,9 +1,14 @@
-import { Link, useLocation, useParams } from 'react-router-dom'
-import { Navbar } from '../components/Navbar'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Page } from '../components/shell/Page'
+import { PageHeader } from '../components/shell/PageHeader'
+import { ROUTES } from '../routes/paths'
 import { MaterialIcon } from '../components/MaterialIcon'
 import { useListings } from '../context/ListingsContext'
 import type { Listing } from '../types/listing'
 import { formatArrangementDetail } from '../utils/listingDisplay'
+import { useAuth } from '../context/AuthContext'
+import * as listingService from '../services/listingService'
 
 type DetailLocationState = {
   listing?: Listing
@@ -12,62 +17,142 @@ type DetailLocationState = {
 export function ListingDetailPage() {
   const { id } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const state = location.state as DetailLocationState | null
-  const { getListingById, loading } = useListings()
+  const { updateListing, deleteListing } = useListings()
+  const { user } = useAuth()
 
-  // Listing from navigation state, or context (localStorage + mocks via listingService).
-  // FIREBASE TODO: if !listing && id, await listingService.getListingById(id) with loading UI.
-  // See docs/FIREBASE_INTEGRATION.md
-  const listing =
-    state?.listing ?? (id ? getListingById(id) : undefined)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [listing, setListing] = useState<Listing | null>(state?.listing ?? null)
+  const [notFound, setNotFound] = useState(false)
+  const [showActions, setShowActions] = useState(false)
+  const [busy, setBusy] = useState<'delete' | 'markUnavailable' | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      if (!id) return
+      setLoading(true)
+      setError(null)
+      setNotFound(false)
+      try {
+        const fresh = await listingService.getListingById(id)
+        if (cancelled) return
+        if (!fresh) {
+          setNotFound(true)
+          setListing(null)
+        } else {
+          setListing(fresh)
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load listing.')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  const isOwner = useMemo(() => {
+    if (!listing || !user) return false
+    return listing.ownerId === user.id
+  }, [listing, user])
 
   if (loading && !listing) {
     return (
-      <div className="min-h-dvh bg-background text-on-background">
-        <Navbar variant="detail" />
-        <main className="mx-auto max-w-screen-xl px-gutter-mobile py-xl md:px-gutter-desktop">
-          <p className="font-body-md text-on-surface-variant">Loading listing…</p>
-        </main>
-      </div>
+      <Page header={<PageHeader variant="stack" back="history" />} footerSpace="none">
+        <p className="font-body-md text-on-surface-variant">Loading listing…</p>
+      </Page>
     )
   }
 
-  if (!listing) {
+  if (error && !listing) {
     return (
-      <div className="min-h-dvh bg-background text-on-background">
-        <Navbar variant="detail" />
-        <main className="mx-auto max-w-screen-xl px-gutter-mobile py-xl md:px-gutter-desktop">
-          <p className="font-headline-md text-headline-md">Listing not found</p>
-          <Link to="/" className="mt-md text-secondary hover:underline">
-            Back to dashboard
-          </Link>
-        </main>
-      </div>
+      <Page header={<PageHeader variant="stack" back="history" />} footerSpace="none">
+        <p className="font-headline-md text-headline-md">Could not load listing</p>
+        <p className="mt-sm text-body-md text-on-surface-variant">{error}</p>
+        <Link to={ROUTES.home} className="mt-md inline-block min-h-11 text-secondary hover:underline">
+          Back to home
+        </Link>
+      </Page>
     )
   }
 
-  const gallery = listing.gallery ?? [listing.image]
-  const heroImage = gallery[0] ?? listing.image
+  if (notFound || !listing) {
+    return (
+      <Page header={<PageHeader variant="stack" back="history" />} footerSpace="none">
+        <p className="font-headline-md text-headline-md">Listing not found</p>
+        <Link to={ROUTES.home} className="mt-md inline-block min-h-11 text-secondary hover:underline">
+          Back to home
+        </Link>
+      </Page>
+    )
+  }
+
+  const gallery = listing.imageUrls.length > 0
+    ? listing.imageUrls
+    : listing.gallery ?? (listing.image ? [listing.image] : [])
+  const heroImage = gallery[0] ?? ''
   const thumbs = gallery.slice(1, 4)
-  const priceAmount =
-    listing.pricePerDay != null ? `$${listing.pricePerDay}` : listing.price.split('/')[0]
+  const priceAmount = listing.pricePerDay != null ? `$${listing.pricePerDay}` : (listing.price ? listing.price.split('/')[0] : '')
+  const availabilityLabel = listing.availability === 'available' ? 'Available' : 'Unavailable'
+
+  async function handleDelete() {
+    if (!id) return
+    if (!confirm('Delete this listing? This cannot be undone.')) return
+    setBusy('delete')
+    try {
+      await deleteListing(id)
+      navigate(ROUTES.home, { replace: true })
+    } finally {
+      setBusy(null)
+      setShowActions(false)
+    }
+  }
+
+  async function handleMarkUnavailable() {
+    if (!id || !listing) return
+    setBusy('markUnavailable')
+    try {
+      const updated = await updateListing(id, {
+        availability: listing.availability === 'available' ? 'unavailable' : 'available',
+      })
+      setListing(updated)
+    } finally {
+      setBusy(null)
+      setShowActions(false)
+    }
+  }
+
+  function handleEdit() {
+    if (!id) return
+    navigate(ROUTES.editListing(id), { state: { listing } })
+  }
 
   return (
-    <div className="min-h-dvh bg-background text-on-background">
-      <Navbar variant="detail" />
-
-      <main className="mx-auto max-w-screen-xl px-gutter-mobile pb-32 md:px-gutter-desktop">
+    <Page
+      header={<PageHeader variant="stack" title={listing.title} back="history" />}
+      footerSpace="large"
+      className="!py-0"
+    >
+      <div className="pb-md">
         <div className="mt-md grid grid-cols-1 gap-lg md:grid-cols-12">
           <div className="space-y-md md:col-span-7">
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-lg">
-              <img
-                className="h-full w-full object-cover"
-                alt=""
-                src={heroImage}
-              />
+              {heroImage ? (
+                <img className="h-full w-full object-cover" alt="" src={heroImage} />
+              ) : (
+                <div className="h-full w-full bg-surface-container-high" />
+              )}
               <div className="absolute top-4 left-4 flex gap-2">
                 <span className="rounded-full border border-outline-variant bg-surface/90 px-3 py-1 font-label-md text-label-md text-secondary shadow-sm backdrop-blur-sm">
-                  Available
+                  {availabilityLabel}
                 </span>
                 <span className="rounded-full border border-outline-variant bg-surface/90 px-3 py-1 font-label-md text-label-md text-tertiary-fixed-variant shadow-sm backdrop-blur-sm">
                   {listing.condition}
@@ -105,12 +190,20 @@ export function ListingDetailPage() {
                   {listing.title}
                 </h1>
                 <div className="text-right">
-                  <span className="font-display-lg text-display-lg text-secondary">
-                    {priceAmount}
-                  </span>
-                  {listing.arrangementType === 'rent' && (
-                    <span className="block font-body-md text-body-md text-on-surface-variant">
-                      per day
+                  {priceAmount ? (
+                    <>
+                      <span className="font-display-lg text-display-lg text-secondary">
+                        {priceAmount}
+                      </span>
+                      {listing.arrangementType === 'rent' && (
+                        <span className="block font-body-md text-body-md text-on-surface-variant">
+                          per day
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="font-body-md text-body-md text-on-surface-variant">
+                      {availabilityLabel}
                     </span>
                   )}
                 </div>
@@ -126,28 +219,6 @@ export function ListingDetailPage() {
                     {listing.category}
                   </span>
                 </div>
-                {listing.players && (
-                  <div className="flex items-center gap-xs rounded-md bg-surface-container px-2 py-1">
-                    <MaterialIcon
-                      name="group"
-                      className="text-sm text-on-surface-variant"
-                    />
-                    <span className="font-label-md text-label-md text-on-surface-variant">
-                      {listing.players}
-                    </span>
-                  </div>
-                )}
-                {listing.playTime && (
-                  <div className="flex items-center gap-xs rounded-md bg-surface-container px-2 py-1">
-                    <MaterialIcon
-                      name="schedule"
-                      className="text-sm text-on-surface-variant"
-                    />
-                    <span className="font-label-md text-label-md text-on-surface-variant">
-                      {listing.playTime}
-                    </span>
-                  </div>
-                )}
               </div>
 
               <div className="mb-lg space-y-sm">
@@ -156,7 +227,7 @@ export function ListingDetailPage() {
                     Arrangement
                   </span>
                   <span className="font-headline-md text-headline-md text-primary">
-                    {formatArrangementDetail(listing.arrangementType)}
+                    {listing.arrangementType ? formatArrangementDetail(listing.arrangementType) : 'Listing'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between border-b border-outline-variant py-sm">
@@ -183,35 +254,63 @@ export function ListingDetailPage() {
                   Message Owner
                 </button>
               </div>
+
+              {isOwner && (
+                <div className="mt-lg">
+                  <button
+                    type="button"
+                    onClick={() => setShowActions((v) => !v)}
+                    className="w-full rounded-lg border border-outline-variant bg-surface py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container"
+                  >
+                    Manage listing
+                  </button>
+
+                  {showActions && (
+                    <div className="mt-sm space-y-sm rounded-lg border border-outline-variant bg-surface-container-lowest p-md">
+                      <button
+                        type="button"
+                        disabled={busy != null}
+                        onClick={handleEdit}
+                        className="w-full rounded-lg bg-secondary py-3 font-label-md text-label-md text-on-secondary shadow-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
+                      >
+                        Edit listing
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy != null}
+                        onClick={() => void handleMarkUnavailable()}
+                        className="w-full rounded-lg bg-surface-container-high py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-60"
+                      >
+                        {busy === 'markUnavailable'
+                          ? 'Updating…'
+                          : listing.availability === 'available'
+                            ? 'Mark unavailable'
+                            : 'Mark available'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy != null}
+                        onClick={() => void handleDelete()}
+                        className="w-full rounded-lg bg-error/10 py-3 font-label-md text-label-md text-error transition-colors hover:bg-error/15 disabled:opacity-60"
+                      >
+                        {busy === 'delete' ? 'Deleting…' : 'Delete listing'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-md rounded-xl border border-outline-variant bg-surface-container-lowest p-md shadow-sm">
-              <div className="relative">
-                <img
-                  className="h-16 w-16 rounded-full object-cover"
-                  alt=""
-                  src={listing.owner.avatar}
-                />
-                {listing.owner.verified && (
-                  <div className="absolute -right-1 -bottom-1 rounded-full border-2 border-surface-container-lowest bg-secondary p-1 text-on-primary">
-                    <MaterialIcon name="verified" filled className="text-[12px]" />
-                  </div>
-                )}
-              </div>
+              <div className="relative h-16 w-16 rounded-full bg-surface-container-high" />
               <div className="flex-1">
                 <div className="flex justify-between">
                   <span className="font-headline-md text-headline-md text-primary">
-                    {listing.owner.name}
+                    {listing.ownerName}
                   </span>
-                  <div className="flex items-center text-secondary">
-                    <MaterialIcon name="star" filled className="text-sm" />
-                    <span className="ml-1 font-label-md text-label-md">
-                      {listing.owner.rating} ({listing.owner.reviewCount ?? 124})
-                    </span>
-                  </div>
                 </div>
                 <p className="font-body-md text-body-md text-on-surface-variant">
-                  Superhost • Lender for 2 years
+                  Owner • {new Date(listing.createdAt).toLocaleDateString()}
                 </p>
                 <Link
                   to="/profile"
@@ -232,15 +331,6 @@ export function ListingDetailPage() {
               </h2>
               <p className="font-body-lg text-body-lg leading-relaxed text-on-surface-variant">
                 {listing.description}
-                {listing.id === 'catan' && (
-                  <>
-                    <br />
-                    <br />
-                    Includes the 5-6 player expansion pack. Perfect for a weekend getaway
-                    or a friendly game night. I&apos;m happy to explain the rules if
-                    you&apos;re new to the game!
-                  </>
-                )}
               </p>
             </section>
             <section>
@@ -254,7 +344,7 @@ export function ListingDetailPage() {
                 <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
                   <MaterialIcon name="location_on" filled className="text-4xl text-secondary" />
                   <div className="mt-2 rounded-full bg-surface-container-lowest px-3 py-1 font-label-md text-label-md text-primary shadow-md">
-                    {listing.location}
+                    {listing.location ?? 'Location not provided'}
                   </div>
                 </div>
               </div>
@@ -296,7 +386,7 @@ export function ListingDetailPage() {
             </section>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </Page>
   )
 }

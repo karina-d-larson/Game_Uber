@@ -14,5 +14,27 @@
  *
  * Storage path pattern: listings/{userId}/{listingId}/{filename}
  */
+import { readImageAsDataUrl } from '../utils/imageFile'
 
-export {}
+/**
+ * Upload a single listing image and return a URL.
+ *
+ * DEV fallback:
+ * - returns a data URL so the app behaves like "mock firebase" using only frontend code.
+ *
+ * FIREBASE TODO (teammate):
+ * - Upload to Storage path `listings/{userId}/{listingId}/{filename}`
+ * - Return `getDownloadURL(ref)`
+ */
+export async function uploadListingImage(
+  file: File,
+  userId: string,
+  listingId?: string,
+): Promise<string> {
+  // `userId` + `listingId` are used for the real Storage path when Firebase is wired.
+  void userId
+  void listingId
+
+  return await readImageAsDataUrl(file)
+}
+

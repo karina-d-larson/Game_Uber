@@ -19,11 +19,18 @@
  */
 
 import { mockListings } from '../data/listings'
-import type { CreateListingInput, Listing } from '../types/listing'
+import type { CreateListingInput, Listing, UpdateListingInput } from '../types/listing'
 import { readJson, writeJson } from '../utils/localStorage'
 import { getCurrentUser } from './authService'
+import * as storageService from './storageService'
 
 const STORAGE_KEY = 'boardlink_listings'
+
+function generateId(): string {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `listing-${Date.now()}`
+}
 
 // ---------------------------------------------------------------------------
 // FIREBASE TODO: map Firestore document → Listing (use after you add Firestore)
@@ -44,51 +51,9 @@ const STORAGE_KEY = 'boardlink_listings'
 //   }
 // }
 
-function formatPrice(
-  arrangementType: CreateListingInput['arrangementType'],
-  pricePerDay?: number,
-): string {
-  if (arrangementType === 'trade') return 'Trade Only'
-  if (arrangementType === 'free') return 'Free'
-  if (pricePerDay && pricePerDay > 0) return `$${pricePerDay}/day`
-  return 'Contact for price'
-}
-
-/** TEMP: builds a listing locally until Firestore + auth provide owner fields */
-async function buildListing(input: CreateListingInput): Promise<Listing> {
-  const id =
-    typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `listing-${Date.now()}`
-
-  const currentUser = await getCurrentUser()
-
-  return {
-    id,
-    title: input.title.trim(),
-    category: input.category,
-    condition: input.condition,
-    arrangementType: input.arrangementType,
-    listingMode: input.listingMode,
-    price: formatPrice(input.arrangementType, input.pricePerDay),
-    pricePerDay: input.pricePerDay,
-    description: input.description.trim(),
-    owner: {
-      name: currentUser?.displayName ?? 'You',
-      username: currentUser ? `@${currentUser.username}` : undefined,
-      rating: 4.8,
-      avatar: currentUser?.avatar ?? '',
-      verified: true,
-    },
-    location: input.location.trim(),
-    rating: 4.8,
-    image:
-      input.image ??
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuA5AskxegN_GNGS0yItNT7I96fiHqflGxAISzuplgl0WTCdbI2R1kP2o5_16-nwqWVrSuKxnJzsakKKNtrfcVHxdg5V9IyUFCPp3_vj5Z_URR340_Lr65hHaraH4P6Cd76UwaobBkv59dQBBwjW0f6xBVar0vDlLgdp4ZyxquW82Ybd2XDw9d6A3Es7VGDw0X3FzQbXRx1mfXkBM_clNQgotM0RFJvsTHEPXeQtgbSg9iO8gCdEhpRwupFqcvHV1jLzaUpZPRPmqXo',
-    meetupPreferences: input.meetupPreferences,
-    players: '2-4 Players',
-    playTime: '60-90m',
-  }
+async function saveListings(listings: Listing[]): Promise<void> {
+  // DEV FALLBACK only. FIREBASE TODO: replace with per-document writes.
+  writeJson(STORAGE_KEY, listings)
 }
 
 /**
@@ -101,11 +66,6 @@ export async function fetchListings(): Promise<Listing[]> {
   return mockListings
 }
 
-/** FIREBASE TODO: remove when using per-document writes in Firestore */
-export async function saveListings(listings: Listing[]): Promise<void> {
-  writeJson(STORAGE_KEY, listings)
-}
-
 /**
  * FIREBASE TODO: replace with getDoc(doc(db, 'listings', id)) + mapDocToListing
  */
@@ -115,20 +75,126 @@ export async function getListingById(id: string): Promise<Listing | undefined> {
 }
 
 /**
- * FIREBASE TODO:
- *   1. Upload image via storageService if file selected (not base64 in Firestore)
- *   2. addDoc with ownerId = auth current user
- *   3. Return mapDocToListing result
+ * Create a listing.
  *
- * TEMP: `input.image` may be a data URL from CreateListingPage for localStorage persistence.
- * Remove large base64 blobs from docs when Storage is live.
+ * FIREBASE TODO (teammate):
+ * - Upload images via storageService (download URLs)
+ * - Add doc to `listings/{listingId}`
+ * - Set `ownerId` from current auth user
  */
 export async function createListing(
   input: CreateListingInput,
 ): Promise<Listing> {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    throw new Error('You must be signed in to create a listing.')
+  }
+
+  if (input.imageFiles.length === 0) {
+    throw new Error('Please add at least one image.')
+  }
+
+  const listingId = generateId()
+  const createdAt = Date.now()
+
+  const imageUrls = await Promise.all(
+    input.imageFiles.map((file) =>
+      storageService.uploadListingImage(file, currentUser.id, listingId),
+    ),
+  )
+
+  const listing: Listing = {
+    id: listingId,
+    title: input.title.trim(),
+    description: input.description.trim(),
+    imageUrls,
+    listingType: input.listingType,
+    category: input.category.trim(),
+    ownerId: currentUser.id,
+    ownerName: currentUser.displayName,
+    createdAt,
+    condition: input.condition.trim(),
+    availability: input.availability,
+
+    // Optional legacy fields (if the form provides them)
+    arrangementType: input.arrangementType,
+    pricePerDay: input.pricePerDay,
+    location: input.location,
+    meetupPreferences: input.meetupPreferences,
+  }
+
   const listings = await fetchListings()
-  const listing = await buildListing(input)
   const next = [listing, ...listings]
   await saveListings(next)
   return listing
+}
+
+export async function updateListing(
+  id: string,
+  input: UpdateListingInput,
+): Promise<Listing> {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    throw new Error('You must be signed in to update a listing.')
+  }
+
+  const listings = await fetchListings()
+  const existing = listings.find((l) => l.id === id)
+  if (!existing) throw new Error('Listing not found.')
+
+  if (existing.ownerId !== currentUser.id) {
+    throw new Error('You can only edit your own listings.')
+  }
+
+  const imageUrls =
+    input.imageFiles && input.imageFiles.length > 0
+      ? await Promise.all(
+          input.imageFiles.map((file) =>
+            storageService.uploadListingImage(file, currentUser.id, id),
+          ),
+        )
+      : existing.imageUrls
+
+  const updated: Listing = {
+    ...existing,
+
+    title: input.title != null ? input.title.trim() : existing.title,
+    description:
+      input.description != null ? input.description.trim() : existing.description,
+    category: input.category != null ? input.category.trim() : existing.category,
+
+    listingType: input.listingType ?? existing.listingType,
+    condition: input.condition != null ? input.condition.trim() : existing.condition,
+    availability: input.availability ?? existing.availability,
+
+    imageUrls,
+
+    // Optional legacy fields
+    arrangementType: input.arrangementType ?? existing.arrangementType,
+    pricePerDay: input.pricePerDay ?? existing.pricePerDay,
+    location: input.location ?? existing.location,
+    meetupPreferences: input.meetupPreferences ?? existing.meetupPreferences,
+  }
+
+  const next = listings.map((l) => (l.id === id ? updated : l))
+  await saveListings(next)
+  return updated
+}
+
+export async function deleteListing(id: string): Promise<void> {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    throw new Error('You must be signed in to delete a listing.')
+  }
+
+  const listings = await fetchListings()
+  const existing = listings.find((l) => l.id === id)
+  if (!existing) throw new Error('Listing not found.')
+
+  if (existing.ownerId !== currentUser.id) {
+    throw new Error('You can only delete your own listings.')
+  }
+
+  const next = listings.filter((l) => l.id !== id)
+  await saveListings(next)
 }

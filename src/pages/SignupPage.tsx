@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AuthField } from '../components/auth/AuthField'
 import { useAuth } from '../context/AuthContext'
 import { AuthServiceError } from '../services/authService'
+import { getPostAuthPath } from '../utils/authRedirect'
 
 export function SignupPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signup } = useAuth()
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
@@ -37,7 +39,7 @@ export function SignupPage() {
     setSubmitting(true)
     try {
       await signup(email, password, username)
-      navigate('/', { replace: true })
+      navigate(getPostAuthPath(location.state), { replace: true })
     } catch (error) {
       if (error instanceof AuthServiceError) {
         setFormError(error.message)

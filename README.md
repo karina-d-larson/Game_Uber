@@ -12,6 +12,10 @@ If you are implementing **Firebase** (Auth, Firestore, Storage, messaging), star
 
 **[docs/FIREBASE_INTEGRATION.md](docs/FIREBASE_INTEGRATION.md)** — full checklist, data model, milestones, and which files to change.
 
+For **routing, app shell, and navigation** (protected routes, bottom nav, layouts):
+
+**[docs/APP_ARCHITECTURE.md](docs/APP_ARCHITECTURE.md)**
+
 Copy `.env.example` → `.env` and follow comments in `src/services/listingService.ts`.
 
 ---
@@ -53,12 +57,13 @@ public/              Static assets (favicon, PWA icons)
 html/                Static prototype screens (reference while building React)
   boardlink.css      Generated Tailwind output — run `npm run build:css` after token/class changes
 src/
-  App.tsx            Routes + ListingsProvider
-  components/        Navbar, BottomNav, ListingCard, SearchBar, …
-  context/           ListingsContext (shared listing state)
-  data/              demoListings seed data
-  layouts/           AppLayout wraps pages with shared chrome
-  pages/             Dashboard, CreateListing, Profile, ListingDetail, Inbox
+  App.tsx            Providers + AppRouter
+  routes/            paths, guards, AppRouter
+  components/        shell (Page, PageHeader), BottomNav, ListingCard, …
+  context/           ListingsContext, AuthContext
+  data/              mock listings seed data
+  layouts/           AppShellLayout (tabs), StackShellLayout, AuthLayout
+  pages/             Dashboard, CreateListing, Profile, ListingDetail, Inbox, Chat
   services/          listingService (localStorage now, Firestore later)
   types/             Listing model
   utils/             localStorage, filters, display helpers

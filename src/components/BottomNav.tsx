@@ -1,47 +1,88 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
+import { ROUTES } from '../routes/paths'
 import { MaterialIcon } from './MaterialIcon'
 
-export type BottomNavTab = 'dashboard' | 'inbox' | 'new-post' | 'profile'
-
-const tabs: {
-  id: BottomNavTab
+type TabConfig = {
+  id: string
   to: string
   label: string
   icon: string
-  end?: boolean
-}[] = [
-  { id: 'dashboard', to: '/', label: 'Dashboard', icon: 'dashboard', end: true },
-  { id: 'inbox', to: '/inbox', label: 'Inbox', icon: 'mail' },
-  { id: 'new-post', to: '/listings/new', label: 'Add Post', icon: 'add_box' },
-  { id: 'profile', to: '/profile', label: 'Profile', icon: 'person' },
+  /** When set, overrides default NavLink active matching */
+  isActive?: (pathname: string) => boolean
+}
+
+const tabs: TabConfig[] = [
+  {
+    id: 'home',
+    to: ROUTES.home,
+    label: 'Home',
+    icon: 'home',
+    isActive: (pathname) => pathname === ROUTES.home,
+  },
+  {
+    id: 'create',
+    to: ROUTES.createListing,
+    label: 'Create',
+    icon: 'add_box',
+    isActive: (pathname) => pathname === ROUTES.createListing,
+  },
+  {
+    id: 'inbox',
+    to: ROUTES.inbox,
+    label: 'Inbox',
+    icon: 'mail',
+    isActive: (pathname) =>
+      pathname === ROUTES.inbox || pathname.startsWith(`${ROUTES.inbox}/`),
+  },
+  {
+    id: 'profile',
+    to: ROUTES.profile,
+    label: 'Profile',
+    icon: 'person',
+    isActive: (pathname) => pathname === ROUTES.profile,
+  },
 ]
 
+/**
+ * Persistent mobile bottom navigation (tab shell).
+ *
+ * FIREBASE TODO: badge count for unread messages on Inbox tab.
+ */
 export function BottomNav() {
+  const { pathname } = useLocation()
+
   return (
-    <nav className="fixed bottom-0 z-50 w-full rounded-t-xl border-t border-outline-variant bg-surface shadow-lg dark:border-outline dark:bg-surface">
-      <div className="flex h-16 w-full items-center justify-around px-gutter-mobile pb-safe">
-        {tabs.map((tab) => (
-          <NavLink
-            key={tab.id}
-            to={tab.to}
-            end={tab.end}
-            className={({ isActive }) =>
-              [
-                'flex flex-col items-center justify-center rounded-lg p-2 transition-all hover:bg-surface-container-high dark:hover:bg-surface-container-highest',
-                isActive
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 w-full rounded-t-xl border-t border-outline-variant bg-surface shadow-lg dark:border-outline dark:bg-surface"
+      aria-label="Main navigation"
+    >
+      <div className="mx-auto flex h-[var(--bottom-nav-height)] max-w-screen-xl items-stretch justify-around px-gutter-mobile pb-safe">
+        {tabs.map((tab) => {
+          const active = tab.isActive
+            ? tab.isActive(pathname)
+            : tab.id === 'home'
+              ? pathname === ROUTES.home
+              : pathname === tab.to
+
+          return (
+            <NavLink
+              key={tab.id}
+              to={tab.to}
+              end={tab.id === 'home'}
+              aria-current={active ? 'page' : undefined}
+              className={[
+                'flex min-h-11 min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 transition-colors',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary',
+                active
                   ? 'font-semibold text-secondary dark:text-secondary-fixed'
-                  : 'text-on-surface-variant dark:text-on-surface-variant',
-              ].join(' ')
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <MaterialIcon name={tab.icon} filled={isActive} />
-                <span className="font-label-md text-label-md">{tab.label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
+                  : 'text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest',
+              ].join(' ')}
+            >
+              <MaterialIcon name={tab.icon} filled={active} className="text-[22px]" />
+              <span className="font-label-md text-[11px] leading-tight">{tab.label}</span>
+            </NavLink>
+          )
+        })}
       </div>
     </nav>
   )

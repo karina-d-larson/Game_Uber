@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Navbar } from '../components/Navbar'
+import { Page } from '../components/shell/Page'
+import { PageHeader } from '../components/shell/PageHeader'
 import { ProfileHeader } from '../components/ProfileHeader'
 import { MaterialIcon } from '../components/MaterialIcon'
 import { useAuth } from '../context/AuthContext'
@@ -80,10 +81,7 @@ export function ProfilePage() {
   }
 
   return (
-    <>
-      <Navbar variant="profile" />
-
-      <main className="mx-auto max-w-screen-xl space-y-xl px-gutter-mobile py-xl pb-24 md:px-gutter-desktop">
+    <Page header={<PageHeader variant="profile" />} className="space-y-xl">
         <ProfileHeader user={user} />
 
         <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg custom-shadow">
@@ -170,7 +168,6 @@ export function ProfilePage() {
             ))}
           </div>
         </section>
-      </main>
-    </>
+    </Page>
   )
 }

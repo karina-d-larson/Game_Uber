@@ -1,91 +1,72 @@
-# BoardLink UI/UX Teammate Tasks
+# BoardLink Messaging UI Tasks
 
 ## Your Goal
-Improve and polish the frontend user experience for the BoardLink MVP.
+Build and polish the messaging experience for the BoardLink MVP.
 
-You do **NOT** need to connect Firebase or work on backend logic.  
-Firebase integration is being handled separately.
+You do **NOT** need to connect Firebase or implement backend logic.  
+Firebase integration will be handled separately.
 
-Focus on making the app feel clean, mobile-friendly, and consistent.
-
----
-
-# Areas To Work On
-
-## 1. Mobile UI Polish
-Improve spacing, sizing, and responsiveness across pages.
-
-Focus on:
-- consistent padding/margins
-- better mobile layouts
-- responsive images
-- clean scrolling behavior
-- touch-friendly buttons
-
-Pages:
-- Dashboard/feed
-- Listing detail
-- Create listing
-- Inbox/chat
-- Profile
+Focus only on the frontend messaging UI and user experience.
 
 ---
 
-## 2. Loading / Empty / Error States
-Improve UX for:
-- loading skeletons
-- empty states
-- error messages
+# Features To Work On
 
-Components to improve/create:
-- `ListingSkeleton`
-- `EmptyState`
-- loading indicators/spinners
+## 1. Inbox Page
+Improve/build the inbox screen.
+
+Requirements:
+- conversation list layout
+- user avatar
+- last message preview
+- timestamp display
+- unread styling (UI only)
+- mobile-first spacing/layout
+
+Component ideas:
+- `InboxList`
+- `ConversationCard`
 
 ---
 
-## 3. Reusable UI Components
-Help standardize shared components.
+## 2. Chat Screen
+Build/polish the one-on-one chat UI.
+
+Requirements:
+- chat bubbles
+- sent vs received message styling
+- scrollable message area
+- mobile-friendly layout
+- sticky message input bar
+- responsive behavior
+
+Component ideas:
+- `ChatWindow`
+- `MessageBubble`
+- `ChatInput`
+
+---
+
+## 3. Empty / Loading / Error States
+Create good UX states for messaging.
 
 Examples:
-- `GameCard`
-- `ListingGrid`
-- `BottomNav`
-- `SearchBar`
-- `CategoryChips`
-- buttons/forms/modals
-
-Goal:
-Make the UI feel visually consistent everywhere.
+- no conversations
+- loading conversations
+- loading messages
+- failed-to-load messages
 
 ---
 
-## 4. Chat UI Improvements
-Improve messaging screens visually.
+## 4. Mobile UX Polish
+Focus heavily on mobile usability.
 
-Focus on:
-- chat bubble styling
+Improve:
 - spacing
-- inbox list layout
-- timestamps styling
-- mobile responsiveness
-
-Do NOT add:
-- typing indicators
-- read receipts
-- reactions
-- voice/video calls
-
----
-
-## 5. PWA / App Feel
-Help the app feel more like a mobile app.
-
-Possible improvements:
-- splash/loading screen polish
-- install prompt UI
-- smoother transitions
-- better scrolling experience
+- touch targets
+- keyboard/input spacing
+- scrolling behavior
+- responsive layouts
 
 ---
 
@@ -93,21 +74,23 @@ Possible improvements:
 
 ## Do NOT:
 - connect Firebase
-- add backend logic
-- add payments
-- add maps
-- add notifications
-- add ratings/reviews
-- redesign the app structure completely
+- implement realtime listeners
+- add push notifications
+- add typing indicators
+- add read receipts
+- add reactions
+- add voice/video calls
+- add group chats
 
 ## Do:
 - keep components reusable
 - preserve existing architecture
-- keep mobile-first design
-- maintain Tailwind styling patterns
+- use mock data where needed
+- keep everything mobile-first
+- add comments where Firebase data will later connect
 
 ---
 
-# Main Goal
+# Expected Result
 
-Make BoardLink feel like a polished, usable mobile marketplace MVP without changing the backend architecture.
+A polished messaging frontend that already feels like a real mobile marketplace chat system, ready for Firebase integration later.

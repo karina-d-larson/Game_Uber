@@ -61,6 +61,8 @@ async function saveListings(listings: Listing[]): Promise<void> {
  * Keep return type Promise<Listing[]>. Dashboard will use this via ListingsContext.
  */
 export async function fetchListings(): Promise<Listing[]> {
+  // FIREBASE TODO: add pagination support (limit/cursor) for scaling.
+  // FIREBASE TODO: add server-side query filters for listingType/category/availability.
   const saved = readJson<Listing[]>(STORAGE_KEY)
   if (saved && saved.length > 0) return saved
   return mockListings
@@ -133,6 +135,7 @@ export async function updateListing(
   id: string,
   input: UpdateListingInput,
 ): Promise<Listing> {
+  // FIREBASE TODO: enforce ownership and mutable fields with Firestore Security Rules.
   const currentUser = await getCurrentUser()
   if (!currentUser) {
     throw new Error('You must be signed in to update a listing.')
@@ -182,6 +185,8 @@ export async function updateListing(
 }
 
 export async function deleteListing(id: string): Promise<void> {
+  // FIREBASE TODO: optionally delete Storage files under listings/{ownerId}/{listingId}/.
+  // Authorization must still be enforced by Firestore rules.
   const currentUser = await getCurrentUser()
   if (!currentUser) {
     throw new Error('You must be signed in to delete a listing.')

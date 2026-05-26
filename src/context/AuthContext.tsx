@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void restoreSession()
 
     // FIREBASE TODO: return unsubscribe from onAuthStateChanged(auth, async (fbUser) => { ... })
+    // FIREBASE TODO: keep Firebase SDK calls inside authService; context should only orchestrate app state.
     return () => {
       cancelled = true
     }

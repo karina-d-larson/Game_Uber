@@ -10,6 +10,9 @@ import { formatArrangementDetail } from '../utils/listingDisplay'
 import { useAuth } from '../context/AuthContext'
 import * as listingService from '../services/listingService'
 
+// FIREBASE TODO: keep this page free of Firebase SDK imports.
+// Read/write listing data only via listingService and useListings context actions.
+
 type DetailLocationState = {
   listing?: Listing
 }

@@ -9,6 +9,9 @@ import { ROUTES } from '../routes/paths'
 import type { Listing, UpdateListingInput } from '../types/listing'
 import * as listingService from '../services/listingService'
 
+// FIREBASE TODO: page remains orchestration-only.
+// Any Firestore access for edit/read belongs in listingService/useListings.
+
 export function EditListingPage() {
   const { id } = useParams()
   const navigate = useNavigate()

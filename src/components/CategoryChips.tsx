@@ -1,14 +1,21 @@
-import { CATEGORY_OPTIONS } from '../data/listings'
+import { LISTING_CATEGORY_OPTIONS } from '../config/listingCategories'
 
 type CategoryChipsProps = {
   selected: string | null
   onSelect: (category: string | null) => void
 }
 
+/**
+ * Category filter chips (presentation-only).
+ *
+ * FIREBASE TODO:
+ * - If categories become dynamic, load them in a service/context layer.
+ * - Do NOT query Firestore directly in this component.
+ */
 export function CategoryChips({ selected, onSelect }: CategoryChipsProps) {
   return (
     <section className="custom-scrollbar flex gap-sm overflow-x-auto py-sm">
-      {CATEGORY_OPTIONS.map((category) => {
+      {LISTING_CATEGORY_OPTIONS.map((category) => {
         const isActive = selected === category
         return (
           <button

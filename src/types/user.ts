@@ -1,6 +1,9 @@
 /**
  * App auth user — maps to Firebase Auth + Firestore users/{uid} when connected.
  * See docs/FIREBASE_INTEGRATION.md — Authentication
+ *
+ * AuthUser: minimal session shape used by AuthContext and route guards.
+ * UserProfile: extended Firestore profile (ProfilePage, public profile views).
  */
 
 export type AuthUser = {
@@ -11,6 +14,21 @@ export type AuthUser = {
   username: string
   displayName: string
   avatar: string
+}
+
+/**
+ * Extended profile stored in Firestore `users/{uid}`.
+ * FIREBASE TODO: map in authService or userService.getProfile(uid).
+ * ProfilePage mock STATS/REVIEWS should be replaced with these fields + reviews query.
+ */
+export type UserProfile = AuthUser & {
+  bio?: string
+  rating?: number
+  reviewCount?: number
+  lenderScore?: number
+  renterScore?: number
+  completedTrades?: number
+  createdAt?: number
 }
 
 export type LoginInput = {

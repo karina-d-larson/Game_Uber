@@ -7,10 +7,11 @@ import { ROUTES } from '../routes/paths'
  * Chat thread stub — realtime messaging not implemented.
  *
  * FIREBASE TODO (teammate):
- * - messageService.subscribeToThread(conversationId)
+ * - messageService.subscribeToMessages(conversationId, callback)
  * - onSnapshot for messages subcollection
  * - typing indicators / read receipts (future)
  * - push notifications hook point (do not implement yet)
+ * - Keep all Firestore listener logic in messageService, not this page component.
  */
 export function ChatPage() {
   const { conversationId } = useParams()

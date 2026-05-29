@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>BoardLink Messages</title>
+
+  <link rel="stylesheet" href="messaging.css"/>
+</head>
+
+<body>
+
+  <div class="messaging-app">
+
+    <aside class="inbox">
+
+      <div class="sidebar-header">
+        <h1>Messages</h1>
+      </div>
+
+      <div class="conversation active">
+        <div class="avatar"></div>
+
+        <div class="conversation-content">
+          <div class="conversation-top">
+            <h3>Jordan Lee</h3>
+            <span>10:42 AM</span>
+          </div>
+
+          <div class="conversation-bottom">
+            <p>Still available?</p>
+            <div class="unread-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="conversation">
+        <div class="avatar"></div>
+
+        <div class="conversation-content">
+          <div class="conversation-top">
+            <h3>John Doe</h3>
+            <span>Yesterday</span>
+          </div>
+
+          <div class="conversation-bottom">
+            <p>Could you meet tomorrow?</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="conversation">
+        <div class="avatar"></div>
+
+        <div class="conversation-content">
+          <div class="conversation-top">
+            <h3>Alex Morgan</h3>
+            <span>Monday</span>
+          </div>
+
+          <div class="conversation-bottom">
+            <p>Is the price negotiable?</p>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <section class="chat">
+
+      <header class="chat-header">
+        <div class="chat-user">
+          <div class="avatar small"></div>
+
+          <div>
+            <h2>Jordan Lee</h2>
+            <span>Active 2h ago</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="messages">
+
+        <div class="message received">
+          Hey, is this still available?
+        </div>
+
+        <div class="message sent">
+          Yep — still available.
+        </div>
+
+      </div>
+
+      <form class="chat-input">
+
+        <input
+          type="text"
+          placeholder="Message..."
+        />
+
+        <button type="submit">
+          Send
+        </button>
+
+      </form>
+
+    </section>
+
+  </div>
+
+  <script src="messaging.js"></script>
+
+</body>
+</html>

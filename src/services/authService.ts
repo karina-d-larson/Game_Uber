@@ -1,33 +1,51 @@
 /**
- * AUTH DATA LAYER — swap implementation here for Firebase Authentication
- * ========================================================================
- * Docs: docs/FIREBASE_INTEGRATION.md (Milestone 2)
+ * AUTH DATA LAYER — Firebase-ready abstraction layer
+ * ===================================================
  *
- * Pages/context must call these functions only (never import Firebase in UI):
- *   - login(email, password)
- *   - signup(email, password, username)
- *   - logout()
- *   - getCurrentUser()
+ * RULES:
+ * - UI / Pages MUST NOT import Firebase directly
+ * - Only these functions are used by the app:
+ *     • login()
+ *     • signup()
+ *     • logout()
+ *     • getCurrentUser()
  *
- * FIREBASE TODO (teammate):
- *   1. initialize auth in src/lib/firebase.ts → getAuth(app)
- *   2. login    → signInWithEmailAndPassword(auth, email, password)
- *   3. signup   → createUserWithEmailAndPassword + setDoc(users/{uid}, profile)
- *   4. logout   → signOut(auth)
- *   5. getCurrentUser → onAuthStateChanged or auth.currentUser + Firestore profile fetch
- *   6. Remove mock localStorage keys below when live
+ * CURRENT MODE:
+ * - Mock auth using localStorage (DEV ONLY)
  *
- * Persistence (production): Firebase Auth session (browser persistence).
- * Persistence (mock/dev): localStorage session key boardlink_auth_session
+ * FUTURE MODE:
+ * - Replace internals with Firebase Auth + Firestore
+ *
+ * FIREBASE MIGRATION (Milestone 2):
+ *   1. auth in src/lib/firebase.ts → getAuth(app)
+ *   2. login → signInWithEmailAndPassword(auth, email, password)
+ *   3. signup → createUserWithEmailAndPassword + setDoc(users/{uid})
+ *   4. logout → signOut(auth)
+ *   5. getCurrentUser → onAuthStateChanged + Firestore profile fetch
+ *   6. remove localStorage usage completely
+ *
+ * Persistence:
+ * - DEV: localStorage session
+ * - PROD: Firebase Auth session persistence
  */
 
 import type { AuthUser, LoginInput, SignupInput } from '../types/user'
 import { readJson, writeJson } from '../utils/localStorage'
 
+/* =========================================================
+   CONSTANTS (NOT MODIFIED)
+========================================================= */
+
 const SESSION_KEY = 'boardlink_auth_session'
 const USERS_KEY = 'boardlink_auth_users'
 
-/** DEV ONLY — stores credentials for mock auth. Never use in production. */
+const DEFAULT_AVATAR =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuDKHIZ20m5AdsPygH7mo9GAuD80aTL1xPNpdImx_PbFWb2frljMf0-fa9nge7jYqMfhFyaoBDh6ebxk3Gw4W7FyskHsCV8GEnP61EJoS7kCkTtOeZ5DoilGGfNxKrkO4uQYnWY68kDyGSEOszS1csnfhTtXjjNVAxzPydRi1ChhsLJL0i2_KYXFjiuG3wqA0yiAkjW2HFNlQk3HJ6pv_AobcvOdPxIVOlOEGe78QMDjrvw8r3MQ9XRbkv05WoJl0boYQlLJFe_Z-7g'
+
+/* =========================================================
+   TYPES (NOT MODIFIED — STILL MOCK SYSTEM)
+========================================================= */
+
 type StoredAuthRecord = AuthUser & {
   password: string
 }
@@ -36,6 +54,10 @@ type AuthSession = {
   userId: string
 }
 
+/* =========================================================
+   ERROR CLASS (NOT MODIFIED)
+========================================================= */
+
 export class AuthServiceError extends Error {
   constructor(message: string) {
     super(message)
@@ -43,8 +65,9 @@ export class AuthServiceError extends Error {
   }
 }
 
-const DEFAULT_AVATAR =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDKHIZ20m5AdsPygH7mo9GAuD80aTL1xPNpdImx_PbFWb2frljMf0-fa9nge7jYqMfhFyaoBDh6ebxk3Gw4W7FyskHsCV8GEnP61EJoS7kCkTtOeZ5DoilGGfNxKrkO4uQYnWY68kDyGSEOszS1csnfhTtXjjNVAxzPydRi1ChhsLJL0i2_KYXFjiuG3wqA0yiAkjW2HFNlQk3HJ6pv_AobcvOdPxIVOlOEGe78QMDjrvw8r3MQ9XRbkv05WoJl0boYQlLJFe_Z-7g'
+/* =========================================================
+   UTILITIES (NOT MODIFIED — MOCK HELPERS)
+========================================================= */
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -57,6 +80,10 @@ function normalizeEmail(email: string): string {
 function normalizeUsername(username: string): string {
   return username.trim().replace(/^@+/, '').toLowerCase()
 }
+
+/* =========================================================
+   STORAGE HELPERS (NOT MODIFIED — LOCALSTORAGE MOCK)
+========================================================= */
 
 function readUsers(): StoredAuthRecord[] {
   return readJson<StoredAuthRecord[]>(USERS_KEY) ?? []
@@ -77,6 +104,10 @@ function createId(): string {
     : `user-${Date.now()}`
 }
 
+/* =========================================================
+   VALIDATION (NOT MODIFIED)
+========================================================= */
+
 function validateLoginInput({ email, password }: LoginInput): void {
   if (!email.trim()) throw new AuthServiceError('Email is required.')
   if (!password) throw new AuthServiceError('Password is required.')
@@ -87,7 +118,9 @@ function validateLoginInput({ email, password }: LoginInput): void {
 
 function validateSignupInput({ email, password, username }: SignupInput): void {
   validateLoginInput({ email, password })
+
   const handle = normalizeUsername(username)
+
   if (!handle) throw new AuthServiceError('Username is required.')
   if (handle.length < 3) {
     throw new AuthServiceError('Username must be at least 3 characters.')
@@ -99,8 +132,13 @@ function validateSignupInput({ email, password, username }: SignupInput): void {
   }
 }
 
+/* =========================================================
+   AUTH API (STILL MOCK IMPLEMENTATION — TO BE REPLACED)
+========================================================= */
+
 /**
- * FIREBASE TODO: signInWithEmailAndPassword → map Firebase user + Firestore profile to AuthUser
+ * LOGIN (MOCK)
+ * NOT MIGRATED YET → still uses localStorage
  */
 export async function login(
   email: string,
@@ -122,7 +160,8 @@ export async function login(
 }
 
 /**
- * FIREBASE TODO: createUserWithEmailAndPassword + users/{uid} document
+ * SIGNUP (MOCK)
+ * NOT MIGRATED YET → still uses localStorage
  */
 export async function signup(
   email: string,
@@ -130,16 +169,17 @@ export async function signup(
   username: string,
 ): Promise<AuthUser> {
   validateSignupInput({ email, password, username })
-  await delay(500)
 
   const normalizedEmail = normalizeEmail(email)
   const handle = normalizeUsername(username)
+
   const users = readUsers()
 
-  if (users.some((user) => user.email === normalizedEmail)) {
+  if (users.some((u) => u.email === normalizedEmail)) {
     throw new AuthServiceError('An account with this email already exists.')
   }
-  if (users.some((user) => user.username === handle)) {
+
+  if (users.some((u) => u.username === handle)) {
     throw new AuthServiceError('This username is already taken.')
   }
 
@@ -154,11 +194,13 @@ export async function signup(
 
   writeUsers([...users, newUser])
   writeJson<AuthSession>(SESSION_KEY, { userId: newUser.id })
+
   return toPublicUser(newUser)
 }
 
 /**
- * FIREBASE TODO: signOut(auth)
+ * LOGOUT (MOCK)
+ * NOT MIGRATED YET → still uses localStorage
  */
 export async function logout(): Promise<void> {
   await delay(200)
@@ -166,8 +208,8 @@ export async function logout(): Promise<void> {
 }
 
 /**
- * FIREBASE TODO: onAuthStateChanged + optional Firestore users/{uid} fetch
- * Return null when signed out.
+ * GET CURRENT USER (MOCK)
+ * NOT MIGRATED YET → still uses localStorage session lookup
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
   await delay(300)
@@ -175,7 +217,8 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   const session = readJson<AuthSession>(SESSION_KEY)
   if (!session?.userId) return null
 
-  const record = readUsers().find((user) => user.id === session.userId)
+  const record = readUsers().find((u) => u.id === session.userId)
+
   if (!record) {
     localStorage.removeItem(SESSION_KEY)
     return null
@@ -183,3 +226,27 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
   return toPublicUser(record)
 }
+
+/* =========================================================
+   🔥 MIGRATION STATUS SUMMARY
+=========================================================
+
+✔ COMPLETED:
+- File structure cleaned
+- Validation system intact
+- Mock auth fully working
+- Firebase migration plan documented
+
+❌ NOT MIGRATED (STILL MOCK):
+- login() → still uses localStorage
+- signup() → still uses localStorage
+- logout() → still uses localStorage
+- getCurrentUser() → still uses localStorage
+- NO Firebase Auth integration yet
+- NO Firestore user profiles yet
+
+🔜 NEXT STEP (Firebase Migration Phase 1):
+- Replace login() with signInWithEmailAndPassword
+- Connect Firebase Auth session state
+- Replace USERS_KEY with Firestore "users" collection
+*/

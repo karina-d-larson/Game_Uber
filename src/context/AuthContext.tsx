@@ -11,9 +11,6 @@ import {
 import * as authService from '../services/authService'
 import type { AuthUser } from '../types/user'
 
-import { auth } from '../lib/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
-
 type AuthContextValue = {
   user: AuthUser | null
   loading: boolean
@@ -24,29 +21,17 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+/**
+ * Session state for UI. Uses authService.subscribeToAuthChanges as the single
+ * auth listener (Firestore profile + cachedUser for getCurrentUser()).
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
-  /**
-   * REAL FIREBASE AUTH LISTENER
-   */
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (!firebaseUser) {
-        setUser(null)
-        setLoading(false)
-        return
-      }
-
-      setUser({
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        username: firebaseUser.email?.split('@')[0] ?? 'user',
-        displayName: firebaseUser.email?.split('@')[0] ?? 'User',
-        avatar: '',
-      })
-
+    const unsubscribe = authService.subscribeToAuthChanges((nextUser) => {
+      setUser(nextUser)
       setLoading(false)
     })
 
@@ -54,8 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    const signedIn = await authService.login(email, password)
-    setUser(signedIn)
+    await authService.login(email, password)
+    // subscribeToAuthChanges updates user + cachedUser with Firestore profile
   }, [])
 
   const signup = useCallback(async (
@@ -63,13 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     username: string,
   ) => {
-    const signedUp = await authService.signup(email, password, username)
-    setUser(signedUp)
+    await authService.signup(email, password, username)
   }, [])
 
   const logout = useCallback(async () => {
     await authService.logout()
-    setUser(null)
   }, [])
 
   const value = useMemo(

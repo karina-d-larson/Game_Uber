@@ -15,7 +15,7 @@ import * as listingService from '../services/listingService'
 export function EditListingPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { updateListing } = useListings()
+  const { updateListing, findListingById } = useListings()
   const { user } = useAuth()
 
   const [loading, setLoading] = useState(true)
@@ -28,6 +28,13 @@ export function EditListingPage() {
 
     async function load() {
       if (!id) return
+      const cached = findListingById(id)
+      if (cached) {
+        setListing(cached)
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
       setError(null)
       try {
@@ -45,7 +52,7 @@ export function EditListingPage() {
     return () => {
       cancelled = true
     }
-  }, [id])
+  }, [id, findListingById])
 
   if (loading) {
     return (

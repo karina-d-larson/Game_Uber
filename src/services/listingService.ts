@@ -1,10 +1,27 @@
-import { mockListings } from '../data/listings'
-import type { CreateListingInput, Listing, UpdateListingInput } from '../types/listing'
-import { readJson, writeJson } from '../utils/localStorage'
-import { auth } from '../lib/firebase'
-import * as storageService from './storageService'
+/**
+ * LISTING DATA LAYER — public CRUD API (backend selected by VITE_LISTINGS_BACKEND)
+ * ================================================================================
+ * Guide: docs/FIREBASE_INTEGRATION.md
+ *
+ * UI: useListings() / listingService only — no Firestore in pages/components.
+ *
+ * Backends:
+ *   local     → listingService.dev.ts (localStorage + seed)
+ *   firestore → listingService.firestore.ts (implement Firestore here)
+ */
 
-const STORAGE_KEY = 'boardlink_listings'
+import type {
+  ArrangementType,
+  CreateListingInput,
+  Listing,
+  UpdateListingInput,
+} from '../types/listing'
+import { isFirestoreListingsBackend } from '../config/listingsBackend'
+import { formatListingPrice } from '../utils/listingPricing'
+import { getCurrentUser } from './authService'
+import * as devListings from './listingService.dev'
+import * as firestoreListings from './listingService.firestore'
+import * as storageService from './storageService'
 
 function generateId(): string {
   return typeof crypto !== 'undefined' && crypto.randomUUID
@@ -12,36 +29,98 @@ function generateId(): string {
     : `listing-${Date.now()}`
 }
 
-async function saveListings(listings: Listing[]): Promise<void> {
-  writeJson(STORAGE_KEY, listings)
+function resolvePrice(
+  arrangementType: ArrangementType | undefined,
+  pricePerDay: number | undefined,
+  existingPrice?: string,
+): string | undefined {
+  const formatted = formatListingPrice(arrangementType, pricePerDay)
+  return formatted ?? existingPrice
 }
 
-/**
- * FETCH LISTINGS (mock for now)
- */
+// ---------------------------------------------------------------------------
+// Firestore document → Listing (used by listingService.firestore.ts on reads)
+// ---------------------------------------------------------------------------
+export function mapDocToListing(
+  id: string,
+  data: Record<string, unknown>,
+): Listing {
+  const createdAtRaw = data.createdAt
+  const createdAt =
+    typeof createdAtRaw === 'number'
+      ? createdAtRaw
+      : typeof createdAtRaw === 'object' &&
+          createdAtRaw !== null &&
+          'toMillis' in createdAtRaw &&
+          typeof (createdAtRaw as { toMillis: () => number }).toMillis === 'function'
+        ? (createdAtRaw as { toMillis: () => number }).toMillis()
+        : Date.now()
+
+  const updatedAtRaw = data.updatedAt
+  const updatedAt =
+    typeof updatedAtRaw === 'number'
+      ? updatedAtRaw
+      : typeof updatedAtRaw === 'object' &&
+          updatedAtRaw !== null &&
+          'toMillis' in updatedAtRaw &&
+          typeof (updatedAtRaw as { toMillis: () => number }).toMillis === 'function'
+        ? (updatedAtRaw as { toMillis: () => number }).toMillis()
+        : createdAt
+
+  return {
+    id,
+    title: String(data.title ?? ''),
+    description: String(data.description ?? ''),
+    imageUrls: Array.isArray(data.imageUrls) ? data.imageUrls : [],
+    listingType: data.listingType === 'wanted' ? 'wanted' : 'lending',
+    category: String(data.category ?? ''),
+    ownerId: String(data.ownerId ?? ''),
+    ownerName: String(data.ownerName ?? ''),
+    createdAt,
+    updatedAt,
+    condition: String(data.condition ?? ''),
+    availability: data.availability === 'unavailable' ? 'unavailable' : 'available',
+    arrangementType:
+      data.arrangementType === 'rent' ||
+      data.arrangementType === 'trade' ||
+      data.arrangementType === 'free'
+        ? data.arrangementType
+        : undefined,
+    price: typeof data.price === 'string' ? data.price : undefined,
+    pricePerDay: typeof data.pricePerDay === 'number' ? data.pricePerDay : undefined,
+    location: typeof data.location === 'string' ? data.location : undefined,
+    meetupPreferences:
+      typeof data.meetupPreferences === 'string' ? data.meetupPreferences : undefined,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Public API — routes to active backend (local vs firestore)
+// ---------------------------------------------------------------------------
+
 export async function fetchListings(): Promise<Listing[]> {
-  const saved = readJson<Listing[]>(STORAGE_KEY)
-  if (saved && saved.length > 0) return saved
-  return mockListings
+  if (isFirestoreListingsBackend()) {
+    return firestoreListings.fetchListings()
+  }
+  return devListings.devFetchListings()
 }
 
-/**
- * GET SINGLE LISTING
- */
 export async function getListingById(id: string): Promise<Listing | undefined> {
-  const listings = await fetchListings()
+  if (isFirestoreListingsBackend()) {
+    return firestoreListings.getListingById(id)
+  }
+  const listings = await devListings.devFetchListings()
   return listings.find((listing) => listing.id === id)
 }
 
-/**
- * CREATE LISTING
- */
 export async function createListing(
   input: CreateListingInput,
 ): Promise<Listing> {
+  if (isFirestoreListingsBackend()) {
+    return firestoreListings.createListing(input)
+  }
 
-  const currentUser = auth.currentUser
-
+  const currentUser = getCurrentUser()
   if (!currentUser) {
     throw new Error('You must be signed in to create a listing.')
   }
@@ -51,11 +130,11 @@ export async function createListing(
   }
 
   const listingId = generateId()
-  const createdAt = Date.now()
+  const now = Date.now()
 
   const imageUrls = await Promise.all(
     input.imageFiles.map((file) =>
-      storageService.uploadListingImage(file, currentUser.uid, listingId),
+      storageService.uploadListingImage(file, currentUser.id, listingId),
     ),
   )
 
@@ -66,44 +145,42 @@ export async function createListing(
     imageUrls,
     listingType: input.listingType,
     category: input.category.trim(),
-    ownerId: currentUser.uid,
-    ownerName: currentUser.email ?? 'User',
-    createdAt,
+    ownerId: currentUser.id,
+    ownerName: currentUser.displayName,
+    createdAt: now,
+    updatedAt: now,
     condition: input.condition.trim(),
     availability: input.availability,
     arrangementType: input.arrangementType,
     pricePerDay: input.pricePerDay,
-    location: input.location,
-    meetupPreferences: input.meetupPreferences,
+    price: resolvePrice(input.arrangementType, input.pricePerDay),
+    location: input.location?.trim(),
+    meetupPreferences: input.meetupPreferences?.trim(),
   }
 
-  const listings = await fetchListings()
-  const next = [listing, ...listings]
-
-  await saveListings(next)
-
+  const listings = await devListings.devFetchListings()
+  await devListings.devSaveListings([listing, ...listings])
   return listing
 }
 
-/**
- * UPDATE LISTING
- */
 export async function updateListing(
   id: string,
   input: UpdateListingInput,
 ): Promise<Listing> {
+  if (isFirestoreListingsBackend()) {
+    return firestoreListings.updateListing(id, input)
+  }
 
-  const currentUser = auth.currentUser
-
+  const currentUser = getCurrentUser()
   if (!currentUser) {
     throw new Error('You must be signed in to update a listing.')
   }
 
-  const listings = await fetchListings()
+  const listings = await devListings.devFetchListings()
   const existing = listings.find((l) => l.id === id)
-
   if (!existing) throw new Error('Listing not found.')
-  if (existing.ownerId !== currentUser.uid) {
+
+  if (existing.ownerId !== currentUser.id) {
     throw new Error('You can only edit your own listings.')
   }
 
@@ -111,47 +188,58 @@ export async function updateListing(
     input.imageFiles && input.imageFiles.length > 0
       ? await Promise.all(
           input.imageFiles.map((file) =>
-            storageService.uploadListingImage(file, currentUser.uid, id),
+            storageService.uploadListingImage(file, currentUser.id, id),
           ),
         )
       : existing.imageUrls
 
+  const arrangementType = input.arrangementType ?? existing.arrangementType
+  const pricePerDay = input.pricePerDay ?? existing.pricePerDay
+
   const updated: Listing = {
     ...existing,
-    title: input.title ?? existing.title,
-    description: input.description ?? existing.description,
-    category: input.category ?? existing.category,
+    title: input.title != null ? input.title.trim() : existing.title,
+    description:
+      input.description != null ? input.description.trim() : existing.description,
+    category: input.category != null ? input.category.trim() : existing.category,
     listingType: input.listingType ?? existing.listingType,
-    condition: input.condition ?? existing.condition,
+    condition: input.condition != null ? input.condition.trim() : existing.condition,
     availability: input.availability ?? existing.availability,
     imageUrls,
+    arrangementType,
+    pricePerDay,
+    price: resolvePrice(arrangementType, pricePerDay, existing.price),
+    location: input.location != null ? input.location.trim() : existing.location,
+    meetupPreferences:
+      input.meetupPreferences != null
+        ? input.meetupPreferences.trim()
+        : existing.meetupPreferences,
+    updatedAt: Date.now(),
   }
 
   const next = listings.map((l) => (l.id === id ? updated : l))
-  await saveListings(next)
-
+  await devListings.devSaveListings(next)
   return updated
 }
 
-/**
- * DELETE LISTING
- */
 export async function deleteListing(id: string): Promise<void> {
+  if (isFirestoreListingsBackend()) {
+    return firestoreListings.deleteListing(id)
+  }
 
-  const currentUser = auth.currentUser
-
+  const currentUser = getCurrentUser()
   if (!currentUser) {
     throw new Error('You must be signed in to delete a listing.')
   }
 
-  const listings = await fetchListings()
+  const listings = await devListings.devFetchListings()
   const existing = listings.find((l) => l.id === id)
-
   if (!existing) throw new Error('Listing not found.')
-  if (existing.ownerId !== currentUser.uid) {
+
+  if (existing.ownerId !== currentUser.id) {
     throw new Error('You can only delete your own listings.')
   }
 
   const next = listings.filter((l) => l.id !== id)
-  await saveListings(next)
+  await devListings.devSaveListings(next)
 }

@@ -14,6 +14,8 @@ export type Conversation = {
   participantIds: string[]
   /** Denormalized for inbox list UI */
   participantNames: string[]
+  /** Optional avatar URLs aligned with participantIds */
+  participantAvatars?: string[]
   listingId?: string
   listingTitle?: string
   lastMessageText: string

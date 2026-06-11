@@ -12,6 +12,7 @@
  *   ownerId,
  *   ownerName,
  *   createdAt,
+ *   updatedAt,
  *   condition,
  *   availability
  * }
@@ -47,6 +48,7 @@ export type Listing = {
 
   /** Epoch millis (or Firestore timestamp mapped to epoch millis). */
   createdAt: number
+  updatedAt: number
 
   condition: string
   availability: ListingAvailability

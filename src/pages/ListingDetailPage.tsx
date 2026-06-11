@@ -7,6 +7,8 @@ import { MaterialIcon } from '../components/MaterialIcon'
 import { useListings } from '../context/ListingsContext'
 import type { Listing } from '../types/listing'
 import { formatArrangementDetail } from '../utils/listingDisplay'
+import { getListingImageUrls } from '../utils/listingMedia'
+import { getListingPriceLabel } from '../utils/listingPricing'
 import { useAuth } from '../context/AuthContext'
 import * as listingService from '../services/listingService'
 
@@ -22,12 +24,14 @@ export function ListingDetailPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const state = location.state as DetailLocationState | null
-  const { updateListing, deleteListing } = useListings()
+  const { updateListing, deleteListing, findListingById } = useListings()
   const { user } = useAuth()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [listing, setListing] = useState<Listing | null>(state?.listing ?? null)
+  const [listing, setListing] = useState<Listing | null>(
+    state?.listing ?? (id ? findListingById(id) : undefined) ?? null,
+  )
   const [notFound, setNotFound] = useState(false)
   const [showActions, setShowActions] = useState(false)
   const [busy, setBusy] = useState<'delete' | 'markUnavailable' | null>(null)
@@ -98,12 +102,16 @@ export function ListingDetailPage() {
     )
   }
 
-  const gallery = listing.imageUrls.length > 0
-    ? listing.imageUrls
-    : listing.gallery ?? (listing.image ? [listing.image] : [])
+  const gallery = getListingImageUrls(listing)
   const heroImage = gallery[0] ?? ''
   const thumbs = gallery.slice(1, 4)
-  const priceAmount = listing.pricePerDay != null ? `$${listing.pricePerDay}` : (listing.price ? listing.price.split('/')[0] : '')
+  const priceLabel = getListingPriceLabel(listing)
+  const priceAmount =
+    listing.pricePerDay != null && listing.arrangementType === 'rent'
+      ? `$${listing.pricePerDay}`
+      : priceLabel.includes('/')
+        ? priceLabel.split('/')[0]
+        : priceLabel
   const availabilityLabel = listing.availability === 'available' ? 'Available' : 'Unavailable'
 
   async function handleDelete() {

@@ -1,6 +1,6 @@
 import { MaterialIcon } from '../components/MaterialIcon'
 
-/** Shown while AuthContext restores session from authService.getCurrentUser(). */
+/** Shown while AuthContext restores session via authService.subscribeToAuthChanges(). */
 export function AuthSplashPage() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-lg bg-background px-gutter-mobile text-on-background">

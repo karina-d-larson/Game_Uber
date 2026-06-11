@@ -94,8 +94,8 @@ Implement Firestore conversation/message querying + realtime subscriptions there
 ### `AuthContext`
 
 - owns app-level auth state (`user`, `loading`)
-- calls `authService` only
-- **future**: subscribe/unsubscribe to `onAuthStateChanged` via `authService`
+- subscribes to **`authService.subscribeToAuthChanges()`** only (no direct Firebase imports)
+- `getCurrentUser()` in services reads the same cached session populated by that listener
 
 ### `ListingsContext`
 
@@ -121,7 +121,8 @@ Required fields (aligned to `src/types/listing.ts`):
 - `category`
 - `ownerId`
 - `ownerName`
-- `createdAt`
+- `createdAt` (epoch millis or Firestore Timestamp → millis in `mapDocToListing`)
+- `updatedAt`
 - `condition`
 - `availability: 'available' | 'unavailable'`
 
@@ -223,22 +224,105 @@ Rules:
 
 ## Known unfinished backend areas
 
-- Firebase SDK bootstrapping is still stubbed (`src/lib/firebase.ts`)
-- Auth still localStorage mock (`authService`)
-- Listings still localStorage/mock fallback (`listingService`)
+- Auth: Firebase Auth + Firestore user profiles on signup (**done**)
+- Listings: local dev backend by default; Firestore stub in `listingService.firestore.ts`
 - Storage still data-URL fallback (`storageService`)
 - Messaging is stub-only (`messageService`, `InboxPage`, `ChatPage`)
 - Profile stats/reviews are static UI placeholders (`ProfilePage`)
 
 ---
 
+## Listings backend migration (local → Firestore)
+
+### Backend switch
+
+Controlled by `VITE_LISTINGS_BACKEND` in `.env` (see `.env.example`):
+
+| Value | Behavior |
+|-------|----------|
+| `local` (default) | `listingService.dev.ts` — localStorage key `boardlink_listings` + seed data |
+| `firestore` | `listingService.firestore.ts` only — **localStorage is disabled** |
+
+When `firestore` is set, calling dev/localStorage code throws immediately so Firestore data cannot be masked by stale localStorage.
+
+### Files by role
+
+| File | When to touch |
+|------|----------------|
+| `src/config/listingsBackend.ts` | Backend selector — do not remove |
+| `src/services/listingService.ts` | Public CRUD API — **do not change signatures**; routes to active backend |
+| `src/services/listingService.firestore.ts` | **Implement Firestore here** |
+| `src/services/listingService.dev.ts` | Delete after Firestore migration verified |
+| `src/data/mockListings.seed.ts` | One-time Firestore seed import, then optional delete |
+| `src/utils/listingNormalize.ts` | Dev/legacy reads only — not needed for Firestore writes |
+
+### Firestore implementation steps
+
+1. Implement `fetchListings`, `getListingById`, `createListing`, `updateListing`, `deleteListing` in `listingService.firestore.ts`
+2. Use `mapDocToListing()` from `listingService.ts` for all reads
+3. Use `COLLECTIONS.listings` and `getCurrentUser()` for owner fields
+4. Implement `storageService.uploadListingImage` (Firebase Storage URLs)
+5. Set `VITE_LISTINGS_BACKEND=firestore` in `.env`
+6. Clear stale dev data: `devClearListingsStorage()` from `listingService.dev.ts` (optional)
+7. Verify CRUD end-to-end, then delete `listingService.dev.ts`
+
+### Code paths to remove/disable when Firestore is live
+
+- `listingService.dev.ts` — entire file
+- `VITE_LISTINGS_BACKEND=local` — switch to `firestore`
+- `boardlink_listings` localStorage key — clear in browser or via `devClearListingsStorage()`
+- Any direct imports of `mockListings.seed` outside one-time seed scripts
+
+**Do NOT** add Firestore calls alongside dev fallback in the same function — the router in `listingService.ts` already enforces one backend.
+
+---
+
+## Auth architecture (single source of truth)
+
+```text
+Firebase Auth onAuthStateChanged
+  → authService.subscribeToAuthChanges()
+       → updates cachedUser (for getCurrentUser in listingService)
+       → callback → AuthContext setUser()
+```
+
+- **UI**: `useAuth()` from `AuthContext`
+- **Services**: `getCurrentUser()` from `authService` (never import `auth` in listingService)
+- **Do not** add a second `onAuthStateChanged` listener in context or pages
+
+---
+
+## Minimizing merge conflicts
+
+High-churn files — coordinate before parallel edits:
+
+| File | Owner guidance |
+|------|----------------|
+| `listingService.ts` | Listings teammate: keep public API + router; Firestore teammate: implement `.firestore.ts` only |
+| `authService.ts` | Auth/Firebase teammate owns; listings work should only use `getCurrentUser()` |
+| `types/listing.ts` | Schema changes need both teammates' agreement |
+| `FIREBASE_INTEGRATION.md` | Append migration notes; avoid rewriting auth sections another teammate owns |
+
+**Safe parallel work:** Firebase teammate implements `listingService.firestore.ts` + `storageService.ts` without touching `listingService.dev.ts` or `AuthContext`.
+
+---
+
 ## Codebase audit notes (read before wiring)
 
-### Mock-data coupling found
+### Listings dev vs production paths
 
-- `listingService` intentionally imports `mockListings` for dev fallback.
-- `CategoryChips` now uses static config (`src/config/listingCategories.ts`) instead of listing mock data.
-- `src/data/listings.ts` still contains deprecated helper `getListingById()` for seeds/dev only.
+| Layer | File | Role |
+|-------|------|------|
+| Types | `src/types/listing.ts` | Canonical `Listing` schema |
+| Service | `src/services/listingService.ts` | CRUD API + `mapDocToListing` stub |
+| Dev fallback | `src/services/listingService.dev.ts` | localStorage + seed reads/writes only |
+| Seed data | `src/data/mockListings.seed.ts` | One-time Firestore import source |
+| Context | `src/context/ListingsContext.tsx` | Feed state + CRUD orchestration |
+| UI config | `src/config/listingCategories.ts` | Category chips / form options |
+
+- Pages/components must **not** import seed data or `listingService.dev`.
+- `CategoryChips` and `ListingForm` use `listingCategories` config (not mock listings).
+- Legacy `image` / `gallery` fields: normalized via `src/utils/listingNormalize.ts` until Firestore is live.
 
 ### Separation-of-concerns status
 
@@ -260,16 +344,16 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
+VITE_LISTINGS_BACKEND=local
 ```
 
 Then:
 1. `npm install firebase`
-2. uncomment/implement `src/lib/firebase.ts`
-3. implement services in order:
-   1) `authService`
-   2) `listingService`
-   3) `storageService`
-   4) `messageService`
+2. Copy `.env.example` → `.env` and fill Firebase values
+3. Implement services in order:
+   1) `listingService.firestore.ts` + set `VITE_LISTINGS_BACKEND=firestore`
+   2) `storageService.ts`
+   3) `messageService.ts`
 
 ---
 

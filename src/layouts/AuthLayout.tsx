@@ -16,8 +16,9 @@ export function AuthLayout() {
         </Link>
       </header>
 
-      <main className="flex flex-1 flex-col justify-center px-gutter-mobile py-xl pb-safe md:px-gutter-desktop">
-        <div className="mx-auto w-full max-w-md">
+      <main className="flex flex-1 flex-col items-center justify-center px-gutter-mobile py-xl pb-safe md:px-gutter-desktop">
+        {/* max-w-(--container-md): spacing tokens redefine max-w-md/xl as 16px/32px — see tailwind.config.ts */}
+        <div className="mx-auto w-full max-w-(--container-md)">
           <Outlet />
         </div>
       </main>

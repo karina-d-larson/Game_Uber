@@ -1,27 +1,25 @@
 /**
- * AUTH DATA LAYER — Firebase implementation (clean architecture)
- * ==============================================================
+ * AUTH DATA LAYER — Firebase Auth + Firestore user profiles
+ * ===========================================================
  *
- * CURRENT STATE:
- * - login() → Firebase Auth (instant)
- * - signup() → Firebase Auth + Firestore profile
- * - logout() → Firebase Auth
- * - getCurrentUser() → replaced by subscribeToAuthChanges()
+ * Session sources (single listener):
+ * - subscribeToAuthChanges() → UI (AuthContext) + cachedUser for services
+ * - getCurrentUser()         → sync read of cachedUser / auth.currentUser fallback
  *
- * IMPORTANT:
  * Do NOT import Firebase in UI/components.
- * All auth logic stays here.
  */
 
 import type { AuthUser, LoginInput, SignupInput } from '../types/user'
 
-import { auth, db } from '../lib/firebase'
+import { COLLECTIONS } from '../config/firebaseCollections'
+import { auth, db, isFirebaseConfigured } from '../lib/firebase'
 
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  type Auth,
 } from 'firebase/auth'
 
 import {
@@ -73,6 +71,28 @@ function validateSignupInput({
   }
 }
 
+function requireFirebaseAuth(): Auth {
+  if (!isFirebaseConfigured || !auth) {
+    throw new AuthServiceError(
+      'Firebase is not configured. Copy .env.example to .env and add your Firebase keys.',
+    )
+  }
+  return auth
+}
+
+function userFromFirebaseAuth(firebaseUser: {
+  uid: string
+  email: string | null
+}): AuthUser {
+  return {
+    id: firebaseUser.uid,
+    email: firebaseUser.email ?? '',
+    username: firebaseUser.email?.split('@')[0] ?? 'user',
+    displayName: firebaseUser.email?.split('@')[0] ?? 'User',
+    avatar: DEFAULT_AVATAR,
+  }
+}
+
 /* =========================================================
    LOGIN (FIREBASE)
 ========================================================= */
@@ -86,20 +106,12 @@ export async function login(
 
   try {
     const userCredential = await signInWithEmailAndPassword(
-      auth,
+      requireFirebaseAuth(),
       email,
       password,
     )
 
-    const user = userCredential.user
-
-    return {
-      id: user.uid,
-      email: user.email ?? '',
-      username: user.email?.split('@')[0] ?? 'user',
-      displayName: user.email?.split('@')[0] ?? 'User',
-      avatar: DEFAULT_AVATAR,
-    }
+    return userFromFirebaseAuth(userCredential.user)
 
   } catch (err: any) {
     throw new AuthServiceError(err.message)
@@ -121,7 +133,7 @@ export async function signup(
   try {
     const userCredential =
       await createUserWithEmailAndPassword(
-        auth,
+        requireFirebaseAuth(),
         email,
         password,
       )
@@ -136,8 +148,7 @@ export async function signup(
       avatar: DEFAULT_AVATAR,
     }
 
-    // Store profile in Firestore
-    await setDoc(doc(db, 'users', user.uid), newUser)
+    await setDoc(doc(db, COLLECTIONS.users, user.uid), newUser)
 
     return newUser
 
@@ -151,6 +162,7 @@ export async function signup(
 ========================================================= */
 
 export async function logout(): Promise<void> {
+  if (!isFirebaseConfigured || !auth) return
   try {
     await signOut(auth)
   } catch (err: any) {
@@ -159,57 +171,67 @@ export async function logout(): Promise<void> {
 }
 
 /* =========================================================
-   AUTH STATE LISTENER (REPLACES getCurrentUser)
+   AUTH STATE — single listener for UI + service cache
 ========================================================= */
 
 let cachedUser: AuthUser | null = null
 
+/** Sync session user for services (e.g. listingService). Populated by subscribeToAuthChanges. */
+export function getCurrentUser(): AuthUser | null {
+  if (cachedUser) return cachedUser
+
+  if (!isFirebaseConfigured || !auth) return null
+
+  const firebaseUser = auth.currentUser
+  if (!firebaseUser) return null
+
+  return userFromFirebaseAuth(firebaseUser)
+}
+
 export function subscribeToAuthChanges(
   callback: (user: AuthUser | null) => void,
 ) {
-  return onAuthStateChanged(auth, async (firebaseUser) => {
+  if (!isFirebaseConfigured || !auth) {
+    cachedUser = null
+    callback(null)
+    return () => {}
+  }
+
+  return onAuthStateChanged(auth, (firebaseUser) => {
     if (!firebaseUser) {
       cachedUser = null
       callback(null)
       return
     }
 
-    try {
-      const ref = doc(db, 'users', firebaseUser.uid)
-      const snap = await getDoc(ref)
+    // Resolve UI immediately — enrich profile from Firestore in background.
+    cachedUser = userFromFirebaseAuth(firebaseUser)
+    callback(cachedUser)
 
-      const profile = snap.exists()
-        ? snap.data()
-        : null
+    void (async () => {
+      try {
+        const ref = doc(db, COLLECTIONS.users, firebaseUser.uid)
+        const snap = await getDoc(ref)
+        const profile = snap.exists() ? snap.data() : null
 
-      cachedUser = {
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        username:
-          profile?.username ??
-          firebaseUser.email?.split('@')[0] ??
-          'user',
-        displayName:
-          profile?.displayName ??
-          firebaseUser.email?.split('@')[0] ??
-          'User',
-        avatar: profile?.avatar ?? DEFAULT_AVATAR,
+        cachedUser = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          username:
+            profile?.username ??
+            firebaseUser.email?.split('@')[0] ??
+            'user',
+          displayName:
+            profile?.displayName ??
+            firebaseUser.email?.split('@')[0] ??
+            'User',
+          avatar: profile?.avatar ?? DEFAULT_AVATAR,
+        }
+
+        callback(cachedUser)
+      } catch (err) {
+        console.error('Auth profile sync error:', err)
       }
-
-      callback(cachedUser)
-
-    } catch (err) {
-      console.error('Auth sync error:', err)
-
-      cachedUser = {
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        username: 'user',
-        displayName: 'User',
-        avatar: DEFAULT_AVATAR,
-      }
-
-      callback(cachedUser)
-    }
+    })()
   })
 }

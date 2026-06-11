@@ -1,8 +1,10 @@
-console.log("🔥 FIREBASE FILE IS BEING USED")
-import { initializeApp } from "firebase/app"
-import { getAuth } from "firebase/auth"
-import { getFirestore } from "firebase/firestore"
-import { getStorage } from "firebase/storage"
+import { initializeApp, type FirebaseApp } from 'firebase/app'
+import type { Auth } from 'firebase/auth'
+import type { Firestore } from 'firebase/firestore'
+import type { FirebaseStorage } from 'firebase/storage'
+import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,13 +15,29 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-const app = initializeApp(firebaseConfig)
+/** False when `.env` is missing or incomplete — app still loads in dev. */
+export const isFirebaseConfigured = Boolean(
+  import.meta.env.VITE_FIREBASE_API_KEY?.trim(),
+)
 
-/* 🔥 THESE MUST BE NAMED EXPORTS */
-export const auth = getAuth(app)
-export const db = getFirestore(app)
-export const storage = getStorage(app)
+let app: FirebaseApp | undefined
+let authInstance: Auth | undefined
+let dbInstance: Firestore | undefined
+let storageInstance: FirebaseStorage | undefined
+
+if (isFirebaseConfigured) {
+  app = initializeApp(firebaseConfig)
+  authInstance = getAuth(app)
+  dbInstance = getFirestore(app)
+  storageInstance = getStorage(app)
+} else if (import.meta.env.DEV) {
+  console.warn(
+    '[BoardLink] Firebase not configured. Copy .env.example → .env and add your Firebase keys.',
+  )
+}
+
+export const auth = authInstance as Auth
+export const db = dbInstance as Firestore
+export const storage = storageInstance as FirebaseStorage
 
 export default app
-
-console.log("🔥 Firebase initialized")

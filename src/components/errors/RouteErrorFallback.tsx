@@ -23,7 +23,7 @@ export function RouteErrorFallback() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-lg bg-background px-gutter-mobile py-xl text-on-background">
       <MaterialIcon name="error_outline" className="text-5xl text-error" />
-      <div className="max-w-md space-y-sm text-center">
+      <div className="w-full max-w-(--container-md) space-y-sm text-center">
         <h1 className="font-headline-lg text-headline-lg text-primary">{title}</h1>
         <p className="font-body-md text-body-md text-on-surface-variant">{description}</p>
       </div>

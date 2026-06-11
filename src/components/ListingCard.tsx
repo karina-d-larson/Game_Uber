@@ -4,13 +4,15 @@ import {
   getArrangementBadgeClasses,
   getArrangementBadgeLabel,
 } from '../utils/listingDisplay'
+import { getListingImageUrls } from '../utils/listingMedia'
+import { getListingPriceLabel } from '../utils/listingPricing'
 
 type ListingCardProps = {
   listing: Listing
 }
 
 export function ListingCard({ listing }: ListingCardProps) {
-  const hero = listing.imageUrls[0] ?? listing.image ?? ''
+  const hero = getListingImageUrls(listing)[0] ?? ''
 
   return (
     <article className="group overflow-hidden rounded-xl bg-surface shadow-sm transition-shadow hover:shadow-md">
@@ -63,7 +65,7 @@ export function ListingCard({ listing }: ListingCardProps) {
 
           <div className="mt-auto flex items-center justify-between">
             <span className="font-bold text-headline-md text-secondary">
-              {listing.price ?? (listing.availability === 'available' ? 'Available' : 'Unavailable')}
+              {getListingPriceLabel(listing)}
             </span>
             <span className="rounded-lg bg-secondary px-xl py-2 font-semibold text-body-md text-on-primary">
               View

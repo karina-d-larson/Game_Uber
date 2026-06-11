@@ -1,6 +1,2 @@
-/** @deprecated Use `mockListings` from `./listings` — kept for existing imports. */
-export {
-  mockListings as demoListings,
-  CATEGORY_OPTIONS,
-  getListingById,
-} from './listings'
+/** @deprecated Use listingService or `mockListings.seed` — kept for legacy imports. */
+export { mockListings as demoListings } from './mockListings.seed'

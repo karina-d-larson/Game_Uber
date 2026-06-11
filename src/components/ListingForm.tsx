@@ -7,11 +7,21 @@ import type {
   ListingType,
   UpdateListingInput,
 } from '../types/listing'
+import { LISTING_CATEGORY_OPTIONS } from '../config/listingCategories'
 import { MaterialIcon } from './MaterialIcon'
 import { ImageUploader } from './ImageUploader'
 
-const GENRES = ['Strategy', 'Party', 'Worker Placement', 'Cooperative', 'Family']
-const CONDITIONS = ['Like New', 'Good', 'Well Used', 'Acceptable']
+const CONDITIONS = ['Like New', 'Good', 'Well Used', 'Acceptable'] as const
+
+const ARRANGEMENT_OPTIONS: {
+  value: ArrangementType
+  label: string
+  description: string
+}[] = [
+  { value: 'rent', label: 'Rent', description: 'Charge per day' },
+  { value: 'trade', label: 'Trade', description: 'Swap for another game' },
+  { value: 'free', label: 'Free Lend', description: 'No payment' },
+]
 
 type ListingFormMode = 'create' | 'edit'
 
@@ -188,7 +198,7 @@ export function ListingForm({
             value={form.category}
             onChange={(e) => updateField('category', e.target.value)}
           >
-            {GENRES.map((genre) => (
+            {LISTING_CATEGORY_OPTIONS.map((genre) => (
               <option key={genre}>{genre}</option>
             ))}
           </select>
@@ -247,6 +257,34 @@ export function ListingForm({
       </div>
 
       <div className="space-y-md">
+        <div>
+          <label className="mb-2 block font-label-md text-label-md text-on-surface-variant">
+            Arrangement
+          </label>
+          <div className="grid grid-cols-1 gap-sm sm:grid-cols-3">
+            {ARRANGEMENT_OPTIONS.map((option) => {
+              const selected = form.arrangementType === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => updateField('arrangementType', option.value)}
+                  className={
+                    selected
+                      ? 'rounded-xl border-2 border-secondary bg-secondary/5 p-4 text-left'
+                      : 'rounded-xl border border-outline-variant bg-surface p-4 text-left hover:bg-surface-container-low'
+                  }
+                >
+                  <p className="font-semibold text-body-md">{option.label}</p>
+                  <p className="text-label-md text-on-surface-variant">
+                    {option.description}
+                  </p>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         <div className="flex items-center justify-between rounded-xl border border-outline-variant bg-surface p-4">
           <div>
             <p className="font-label-md text-label-md text-on-surface-variant">

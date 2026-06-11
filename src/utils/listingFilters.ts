@@ -1,19 +1,14 @@
-import type { ArrangementType, Listing, ListingMode } from '../types/listing'
+import type { ArrangementType, Listing, ListingType } from '../types/listing'
 
 export type ListingFilterState = {
   search: string
   category: string | null
   arrangementType: ArrangementType | null
-  listingMode: ListingMode
+  listingType: ListingType
 }
 
 /**
- * Filter marketplace listings for the dashboard feed.
- *
- * FIREBASE TODO:
- * - For larger datasets, move primary filtering into listingService.fetchListings().
- * - Keep this utility as a local refinement layer after service results.
- * - Do NOT call Firestore in this utility.
+ * Client-side feed filters. FIREBASE TODO: move primary filters into fetchListings query.
  */
 export function filterListings(
   listings: Listing[],
@@ -23,7 +18,7 @@ export function filterListings(
 
   return listings.filter((listing) => {
     const type = listing.listingType ?? listing.listingMode
-    if (type !== filters.listingMode) return false
+    if (type !== filters.listingType) return false
 
     if (filters.category && listing.category !== filters.category) {
       return false

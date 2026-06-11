@@ -5,6 +5,7 @@ import { PageHeader } from '../components/shell/PageHeader'
 import { ProfileHeader } from '../components/ProfileHeader'
 import { MaterialIcon } from '../components/MaterialIcon'
 import { useAuth } from '../context/AuthContext'
+import { ROUTES } from '../routes/paths'
 
 const STATS = [
   { value: '98%', label: 'Lender Score' },
@@ -67,14 +68,18 @@ export function ProfilePage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [loggingOut, setLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState<string | null>(null)
 
   if (!user) return null
 
   async function handleLogout() {
+    setLogoutError(null)
     setLoggingOut(true)
     try {
       await logout()
-      navigate('/login', { replace: true })
+      navigate(ROUTES.login, { replace: true })
+    } catch {
+      setLogoutError('Could not sign out. Please try again.')
     } finally {
       setLoggingOut(false)
     }
@@ -89,6 +94,14 @@ export function ProfilePage() {
           <p className="mb-md font-body-md text-body-md text-on-surface-variant">
             Signed in as {user.email}
           </p>
+          {logoutError && (
+            <p
+              className="mb-md rounded-lg border border-error/30 bg-error/5 px-md py-sm font-body-md text-body-md text-error"
+              role="alert"
+            >
+              {logoutError}
+            </p>
+          )}
           <button
             type="button"
             onClick={handleLogout}

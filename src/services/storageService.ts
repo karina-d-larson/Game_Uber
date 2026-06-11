@@ -5,7 +5,7 @@
  *
  * Suggested exports:
  *   - uploadListingImage(file: File, userId: string): Promise<string>
- *     → returns public download URL for listing.image
+ *     → returns public download URL for listing.imageUrls[]
  *   - uploadListingGallery(files: File[], userId: string, listingId: string): Promise<string[]>
  *
  * Wire up in:

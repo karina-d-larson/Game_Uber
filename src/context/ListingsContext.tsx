@@ -31,6 +31,7 @@ type ListingsContextValue = {
   featuredListings: Listing[]
   loading: boolean
   error: string | null
+  findListingById: (id: string) => Listing | undefined
   refreshListings: () => Promise<void>
   createListing: (input: CreateListingInput) => Promise<Listing>
   updateListing: (id: string, input: UpdateListingInput) => Promise<Listing>
@@ -66,7 +67,12 @@ export function ListingsProvider({ children }: { children: ReactNode }) {
     // return () => unsub()
   }, [refreshListings])
 
-  const addListing = useCallback(
+  const findListingById = useCallback(
+    (id: string) => listings.find((listing) => listing.id === id),
+    [listings],
+  )
+
+  const createListing = useCallback(
     async (input: CreateListingInput) => {
       const created = await listingService.createListing(input)
       setListings((current) => [created, ...current])
@@ -74,8 +80,6 @@ export function ListingsProvider({ children }: { children: ReactNode }) {
     },
     [],
   )
-
-  const createListing = addListing
 
   const featuredListings = useMemo(() => {
     return [...listings].sort((a, b) => b.createdAt - a.createdAt).slice(0, 3)
@@ -104,12 +108,23 @@ export function ListingsProvider({ children }: { children: ReactNode }) {
       featuredListings,
       loading,
       error,
+      findListingById,
       refreshListings,
       createListing,
       updateListing,
       deleteListing,
     }),
-    [listings, featuredListings, loading, error, refreshListings, createListing, updateListing, deleteListing],
+    [
+      listings,
+      featuredListings,
+      loading,
+      error,
+      findListingById,
+      refreshListings,
+      createListing,
+      updateListing,
+      deleteListing,
+    ],
   )
 
   return (

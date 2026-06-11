@@ -1,5 +1,6 @@
 import { AuthProvider } from './context/AuthContext'
 import { ListingsProvider } from './context/ListingsContext'
+import { MessagesProvider } from './context/MessagesContext'
 import { AppRouter } from './routes/AppRouter'
 import './lib/firebase'
 
@@ -13,7 +14,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ListingsProvider>
-        <AppRouter />
+        <MessagesProvider>
+          <AppRouter />
+        </MessagesProvider>
       </ListingsProvider>
     </AuthProvider>
   )

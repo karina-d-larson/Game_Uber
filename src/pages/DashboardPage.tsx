@@ -7,7 +7,7 @@ import { MarketplaceToggle } from '../components/MarketplaceToggle'
 import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
 import { useListings } from '../context/ListingsContext'
-import type { ArrangementType, ListingMode } from '../types/listing'
+import type { ArrangementType, ListingType } from '../types/listing'
 import { filterListings } from '../utils/listingFilters'
 
 const ARRANGEMENT_FILTERS: { label: string; value: ArrangementType | null }[] = [
@@ -29,7 +29,7 @@ export function DashboardPage() {
   const [arrangementType, setArrangementType] = useState<ArrangementType | null>(
     null,
   )
-  const [listingMode, setListingMode] = useState<ListingMode>('lending')
+  const [listingType, setListingType] = useState<ListingType>('lending')
 
   const visibleListings = useMemo(
     () =>
@@ -37,9 +37,9 @@ export function DashboardPage() {
         search,
         category,
         arrangementType,
-        listingMode,
+        listingType,
       }),
-    [listings, search, category, arrangementType, listingMode],
+    [listings, search, category, arrangementType, listingType],
   )
 
   return (
@@ -77,7 +77,7 @@ export function DashboardPage() {
         })}
       </section>
 
-      <MarketplaceToggle mode={listingMode} onChange={setListingMode} />
+      <MarketplaceToggle mode={listingType} onChange={setListingType} />
 
       {error ? (
         <div className="py-xl">

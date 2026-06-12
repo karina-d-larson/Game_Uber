@@ -92,9 +92,6 @@ export function ListingForm({
     if (!form.category.trim()) next.category = 'Category is required.'
     if (!form.condition.trim()) next.condition = 'Condition is required.'
     if (!form.location.trim()) next.location = 'Location is required.'
-    if (mode === 'create' && imageFiles.length === 0) {
-      next.image = 'Please add a photo of the game.'
-    }
     setErrors(next)
     return Object.keys(next).length === 0
   }

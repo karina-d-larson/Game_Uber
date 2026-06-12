@@ -37,8 +37,8 @@ export function ImageUploader({
   }, [primary])
 
   const helperText = useMemo(() => {
-    if (maxFiles === 1) return 'Upload 1 photo for now.'
-    return `Upload up to ${maxFiles} photos.`
+    if (maxFiles === 1) return 'Optional — upload 1 photo for now.'
+    return `Optional — upload up to ${maxFiles} photos.`
   }, [maxFiles])
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {

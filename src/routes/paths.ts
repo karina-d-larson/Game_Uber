@@ -10,6 +10,7 @@ export const ROUTES = {
   signup: '/signup',
   inbox: '/inbox',
   profile: '/profile',
+  editProfile: '/profile/edit',
   createListing: '/listings/new',
   listing: (id: string) => `/listings/${id}`,
   editListing: (id: string) => `/listings/${id}/edit`,

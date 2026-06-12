@@ -25,7 +25,10 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       </div>
       <div className="flex-1 space-y-sm text-center md:text-left">
         <div className="flex flex-col gap-xs md:flex-row md:items-center md:gap-md">
-          <h2 className="font-headline-lg text-headline-lg">@{user.username}</h2>
+          <h2 className="font-headline-lg text-headline-lg">{user.displayName}</h2>
+          <span className="font-body-md text-body-md text-on-surface-variant">
+            @{user.username}
+          </span>
           <span className="inline-flex items-center rounded-full bg-secondary-container/10 px-3 py-1 font-label-md text-label-md text-secondary-container">
             Marketplace Member
           </span>
@@ -42,11 +45,11 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
             (4.8 rating)
           </span>
         </div>
-        <p className="max-w-2xl font-body-md text-body-md text-on-surface-variant">
-          Tabletop enthusiast for 10+ years. I specialize in heavy euros and strategic
-          deck-builders. Happy to lend my collection to responsible gamers in the
-          metropolitan area!
-        </p>
+        {user.bio && (
+          <p className="max-w-2xl font-body-md text-body-md text-on-surface-variant">
+            {user.bio}
+          </p>
+        )}
         <div className="flex flex-wrap justify-center gap-md pt-sm md:justify-start">
           <button
             type="button"

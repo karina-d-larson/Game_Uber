@@ -17,6 +17,8 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>
   signup: (email: string, password: string, username: string) => Promise<void>
   logout: () => Promise<void>
+  /** Re-fetch Firestore profile into session state (e.g. after profile edit). */
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -55,6 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authService.logout()
   }, [])
 
+  const refreshProfile = useCallback(async () => {
+    const updated = await authService.refreshSessionProfile()
+    if (updated) setUser(updated)
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -62,8 +69,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       signup,
       logout,
+      refreshProfile,
     }),
-    [user, loading, login, signup, logout],
+    [user, loading, login, signup, logout, refreshProfile],
   )
 
   return (

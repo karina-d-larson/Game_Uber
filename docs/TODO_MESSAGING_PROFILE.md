@@ -31,8 +31,8 @@ You do **not** own Firestore listings, Storage uploads, or security rules — se
 | `MessagesContext` | **Done** — loads/sends via `messageService` |
 | `createConversation` | **Not implemented** — throws in `messageService.ts` |
 | Message Owner button | **Not wired** — button exists on `ListingDetailPage.tsx` with no `onClick` |
-| Profile display | **Partial** — shows `AuthContext` user; stats/reviews are hardcoded mocks |
-| Profile editing | **Not started** — no edit page/modal, no `userService.ts` |
+| Profile display | **Partial** — shows `AuthContext` user + bio from Firestore; stats/reviews are hardcoded mocks |
+| Profile editing | **Done** — `userService.ts`, `/profile/edit`, `EditProfilePage.tsx` |
 | Firestore messaging | **Out of scope** unless team explicitly assigns later |
 
 ---
@@ -160,22 +160,24 @@ Only if it helps the backend teammate later — **do not implement full Firestor
 
 ### Part F — Profile: `userService.ts`
 
-- [ ] Create `src/services/userService.ts`
-- [ ] `getProfile(uid: string)` — read `users/{uid}` from Firestore, map to `UserProfile`
-- [ ] `updateProfile(uid: string, patch)` — update allowed fields on `users/{uid}`
-- [ ] Use `COLLECTIONS.users` from `src/config/firebaseCollections.ts`
-- [ ] Use `getCurrentUser()` to ensure user can only update own profile
-- [ ] Allowed MVP fields: `displayName`, `username`, `avatar`, `bio`
-- [ ] Do **not** use Firebase Auth `photoURL` unless team agrees — app uses `avatar` string on profile doc today
+- [x] Create `src/services/userService.ts`
+- [x] `getProfile(uid: string)` — read `users/{uid}` from Firestore, map to `UserProfile`
+- [x] `updateProfile(uid: string, patch)` — update allowed fields on `users/{uid}`
+- [x] Use `COLLECTIONS.users` from `src/config/firebaseCollections.ts`
+- [x] Use `getCurrentUser()` to ensure user can only update own profile
+- [x] Allowed MVP fields: `displayName`, `username`, `avatar`, `bio`
+- [x] Do **not** use Firebase Auth `photoURL` unless team agrees — app uses `avatar` string on profile doc today
+
+**Implemented (Karina):** `userService.ts` reads/writes `users/{uid}` via Firestore. Validation: display name required, username min 3 chars, bio and avatar URL optional. `authService.refreshSessionProfile()` + `AuthContext.refreshProfile()` update session state after save (no second auth listener).
 
 ### Part G — Profile editing UI
 
-- [ ] Add route e.g. `/profile/edit` in `src/routes/paths.ts` and `AppRouter.tsx`
-- [ ] Create `EditProfilePage.tsx` (or modal on ProfilePage)
-- [ ] Form fields: display name, username, avatar URL, bio (textarea)
-- [ ] Validate username length (match signup rules in `authService` — min 3 chars)
-- [ ] On save: call `userService.updateProfile`, then refresh auth profile
-- [ ] After save: user sees updated data on Profile page without manual logout
+- [x] Add route e.g. `/profile/edit` in `src/routes/paths.ts` and `AppRouter.tsx`
+- [x] Create `EditProfilePage.tsx` (or modal on ProfilePage)
+- [x] Form fields: display name, username, avatar URL, bio (textarea)
+- [x] Validate username length (match signup rules in `authService` — min 3 chars)
+- [x] On save: call `userService.updateProfile`, then refresh auth profile
+- [x] After save: user sees updated data on Profile page without manual logout
 
 **Refreshing UI after profile save:**
 
@@ -184,9 +186,9 @@ Only if it helps the backend teammate later — **do not implement full Firestor
 
 ### Part H — ProfilePage data loading
 
-- [ ] Replace hardcoded bio in `ProfileHeader` / `ProfilePage` with `user.bio` when available
-- [ ] Keep stats/reviews as static mocks for MVP unless time allows
-- [ ] Add “Edit profile” button linking to edit route
+- [x] Replace hardcoded bio in `ProfileHeader` / `ProfilePage` with `user.bio` when available
+- [x] Keep stats/reviews as static mocks for MVP unless time allows
+- [x] Add “Edit profile” button linking to edit route
 
 ---
 
@@ -226,10 +228,10 @@ Only if it helps the backend teammate later — **do not implement full Firestor
 
 ### Profile (MVP)
 
-- [ ] `userService.ts` exists with get/update profile
-- [ ] User can edit display name, username, avatar URL, bio
-- [ ] Changes persist in Firestore `users/{uid}`
-- [ ] Profile UI reflects saved changes
+- [x] `userService.ts` exists with get/update profile
+- [x] User can edit display name, username, avatar URL, bio
+- [x] Changes persist in Firestore `users/{uid}`
+- [x] Profile UI reflects saved changes
 
 ### Explicitly out of scope (unless reassigned)
 

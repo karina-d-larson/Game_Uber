@@ -13,6 +13,7 @@ import { InboxPage } from '../pages/InboxPage'
 import { ListingDetailPage } from '../pages/ListingDetailPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { EditProfilePage } from '../pages/EditProfilePage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { SignupPage } from '../pages/SignupPage'
 import { AuthGate, GuestRoute, ProtectedRoute } from './guards'
@@ -53,6 +54,7 @@ export function AppRouter() {
                 <Route path="listings/:id" element={<ListingDetailPage />} />
                 <Route path="listings/:id/edit" element={<EditListingPage />} />
                 <Route path="inbox/:conversationId" element={<ChatPage />} />
+                <Route path="profile/edit" element={<EditProfilePage />} />
               </Route>
             </Route>
 

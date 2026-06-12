@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
 import { ProfileHeader } from '../components/ProfileHeader'
@@ -94,6 +94,12 @@ export function ProfilePage() {
           <p className="mb-md font-body-md text-body-md text-on-surface-variant">
             Signed in as {user.email}
           </p>
+          <Link
+            to={ROUTES.editProfile}
+            className="mb-md inline-flex min-h-11 items-center rounded-lg bg-secondary px-lg py-3 font-label-md text-label-md text-on-secondary transition-colors hover:brightness-110"
+          >
+            Edit profile
+          </Link>
           {logoutError && (
             <p
               className="mb-md rounded-lg border border-error/30 bg-error/5 px-md py-sm font-body-md text-body-md text-error"

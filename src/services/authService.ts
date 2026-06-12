@@ -93,6 +93,27 @@ function userFromFirebaseAuth(firebaseUser: {
   }
 }
 
+function authUserFromProfile(
+  firebaseUser: { uid: string; email: string | null },
+  profile: Record<string, unknown> | null,
+): AuthUser {
+  return {
+    id: firebaseUser.uid,
+    email: firebaseUser.email ?? '',
+    username:
+      (typeof profile?.username === 'string' && profile.username) ||
+      firebaseUser.email?.split('@')[0] ||
+      'user',
+    displayName:
+      (typeof profile?.displayName === 'string' && profile.displayName) ||
+      firebaseUser.email?.split('@')[0] ||
+      'User',
+    avatar:
+      (typeof profile?.avatar === 'string' && profile.avatar) || DEFAULT_AVATAR,
+    bio: typeof profile?.bio === 'string' && profile.bio ? profile.bio : undefined,
+  }
+}
+
 /* =========================================================
    LOGIN (FIREBASE)
 ========================================================= */
@@ -212,21 +233,11 @@ export function subscribeToAuthChanges(
       try {
         const ref = doc(db, COLLECTIONS.users, firebaseUser.uid)
         const snap = await getDoc(ref)
-        const profile = snap.exists() ? snap.data() : null
+        const profile = snap.exists()
+          ? (snap.data() as Record<string, unknown>)
+          : null
 
-        cachedUser = {
-          id: firebaseUser.uid,
-          email: firebaseUser.email ?? '',
-          username:
-            profile?.username ??
-            firebaseUser.email?.split('@')[0] ??
-            'user',
-          displayName:
-            profile?.displayName ??
-            firebaseUser.email?.split('@')[0] ??
-            'User',
-          avatar: profile?.avatar ?? DEFAULT_AVATAR,
-        }
+        cachedUser = authUserFromProfile(firebaseUser, profile)
 
         callback(cachedUser)
       } catch (err) {
@@ -234,4 +245,26 @@ export function subscribeToAuthChanges(
       }
     })()
   })
+}
+
+/** Re-fetch Firestore profile for the signed-in user and refresh cachedUser. */
+export async function refreshSessionProfile(): Promise<AuthUser | null> {
+  if (!isFirebaseConfigured || !auth) return null
+
+  const firebaseUser = auth.currentUser
+  if (!firebaseUser) {
+    cachedUser = null
+    return null
+  }
+
+  try {
+    const ref = doc(db, COLLECTIONS.users, firebaseUser.uid)
+    const snap = await getDoc(ref)
+    const profile = snap.exists() ? (snap.data() as Record<string, unknown>) : null
+    cachedUser = authUserFromProfile(firebaseUser, profile)
+    return cachedUser
+  } catch (err) {
+    console.error('Auth profile refresh error:', err)
+    return cachedUser
+  }
 }

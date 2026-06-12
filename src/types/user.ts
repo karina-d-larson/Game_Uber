@@ -14,6 +14,7 @@ export type AuthUser = {
   username: string
   displayName: string
   avatar: string
+  bio?: string
 }
 
 /**
@@ -40,4 +41,12 @@ export type SignupInput = {
   email: string
   password: string
   username: string
+}
+
+/** Editable profile fields stored in Firestore users/{uid}. */
+export type ProfileUpdateInput = {
+  displayName: string
+  username: string
+  avatar?: string
+  bio?: string
 }

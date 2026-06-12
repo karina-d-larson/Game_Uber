@@ -2,7 +2,7 @@
 
 This document describes the React application structure: routing, layouts, navigation, and where future Firebase/messaging features attach.
 
-**Related:** [FIREBASE_INTEGRATION.md](./FIREBASE_INTEGRATION.md) (data layer handoff)
+**Related:** [FIREBASE_REFERENCE.md](./FIREBASE_REFERENCE.md) (schemas, Firebase boundaries) · [SPRINT1_OVERVIEW.md](./SPRINT1_OVERVIEW.md) (current tasks)
 
 ---
 

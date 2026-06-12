@@ -186,9 +186,9 @@ Only if it helps the backend teammate later — **do not implement full Firestor
 
 ### Part H — ProfilePage data loading
 
-- [x] Replace hardcoded bio in `ProfileHeader` / `ProfilePage` with `user.bio` when available
-- [x] Keep stats/reviews as static mocks for MVP unless time allows
-- [x] Add “Edit profile” button linking to edit route
+- [ ] Replace hardcoded bio in `ProfileHeader` / `ProfilePage` with `user.bio` when available
+- [ ] Keep stats/reviews as static mocks for MVP unless time allows
+- [ ] Add “Edit profile” button linking to edit route
 
 ---
 
@@ -230,8 +230,8 @@ Only if it helps the backend teammate later — **do not implement full Firestor
 
 - [x] `userService.ts` exists with get/update profile
 - [x] User can edit display name, username, avatar URL, bio
-- [x] Changes persist in Firestore `users/{uid}`
-- [x] Profile UI reflects saved changes
+- [ ] Changes persist in Firestore `users/{uid}`
+- [ ] Profile UI reflects saved changes
 
 ### Explicitly out of scope (unless reassigned)
 

@@ -6,17 +6,23 @@ Team web app built with **React**, **Vite**, **Tailwind CSS**, and **PWA** suppo
 
 - [Node.js](https://nodejs.org/) **20+** (see `.nvmrc` if you use [nvm](https://github.com/nvm-sh/nvm))
 
-## Firebase integration (teammate handoff)
+## Sprint 1 (current development plan)
 
-If you are implementing **Firebase** (Auth, Firestore, Storage, messaging), start here:
+Start here for **tasks and assignments**:
 
-**[docs/FIREBASE_INTEGRATION.md](docs/FIREBASE_INTEGRATION.md)** — full checklist, data model, milestones, and which files to change.
+**[docs/SPRINT1_OVERVIEW.md](docs/SPRINT1_OVERVIEW.md)** — goals, three-developer split, acceptance checklist.
 
-For **routing, app shell, and navigation** (protected routes, bottom nav, layouts):
+| Developer | Doc |
+|-----------|-----|
+| Listings / Firestore | [docs/SPRINT1_DEV1_FIREBASE_LISTINGS.md](docs/SPRINT1_DEV1_FIREBASE_LISTINGS.md) |
+| Messaging | [docs/SPRINT1_DEV2_MESSAGING.md](docs/SPRINT1_DEV2_MESSAGING.md) |
+| Profile / auth / settings | [docs/SPRINT1_DEV3_PROFILE_AUTH.md](docs/SPRINT1_DEV3_PROFILE_AUTH.md) |
 
-**[docs/APP_ARCHITECTURE.md](docs/APP_ARCHITECTURE.md)**
+**Reference (schemas, env setup — not a task list):** [docs/FIREBASE_REFERENCE.md](docs/FIREBASE_REFERENCE.md)
 
-Copy `.env.example` → `.env` and follow comments in `src/services/listingService.ts`.
+**Routing and app shell:** [docs/APP_ARCHITECTURE.md](docs/APP_ARCHITECTURE.md)
+
+Create a `.env` file with `VITE_FIREBASE_*` keys — see [docs/FIREBASE_REFERENCE.md](docs/FIREBASE_REFERENCE.md#environment-variables).
 
 ---
 

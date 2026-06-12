@@ -3,7 +3,7 @@
  * UI must call this service, not Firebase directly.
  */
 
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 import { COLLECTIONS } from '../config/firebaseCollections'
 import { db, isFirebaseConfigured } from '../lib/firebase'
@@ -87,7 +87,10 @@ export async function updateProfile(
   validateProfileUpdate(patch)
 
   const ref = doc(requireFirestore(), COLLECTIONS.users, uid)
+  // setDoc+merge: works when the doc is missing (login-only accounts) or already exists.
   const updateData: Record<string, string> = {
+    id: uid,
+    email: current.email,
     displayName: patch.displayName.trim(),
     username: patch.username.trim(),
     avatar: patch.avatar?.trim() || DEFAULT_AVATAR,
@@ -95,8 +98,17 @@ export async function updateProfile(
   }
 
   try {
-    await updateDoc(ref, updateData)
+    await setDoc(ref, updateData, { merge: true })
   } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? String((err as { code: string }).code)
+        : ''
+    if (code === 'permission-denied') {
+      throw new UserServiceError(
+        'Firestore blocked this save. In Firebase Console → Firestore → Rules, allow signed-in users to write their own users/{uid} document (see firestore.rules in the repo).',
+      )
+    }
     const message = err instanceof Error ? err.message : 'Failed to update profile.'
     throw new UserServiceError(message)
   }

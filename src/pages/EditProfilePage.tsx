@@ -17,42 +17,39 @@ export function EditProfilePage() {
   const [bio, setBio] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
+  // Prefill from session user immediately; enrich from Firestore in background.
+  // Depends on user.id only — auth enriches user with a new object reference and
+  // must not cancel the load effect (that left loading stuck forever).
   useEffect(() => {
     if (!user) return
 
-    const sessionUser = user
+    setDisplayName(user.displayName)
+    setUsername(user.username)
+    setAvatar(user.avatar)
+    setBio(user.bio ?? '')
+
     let cancelled = false
+    const uid = user.id
 
-    async function load() {
-      setLoading(true)
-      setFormError(null)
+    void (async () => {
       try {
-        const profile = await getProfile(sessionUser.id)
-        if (cancelled) return
-        setDisplayName(profile?.displayName ?? sessionUser.displayName)
-        setUsername(profile?.username ?? sessionUser.username)
-        setAvatar(profile?.avatar ?? sessionUser.avatar)
-        setBio(profile?.bio ?? '')
+        const profile = await getProfile(uid)
+        if (cancelled || !profile) return
+        setDisplayName(profile.displayName)
+        setUsername(profile.username)
+        setAvatar(profile.avatar)
+        setBio(profile.bio ?? '')
       } catch {
-        if (!cancelled) {
-          setDisplayName(sessionUser.displayName)
-          setUsername(sessionUser.username)
-          setAvatar(sessionUser.avatar)
-          setBio(sessionUser.bio ?? '')
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
+        // AuthContext values are already shown.
       }
-    }
+    })()
 
-    void load()
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [user?.id])
 
   if (!user) return null
 
@@ -93,14 +90,6 @@ export function EditProfilePage() {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (loading) {
-    return (
-      <Page header={<PageHeader variant="create" title="Edit profile" back="history" />}>
-        <p className="text-body-md text-on-surface-variant">Loading…</p>
-      </Page>
-    )
   }
 
   return (

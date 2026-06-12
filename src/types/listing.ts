@@ -6,7 +6,7 @@
  *   id,
  *   title,
  *   description,
- *   imageUrls,
+ *   imageUrls (optional — may be empty),
  *   listingType,
  *   category,
  *   ownerId,
@@ -76,7 +76,7 @@ export type CreateListingInput = {
   condition: string
   availability: ListingAvailability
 
-  /** New images selected by the user (service uploads and returns URLs). */
+  /** New images selected by the user (optional; service uploads and returns URLs). */
   imageFiles: File[]
 
   // Optional legacy fields

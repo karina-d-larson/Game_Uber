@@ -125,18 +125,17 @@ export async function createListing(
     throw new Error('You must be signed in to create a listing.')
   }
 
-  if (input.imageFiles.length === 0) {
-    throw new Error('Please add at least one image.')
-  }
-
   const listingId = generateId()
   const now = Date.now()
 
-  const imageUrls = await Promise.all(
-    input.imageFiles.map((file) =>
-      storageService.uploadListingImage(file, currentUser.id, listingId),
-    ),
-  )
+  const imageUrls =
+    input.imageFiles.length > 0
+      ? await Promise.all(
+          input.imageFiles.map((file) =>
+            storageService.uploadListingImage(file, currentUser.id, listingId),
+          ),
+        )
+      : []
 
   const listing: Listing = {
     id: listingId,

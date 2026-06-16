@@ -59,10 +59,7 @@ export async function sendMessage(input: SendMessageInput): Promise<Message> {
 export async function createConversation(
   input: CreateConversationInput,
 ): Promise<Conversation> {
-  void input
-  throw new Error(
-    'createConversation is not implemented yet. See messageService.ts FIREBASE TODO.',
-  )
+  return devMessages.devCreateConversation(input)
 }
 
 /** FIREBASE TODO: map Firestore document → Conversation */

@@ -80,6 +80,39 @@ function persist(
   writeJson(DEV_MESSAGES_KEY, messages)
 }
 
+export async function devCreateConversation(
+  input: CreateConversationInput,
+): Promise<Conversation> {
+  const user = getCurrentUser()
+
+  if (!user) {
+    throw new Error('You must be signed in to start a conversation.')
+  }
+
+  const { conversations, messages } = seedIfEmpty()
+
+  const now = Date.now()
+
+  const conversation: Conversation = {
+    id: `conv-${now}-${Math.random().toString(36).slice(2, 8)}`,
+    participantIds: input.participantIds,
+    participantNames: input.participantNames,
+    lastMessageText: '',
+    lastMessageAt: now,
+    unreadCount: 0,
+  }
+
+  const nextConversations = [conversation, ...conversations]
+
+  persist(nextConversations, {
+    ...messages,
+    [conversation.id]: [],
+  })
+
+  return conversation
+}
+
+
 export async function devFetchConversations(): Promise<Conversation[]> {
   const { conversations } = seedIfEmpty()
   return [...conversations].sort((a, b) => b.lastMessageAt - a.lastMessageAt)

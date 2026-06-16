@@ -1,10 +1,27 @@
 /**
  * App auth user — maps to Firebase Auth + Firestore users/{uid} when connected.
- * See docs/FIREBASE_INTEGRATION.md — Authentication
+ * See docs/FIREBASE_REFERENCE.md — users schema
  *
  * AuthUser: minimal session shape used by AuthContext and route guards.
  * UserProfile: extended Firestore profile (ProfilePage, public profile views).
  */
+
+export type PreferredListingType = 'lending' | 'wanted'
+
+/** Stored on users/{uid} alongside profile fields. */
+export type UserPreferences = {
+  preferredListingTypes: PreferredListingType[]
+  preferredCategories: string[]
+  showProfilePhoto: boolean
+  showFollowingList: boolean
+}
+
+export const DEFAULT_USER_PREFERENCES: UserPreferences = {
+  preferredListingTypes: ['lending', 'wanted'],
+  preferredCategories: [],
+  showProfilePhoto: true,
+  showFollowingList: true,
+}
 
 export type AuthUser = {
   /** Firebase Auth uid (mock: generated UUID) */
@@ -30,6 +47,7 @@ export type UserProfile = AuthUser & {
   renterScore?: number
   completedTrades?: number
   createdAt?: number
+  preferences?: UserPreferences
 }
 
 export type LoginInput = {
@@ -50,3 +68,6 @@ export type ProfileUpdateInput = {
   avatar?: string
   bio?: string
 }
+
+/** Partial preferences update — stored on users/{uid}. */
+export type PreferencesUpdateInput = Partial<UserPreferences>

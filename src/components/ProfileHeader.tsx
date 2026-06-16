@@ -3,6 +3,7 @@ import { MaterialIcon } from './MaterialIcon'
 
 type ProfileHeaderProps = {
   user: AuthUser
+  showPhoto?: boolean
 }
 
 /**
@@ -10,19 +11,21 @@ type ProfileHeaderProps = {
  *
  * FIREBASE TODO: pass Firestore profile fields; keep this component presentational.
  */
-export function ProfileHeader({ user }: ProfileHeaderProps) {
+export function ProfileHeader({ user, showPhoto = true }: ProfileHeaderProps) {
   return (
     <section className="flex flex-col items-center gap-lg rounded-xl bg-surface-container-lowest p-lg custom-shadow md:flex-row md:items-start">
-      <div className="relative">
-        <img
-          alt="Avatar"
-          className="h-32 w-32 rounded-full border-4 border-surface-container-high object-cover md:h-40 md:w-40"
-          src={user.avatar}
-        />
-        <div className="absolute right-2 bottom-2 flex items-center justify-center rounded-full border-2 border-surface-container-lowest bg-secondary p-1 text-on-secondary">
-          <MaterialIcon name="verified" filled className="text-sm" />
+      {showPhoto && (
+        <div className="relative">
+          <img
+            alt="Avatar"
+            className="h-32 w-32 rounded-full border-4 border-surface-container-high object-cover md:h-40 md:w-40"
+            src={user.avatar}
+          />
+          <div className="absolute right-2 bottom-2 flex items-center justify-center rounded-full border-2 border-surface-container-lowest bg-secondary p-1 text-on-secondary">
+            <MaterialIcon name="verified" filled className="text-sm" />
+          </div>
         </div>
-      </div>
+      )}
       <div className="flex-1 space-y-sm text-center md:text-left">
         <div className="flex flex-col gap-xs md:flex-row md:items-center md:gap-md">
           <h2 className="font-headline-lg text-headline-lg">{user.displayName}</h2>

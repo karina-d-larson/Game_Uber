@@ -11,6 +11,7 @@ export const ROUTES = {
   inbox: '/inbox',
   profile: '/profile',
   editProfile: '/profile/edit',
+  settings: '/settings',
   createListing: '/listings/new',
   listing: (id: string) => `/listings/${id}`,
   editListing: (id: string) => `/listings/${id}/edit`,

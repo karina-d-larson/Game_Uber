@@ -7,7 +7,14 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 import { COLLECTIONS } from '../config/firebaseCollections'
 import { db, isFirebaseConfigured } from '../lib/firebase'
-import type { ProfileUpdateInput, UserProfile } from '../types/user'
+import type {
+  PreferencesUpdateInput,
+  PreferredListingType,
+  ProfileUpdateInput,
+  UserPreferences,
+  UserProfile,
+} from '../types/user'
+import { DEFAULT_USER_PREFERENCES } from '../types/user'
 
 import { getCurrentUser } from './authService'
 
@@ -30,6 +37,37 @@ function requireFirestore() {
   return db
 }
 
+function mapPreferencesFromDoc(data: Record<string, unknown>): UserPreferences {
+  const rawTypes = data.preferredListingTypes
+  const preferredListingTypes = Array.isArray(rawTypes)
+    ? rawTypes.filter(
+        (value): value is PreferredListingType =>
+          value === 'lending' || value === 'wanted',
+      )
+    : DEFAULT_USER_PREFERENCES.preferredListingTypes
+
+  const rawCategories = data.preferredCategories
+  const preferredCategories = Array.isArray(rawCategories)
+    ? rawCategories.filter((value): value is string => typeof value === 'string')
+    : DEFAULT_USER_PREFERENCES.preferredCategories
+
+  return {
+    preferredListingTypes:
+      preferredListingTypes.length > 0
+        ? preferredListingTypes
+        : DEFAULT_USER_PREFERENCES.preferredListingTypes,
+    preferredCategories,
+    showProfilePhoto:
+      typeof data.showProfilePhoto === 'boolean'
+        ? data.showProfilePhoto
+        : DEFAULT_USER_PREFERENCES.showProfilePhoto,
+    showFollowingList:
+      typeof data.showFollowingList === 'boolean'
+        ? data.showFollowingList
+        : DEFAULT_USER_PREFERENCES.showFollowingList,
+  }
+}
+
 function mapDocToUserProfile(
   uid: string,
   email: string,
@@ -49,6 +87,7 @@ function mapDocToUserProfile(
     completedTrades:
       typeof data.completedTrades === 'number' ? data.completedTrades : undefined,
     createdAt: typeof data.createdAt === 'number' ? data.createdAt : undefined,
+    preferences: mapPreferencesFromDoc(data),
   }
 }
 
@@ -86,8 +125,6 @@ export async function updateProfile(
 
   validateProfileUpdate(patch)
 
-  const ref = doc(requireFirestore(), COLLECTIONS.users, uid)
-  // setDoc+merge: works when the doc is missing (login-only accounts) or already exists.
   const updateData: Record<string, string> = {
     id: uid,
     email: current.email,
@@ -97,21 +134,7 @@ export async function updateProfile(
     bio: patch.bio?.trim() ?? '',
   }
 
-  try {
-    await setDoc(ref, updateData, { merge: true })
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === 'object' && 'code' in err
-        ? String((err as { code: string }).code)
-        : ''
-    if (code === 'permission-denied') {
-      throw new UserServiceError(
-        'Firestore blocked this save. In Firebase Console → Firestore → Rules, allow signed-in users to write their own users/{uid} document (see firestore.rules in the repo).',
-      )
-    }
-    const message = err instanceof Error ? err.message : 'Failed to update profile.'
-    throw new UserServiceError(message)
-  }
+  await writeUserFields(uid, updateData)
 
   const updated = await getProfile(uid)
   if (!updated) {
@@ -119,4 +142,68 @@ export async function updateProfile(
   }
 
   return updated
+}
+
+function assertOwnProfile(uid: string): void {
+  const current = getCurrentUser()
+  if (!current || current.id !== uid) {
+    throw new UserServiceError('You can only update your own profile.')
+  }
+}
+
+async function writeUserFields(
+  uid: string,
+  fields: Record<string, unknown>,
+): Promise<void> {
+  const ref = doc(requireFirestore(), COLLECTIONS.users, uid)
+  try {
+    await setDoc(ref, fields, { merge: true })
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? String((err as { code: string }).code)
+        : ''
+    if (code === 'permission-denied') {
+      throw new UserServiceError(
+        'Firestore blocked this save. Check Firebase security rules for users/{uid}.',
+      )
+    }
+    const message = err instanceof Error ? err.message : 'Failed to save.'
+    throw new UserServiceError(message)
+  }
+}
+
+export async function getPreferences(uid: string): Promise<UserPreferences> {
+  const profile = await getProfile(uid)
+  return profile?.preferences ?? { ...DEFAULT_USER_PREFERENCES }
+}
+
+export async function updatePreferences(
+  uid: string,
+  patch: PreferencesUpdateInput,
+): Promise<UserPreferences> {
+  assertOwnProfile(uid)
+
+  const current = await getPreferences(uid)
+  const next: UserPreferences = {
+    preferredListingTypes:
+      patch.preferredListingTypes ?? current.preferredListingTypes,
+    preferredCategories:
+      patch.preferredCategories ?? current.preferredCategories,
+    showProfilePhoto: patch.showProfilePhoto ?? current.showProfilePhoto,
+    showFollowingList: patch.showFollowingList ?? current.showFollowingList,
+  }
+
+  if (next.preferredListingTypes.length === 0) {
+    throw new UserServiceError('Select at least one listing type.')
+  }
+
+  const currentUser = getCurrentUser()!
+  await writeUserFields(uid, {
+    id: uid,
+    email: currentUser.email,
+    ...next,
+  })
+
+  return next
 }

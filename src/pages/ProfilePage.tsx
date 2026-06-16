@@ -1,11 +1,13 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
 import { ProfileHeader } from '../components/ProfileHeader'
 import { MaterialIcon } from '../components/MaterialIcon'
 import { useAuth } from '../context/AuthContext'
 import { ROUTES } from '../routes/paths'
+import { getPreferences } from '../services/userService'
+import { DEFAULT_USER_PREFERENCES } from '../types/user'
 
 const STATS = [
   { value: '98%', label: 'Lender Score' },
@@ -65,29 +67,32 @@ function StarRow({ count }: { count: number }) {
  * See: docs/FIREBASE_INTEGRATION.md — Milestone 2
  */
 export function ProfilePage() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const [loggingOut, setLoggingOut] = useState(false)
-  const [logoutError, setLogoutError] = useState<string | null>(null)
+  const { user } = useAuth()
+  const [showPhoto, setShowPhoto] = useState(DEFAULT_USER_PREFERENCES.showProfilePhoto)
+
+  useEffect(() => {
+    if (!user) return
+
+    let cancelled = false
+    void (async () => {
+      try {
+        const prefs = await getPreferences(user.id)
+        if (!cancelled) setShowPhoto(prefs.showProfilePhoto)
+      } catch {
+        if (!cancelled) setShowPhoto(DEFAULT_USER_PREFERENCES.showProfilePhoto)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
 
   if (!user) return null
 
-  async function handleLogout() {
-    setLogoutError(null)
-    setLoggingOut(true)
-    try {
-      await logout()
-      navigate(ROUTES.login, { replace: true })
-    } catch {
-      setLogoutError('Could not sign out. Please try again.')
-    } finally {
-      setLoggingOut(false)
-    }
-  }
-
   return (
     <Page header={<PageHeader variant="profile" />} className="space-y-xl">
-        <ProfileHeader user={user} />
+        <ProfileHeader user={user} showPhoto={showPhoto} />
 
         <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg custom-shadow">
           <h3 className="mb-md font-headline-md text-headline-md text-primary">Account</h3>
@@ -95,27 +100,11 @@ export function ProfilePage() {
             Signed in as {user.email}
           </p>
           <Link
-            to={ROUTES.editProfile}
-            className="mb-md inline-flex min-h-11 items-center rounded-lg bg-secondary px-lg py-3 font-label-md text-label-md text-on-secondary transition-colors hover:brightness-110"
+            to={ROUTES.settings}
+            className="inline-flex min-h-11 items-center rounded-lg bg-secondary px-lg py-3 font-label-md text-label-md text-on-secondary transition-colors hover:brightness-110"
           >
-            Edit profile
+            Settings
           </Link>
-          {logoutError && (
-            <p
-              className="mb-md rounded-lg border border-error/30 bg-error/5 px-md py-sm font-body-md text-body-md text-error"
-              role="alert"
-            >
-              {logoutError}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="w-full rounded-lg border border-outline-variant px-lg py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low disabled:opacity-60 md:w-auto"
-          >
-            {loggingOut ? 'Signing out…' : 'Log out'}
-          </button>
         </section>
 
         <section className="grid grid-cols-2 gap-md md:grid-cols-4">

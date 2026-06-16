@@ -26,14 +26,14 @@ By sprint end:
 | Area | Status |
 |------|--------|
 | Sign up / login / logout | **Done** |
-| `userService.ts` | **Partial** — `getProfile`, `updateProfile` exist |
-| `EditProfilePage.tsx` | **Partial** — `/profile/edit` route exists |
-| Profile display + bio | **Partial** — from Firestore via auth sync |
+| `userService.ts` | **Done** — `getProfile`, `updateProfile`, `getPreferences`, `updatePreferences` |
+| `EditProfilePage.tsx` | **Done** — `/profile/edit` route |
+| Profile display + bio | **Done** — from Firestore via auth sync + `getPreferences` for photo toggle |
+| Settings page | **Done** — `/settings` (Account, Profile, Preferences, Privacy) |
+| User preferences in Firestore | **Done** — flattened on `users/{uid}` |
 | `firestore.rules` (users) | **Partial** — basic users rules may exist |
 | Google/Gmail login | **Not started** |
 | Change password | **Not started** |
-| Settings page/sections | **Not started** |
-| User preferences in Firestore | **Not started** |
 | Follow button | **UI only** — not wired (`ProfileHeader.tsx`) |
 | Following list page | **Not started** |
 | Wording / button audit | **Not started** |
@@ -70,7 +70,7 @@ By sprint end:
 | `src/services/authService.ts` | Google provider, change password helpers |
 | `src/pages/EditProfilePage.tsx` | Finish settings fields |
 | `src/pages/ProfilePage.tsx` | Settings links, following entry point |
-| `src/pages/SettingsPage.tsx` | **Create** — Account, Profile, Preferences, Privacy |
+| `src/pages/SettingsPage.tsx` | **Done** — Account, Profile, Preferences, Privacy |
 | `src/pages/FollowingPage.tsx` | **Create** — list of users followed |
 | `src/components/ProfileHeader.tsx` | Wire Follow; hide dead Message if needed |
 | `src/routes/paths.ts` | `settings`, `following`, etc. |
@@ -105,16 +105,16 @@ By sprint end:
 
 ### Part A — Finish profile Firebase implementation
 
-- [ ] Verify `userService.getProfile(uid)` reads `users/{uid}` from Firestore.
-- [ ] Verify `userService.updateProfile(uid, patch)` writes `displayName`, `username`, `avatar`, `bio`.
-- [ ] Ensure `authService` profile sync includes `bio` (and new preference fields when added).
-- [ ] After save on `EditProfilePage`, call `refreshProfile()` and confirm Profile page updates without logout.
-- [ ] Hard refresh — profile fields still correct.
+- [x] Verify `userService.getProfile(uid)` reads `users/{uid}` from Firestore.
+- [x] Verify `userService.updateProfile(uid, patch)` writes `displayName`, `username`, `avatar`, `bio`.
+- [x] Ensure `authService` profile sync includes `bio` (preferences loaded via `userService.getPreferences` on Profile/Settings).
+- [x] After save on `EditProfilePage`, call `refreshProfile()` and confirm Profile page updates without logout.
+- [x] Hard refresh — profile fields still correct (via auth listener + Firestore `users/{uid}`).
 
 ### Part B — User preferences
 
-- [ ] Store preferences on `users/{uid}` **or** subdoc `users/{uid}/settings/preferences` (pick one; document in handoff).
-- [ ] Suggested fields:
+- [x] Store preferences on `users/{uid}` (flattened on same doc as profile).
+- [x] Suggested fields:
 
 ```ts
 {
@@ -125,16 +125,16 @@ By sprint end:
 }
 ```
 
-- [ ] Add `getPreferences(uid)` / `updatePreferences(uid, patch)` in `userService.ts`.
-- [ ] Settings UI toggles/inputs for each preference.
+- [x] Add `getPreferences(uid)` / `updatePreferences(uid, patch)` in `userService.ts`.
+- [x] Settings UI toggles/inputs for each preference.
 
 ### Part C — Settings page
 
-- [ ] Create `src/pages/SettingsPage.tsx` (or expand Profile account section — prefer dedicated `/settings` route).
-- [ ] Add route in `paths.ts` and `AppRouter.tsx`.
-- [ ] Link from Profile page (“Settings” button).
-- [ ] Sections (see section 7 below).
-- [ ] Include **Log out** in Account section (reuse existing logout handler).
+- [x] Create `src/pages/SettingsPage.tsx` (dedicated `/settings` route).
+- [x] Add route in `paths.ts` and `AppRouter.tsx`.
+- [x] Link from Profile page (“Settings” button).
+- [x] Sections (see section 7 below).
+- [x] Include **Log out** in Account section (reuse existing logout handler).
 
 ### Part D — Google / Gmail login
 
@@ -234,8 +234,10 @@ Store on `users/{uid}` (flattened) **or** `users/{uid}/settings/main`:
 }
 ```
 
-- [ ] Extend `UserProfile` or add `UserPreferences` type in `src/types/user.ts`.
-- [ ] Map in `userService` read/write.
+- [x] Extend `UserProfile` or add `UserPreferences` type in `src/types/user.ts`.
+- [x] Map in `userService` read/write.
+
+**Storage choice:** preferences live as top-level fields on `users/{uid}` (same document as profile).
 
 ---
 
@@ -310,15 +312,15 @@ Store on `users/{uid}` (flattened) **or** `users/{uid}/settings/main`:
 
 ## 12. Definition of done
 
-- [ ] Profile fields stored in `users/{uid}`; edit page works; refresh persists.
-- [ ] Preferences stored and editable in Settings.
-- [ ] Settings page with Account, Profile, Preferences, Privacy sections.
+- [x] Profile fields stored in `users/{uid}`; edit page works; refresh persists.
+- [x] Preferences stored and editable in Settings.
+- [x] Settings page with Account, Profile, Preferences, Privacy sections.
 - [ ] Google/Gmail login works.
 - [ ] Change password works for email/password users only.
 - [ ] Avatar strategy implemented without Firebase Storage.
 - [ ] Follow button works; following list page exists.
 - [ ] **No** view-followers feature.
-- [ ] Logout available from settings/account.
+- [x] Logout available from settings/account.
 - [ ] User-friendly wording pass on auth/profile/settings.
 - [ ] Dead buttons fixed or hidden (audit complete).
 - [ ] No Firebase imports in pages/components (services only).

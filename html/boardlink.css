@@ -789,6 +789,9 @@
   .border-secondary {
     border-color: #0058be;
   }
+  .border-secondary\/30 {
+    border-color: color-mix(in oklab, #0058be 30%, transparent);
+  }
   .border-surface-container-high {
     border-color: #eae7e9;
   }
@@ -1595,11 +1598,6 @@
   .md\:w-40 {
     @media (width >= 48rem) {
       width: calc(var(--spacing) * 40);
-    }
-  }
-  .md\:w-auto {
-    @media (width >= 48rem) {
-      width: auto;
     }
   }
   .md\:grid-cols-2 {

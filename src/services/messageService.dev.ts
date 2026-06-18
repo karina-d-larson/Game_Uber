@@ -6,7 +6,7 @@ import {
   seedConversations,
   seedMessagesByConversation,
 } from '../data/mockMessages.seed'
-import type { Conversation, Message, SendMessageInput } from '../types/message'
+import type { Conversation, CreateConversationInput, Message, SendMessageInput } from '../types/message'
 import {
   CURRENT_USER_PLACEHOLDER,
   resolveParticipantIds,
@@ -95,9 +95,10 @@ export async function devCreateConversation(
 
   const conversation: Conversation = {
     id: `conv-${now}-${Math.random().toString(36).slice(2, 8)}`,
-    participantIds: input.participantIds,
-    participantNames: input.participantNames,
-    lastMessageText: '',
+    participantIds: [user.id, input.recipientId],
+    participantNames: [user.displayName, 'Recipient'],
+    listingId: input.listingId,
+    lastMessageText: input.initialMessage?.trim() ?? '',
     lastMessageAt: now,
     unreadCount: 0,
   }

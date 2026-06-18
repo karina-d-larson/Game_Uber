@@ -7,15 +7,9 @@ import { MarketplaceToggle } from '../components/MarketplaceToggle'
 import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
 import { useListings } from '../context/ListingsContext'
-import type { ArrangementType, ListingType } from '../types/listing'
+import type { ExchangeOption, ListingPurpose } from '../types/listing'
+import { getExchangeFilterOptions } from '../utils/listingDisplay'
 import { filterListings } from '../utils/listingFilters'
-
-const ARRANGEMENT_FILTERS: { label: string; value: ArrangementType | null }[] = [
-  { label: 'All types', value: null },
-  { label: 'Rent', value: 'rent' },
-  { label: 'Trade', value: 'trade' },
-  { label: 'Free lend', value: 'free' },
-]
 
 /**
  * Marketplace feed — reads listings from ListingsContext (localStorage + mocks via listingService).
@@ -26,21 +20,31 @@ export function DashboardPage() {
   const { listings, loading, error, refreshListings } = useListings()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string | null>(null)
-  const [arrangementType, setArrangementType] = useState<ArrangementType | null>(
-    null,
+  const [exchangeOption, setExchangeOption] = useState<ExchangeOption | null>(null)
+  const [listingPurpose, setListingPurpose] = useState<ListingPurpose>('offer')
+
+  const exchangeFilters = useMemo(
+    () => getExchangeFilterOptions(listingPurpose),
+    [listingPurpose],
   )
-  const [listingType, setListingType] = useState<ListingType>('lending')
 
   const visibleListings = useMemo(
     () =>
       filterListings(listings, {
         search,
         category,
-        arrangementType,
-        listingType,
+        exchangeOption,
+        listingPurpose,
       }),
-    [listings, search, category, arrangementType, listingType],
+    [listings, search, category, exchangeOption, listingPurpose],
   )
+
+  function handlePurposeChange(purpose: ListingPurpose) {
+    setListingPurpose(purpose)
+    setExchangeOption(null)
+  }
+
+  const emptyTitle = listingPurpose === 'offer' ? 'No offers found' : 'No requests found'
 
   return (
     <Page
@@ -54,17 +58,30 @@ export function DashboardPage() {
     >
       <CategoryChips selected={category} onSelect={setCategory} />
 
+      <MarketplaceToggle purpose={listingPurpose} onChange={handlePurposeChange} />
+
       <section
         className="custom-scrollbar flex gap-sm overflow-x-auto py-sm"
-        aria-label="Arrangement filters"
+        aria-label="Exchange filters"
       >
-        {ARRANGEMENT_FILTERS.map((filter) => {
-          const isActive = arrangementType === filter.value
+        <button
+          type="button"
+          onClick={() => setExchangeOption(null)}
+          className={
+            exchangeOption === null
+              ? 'min-h-11 rounded-full bg-secondary px-md py-xs font-label-md text-label-md whitespace-nowrap text-on-secondary'
+              : 'min-h-11 rounded-full bg-surface-container-high px-md py-xs font-label-md text-label-md whitespace-nowrap text-on-surface-variant hover:bg-surface-container-highest'
+          }
+        >
+          All types
+        </button>
+        {exchangeFilters.map((filter) => {
+          const isActive = exchangeOption === filter.value
           return (
             <button
-              key={filter.label}
+              key={filter.value}
               type="button"
-              onClick={() => setArrangementType(filter.value)}
+              onClick={() => setExchangeOption(filter.value)}
               className={
                 isActive
                   ? 'min-h-11 rounded-full bg-secondary px-md py-xs font-label-md text-label-md whitespace-nowrap text-on-secondary'
@@ -76,8 +93,6 @@ export function DashboardPage() {
           )
         })}
       </section>
-
-      <MarketplaceToggle mode={listingType} onChange={setListingType} />
 
       {error ? (
         <div className="py-xl">
@@ -102,8 +117,8 @@ export function DashboardPage() {
       ) : visibleListings.length === 0 ? (
         <div className="py-xl">
           <EmptyState
-            title="No listings yet"
-            description="Try adjusting your search or filters, or create a listing from the Create tab."
+            title={emptyTitle}
+            description="Try changing your search or filters, or create a listing from the Create tab."
           />
         </div>
       ) : (

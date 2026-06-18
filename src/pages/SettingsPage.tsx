@@ -14,8 +14,8 @@ import type { PreferredListingType, UserPreferences } from '../types/user'
 import { DEFAULT_USER_PREFERENCES } from '../types/user'
 
 const LISTING_TYPE_OPTIONS: { value: PreferredListingType; label: string }[] = [
-  { value: 'lending', label: 'Games for lending' },
-  { value: 'wanted', label: 'Games I want to rent' },
+  { value: 'lending', label: 'Offers' },
+  { value: 'wanted', label: 'Requests' },
 ]
 
 export function SettingsPage() {
@@ -85,7 +85,7 @@ export function SettingsPage() {
     setSaveMessage(null)
 
     if (preferences.preferredListingTypes.length === 0) {
-      setFormError('Select at least one listing type.')
+      setFormError('Select at least one preference (Offers or Requests).')
       return
     }
 
@@ -181,7 +181,10 @@ export function SettingsPage() {
 
               <div>
                 <p className="mb-sm font-label-md text-label-md text-on-surface-variant">
-                  Listing types
+                  Preferred listing types
+                </p>
+                <p className="mb-sm text-label-md text-on-surface-variant">
+                  Show offers (games people have) and/or requests (games people are looking for).
                 </p>
                 <div className="flex flex-col gap-sm sm:flex-row">
                   {LISTING_TYPE_OPTIONS.map((option) => (

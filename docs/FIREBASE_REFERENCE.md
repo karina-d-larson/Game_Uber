@@ -92,18 +92,28 @@ Aligned with `src/types/listing.ts`:
 | Field | Type | Notes |
 |-------|------|-------|
 | `title` | string | Required |
-| `description` | string | Required |
-| `imageUrls` | string[] | May be empty in Sprint 1 (no Storage) |
-| `listingType` | `'lending' \| 'wanted'` | Required |
-| `category` | string | |
+| `description` | string | Optional in UI; may be empty |
+| `imageUrls` | string[] | May be empty in Sprint 1 (no Storage); typically empty for requests |
+| `listingPurpose` | `'offer' \| 'request'` | Required — what the user is posting |
+| `listingType` | `'lending' \| 'wanted'` | Legacy feed field; `lending` = offer, `wanted` = request |
+| `category` | string | Legacy primary category; equals `categories[0]` when `categories` is set |
+| `categories` | string[] | Optional multi-select game categories; preferred over single `category` |
 | `ownerId` | string | Firebase Auth uid |
 | `ownerName` | string | Denormalized display name |
 | `createdAt` | Timestamp or epoch millis | Map via `mapDocToListing()` |
 | `updatedAt` | Timestamp or epoch millis | |
 | `condition` | string | |
-| `availability` | `'available' \| 'unavailable'` | |
+| `availability` | `'available' \| 'unavailable'` | Offers: available/unavailable. Requests: maps to “Still looking” / “Request closed” in UI |
 
-Optional legacy: `arrangementType`, `pricePerDay`, `price`, `location`, `meetupPreferences`, `image`, `gallery`.
+Purpose-specific fields:
+
+| Field | Type | When |
+|-------|------|------|
+| `arrangementType` | `'rent' \| 'trade' \| 'borrow'` | Offer listings — single exchange option |
+| `requestOptions` | `('rent' \| 'trade' \| 'borrow')[]` | Request listings — one or more options |
+| `tutorialUrl` | string (http/https URL) | Offer listings — optional external video link |
+
+Optional: `pricePerDay`, `price`, `location`, `meetupPreferences`, `image`, `gallery`. Legacy `arrangementType: 'free'` is read as `borrow`.
 
 ### `users/{uid}`
 

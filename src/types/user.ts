@@ -6,7 +6,7 @@
  * UserProfile: extended Firestore profile (ProfilePage, public profile views).
  */
 
-export type PreferredListingType = 'lending' | 'wanted'
+export type PreferredListingType = 'lending' | 'wanted' // UI: Offers | Requests
 
 /** Stored on users/{uid} alongside profile fields. */
 export type UserPreferences = {

@@ -1,13 +1,13 @@
 /**
  * Shared listing types — used by UI and Firebase service layer.
  *
- * GameShelf MVP listing schema (required):
+ * GameShelf listing schema (required):
  * {
  *   id,
  *   title,
  *   description,
  *   imageUrls (optional — may be empty),
- *   listingType,
+ *   listingPurpose,
  *   category,
  *   ownerId,
  *   ownerName,
@@ -17,15 +17,28 @@
  *   availability
  * }
  *
+ * Purpose-specific (see listingPurpose):
+ * - offer: arrangementType (single exchange option)
+ * - request: requestOptions (one or more exchange options)
+ *
  * Firebase mapping:
  * - docs/FIREBASE_INTEGRATION.md describes expected Firestore queries + doc fields.
  * - src/services/listingService.ts is responsible for Firestore ↔ Listing mapping.
  */
 
-/** Optional legacy: how the listing is offered (rent/trade/free). */
-export type ArrangementType = 'rent' | 'trade' | 'free'
+/** What the user is posting: a game they have vs a game they want. */
+export type ListingPurpose = 'offer' | 'request'
 
-/** Feed toggle: lending vs wanted. */
+/** How a game may be exchanged (rent, trade, or borrow for free). */
+export type ExchangeOption = 'rent' | 'trade' | 'borrow'
+
+/**
+ * Legacy arrangement input value. Normalized to `borrow` on read/write.
+ * @deprecated Prefer `ExchangeOption`; UI may still submit `free` until Phase 2.
+ */
+export type ArrangementType = ExchangeOption | 'free'
+
+/** @deprecated Feed toggle — derived from listingPurpose. Kept for existing UI. */
 export type ListingType = 'lending' | 'wanted'
 
 /** Back-compat alias for older UI code. Prefer `ListingType`. */
@@ -40,8 +53,11 @@ export type Listing = {
 
   imageUrls: string[]
 
-  listingType: ListingType
+  listingPurpose: ListingPurpose
+  /** Primary category — legacy fallback; equals `categories[0]` when set. */
   category: string
+  /** Game categories (multi-select). */
+  categories?: string[]
 
   ownerId: string
   ownerName: string
@@ -53,16 +69,24 @@ export type Listing = {
   condition: string
   availability: ListingAvailability
 
+  /** Offer listings: single exchange option. */
+  arrangementType?: ExchangeOption
+
+  /** Request listings: one or more acceptable exchange options. */
+  requestOptions?: ExchangeOption[]
+
   // -----------------------------------------------------------------------
-  // Optional legacy fields (kept so existing UI/styles can be migrated
-  // incrementally without breaking compilation).
+  // Legacy fields (kept so existing UI/filters compile until Phase 2+).
   // -----------------------------------------------------------------------
-  arrangementType?: ArrangementType
+  /** @deprecated Derived from listingPurpose — lending = offer, wanted = request. */
+  listingType: ListingType
   listingMode?: ListingMode
   price?: string
   pricePerDay?: number
   location?: string
   meetupPreferences?: string
+  /** Offer listings: external tutorial/rules video URL (no upload). */
+  tutorialUrl?: string
   image?: string
   gallery?: string[]
 }
@@ -70,37 +94,58 @@ export type Listing = {
 export type CreateListingInput = {
   title: string
   description: string
+  /** @deprecated Use `categories`; kept as `categories[0]` for compatibility. */
   category: string
+  categories: string[]
 
+  /** Preferred discriminator for new listings. */
+  listingPurpose?: ListingPurpose
+
+  /**
+   * @deprecated Use listingPurpose. Still accepted from the current form until Phase 2.
+   */
   listingType: ListingType
+
   condition: string
   availability: ListingAvailability
 
   /** New images selected by the user (optional; service uploads and returns URLs). */
   imageFiles: File[]
 
-  // Optional legacy fields
+  /** Offer listings: single exchange option (`free` maps to `borrow`). */
   arrangementType?: ArrangementType
+
+  /** Request listings: one or more exchange options. */
+  requestOptions?: ExchangeOption[]
+
   pricePerDay?: number
   location?: string
   meetupPreferences?: string
+  /** Offer listings only — http(s) URL to a tutorial or rules video. */
+  tutorialUrl?: string
 }
 
 export type UpdateListingInput = {
   title?: string
   description?: string
   category?: string
+  categories?: string[]
 
+  listingPurpose?: ListingPurpose
+  /** @deprecated Use listingPurpose. */
   listingType?: ListingType
+
   condition?: string
   availability?: ListingAvailability
 
   /** If provided, replaces the listing imageUrls with newly uploaded URLs. */
   imageFiles?: File[]
 
-  // Optional legacy fields
   arrangementType?: ArrangementType
+  requestOptions?: ExchangeOption[]
+
   pricePerDay?: number
   location?: string
   meetupPreferences?: string
+  tutorialUrl?: string
 }

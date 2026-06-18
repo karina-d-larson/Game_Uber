@@ -38,6 +38,11 @@ import type {
 } from '../types/listing'
 import { mapDocToListing } from './listingService'
 import { getCurrentUser } from './authService'
+import {
+  buildFirestoreCreatePayload,
+  buildFirestoreUpdatePayload,
+  toListingPurpose,
+} from '../utils/listingMapping'
 
 export class FirestoreListingsNotImplementedError extends Error {
   constructor(method: string) {
@@ -92,27 +97,12 @@ export async function createListing(
   const docRef = await addDoc(
     collection(db, COLLECTIONS.listings),
     {
-      title: input.title.trim(),
-      description: input.description.trim(),
-      category: input.category.trim(),
-
-      listingType: input.listingType,
-      condition: input.condition,
-      availability: input.availability,
-
-      ownerId: currentUser.id,
-      ownerName: currentUser.displayName,
-
-      // 🚫 no Storage for now
-      imageUrls: [],
-
+      ...buildFirestoreCreatePayload(input, {
+        id: currentUser.id,
+        displayName: currentUser.displayName,
+      }),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-
-      arrangementType: input.arrangementType ?? null,
-      pricePerDay: input.pricePerDay ?? null,
-      location: input.location?.trim() ?? null,
-      meetupPreferences: input.meetupPreferences?.trim() ?? null,
     },
   )
 
@@ -147,12 +137,19 @@ export async function updateListing(
     throw new Error('You can only edit your own listings.')
   }
 
-  const { imageFiles, ...safeInput } = input
+  const { imageFiles: _imageFiles, ...inputWithoutFiles } = input
+  const existingPurpose = toListingPurpose(
+    existing.listingPurpose,
+    existing.listingType,
+  )
 
-  await updateDoc(ref, {
-    ...safeInput,
-    updatedAt: serverTimestamp(),
-  })
+  await updateDoc(
+    ref,
+    {
+      ...buildFirestoreUpdatePayload(inputWithoutFiles, existingPurpose),
+      updatedAt: serverTimestamp(),
+    },
+  )
 
   // 🔥 THIS is what you're missing:
   const updatedSnap = await getDoc(ref)

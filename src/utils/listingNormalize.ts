@@ -1,19 +1,25 @@
-import type { Listing, ListingAvailability, ListingType } from '../types/listing'
+import type { Listing, ListingAvailability } from '../types/listing'
+import {
+  listingPurposeToListingType,
+  normalizeListingCategories,
+  normalizeOfferArrangement,
+  normalizeRequestOptions,
+  normalizeTutorialUrl,
+  toListingPurpose,
+} from './listingMapping'
+import { normalizeCategoryLabel } from '../config/listingCategories'
 
 type LegacyListingShape = Partial<Listing> & {
   owner?: { name?: string }
-  listingMode?: ListingType
+  listingMode?: Listing['listingType']
   image?: string
   gallery?: string[]
+  /** Legacy arrangement value before `borrow` rename. */
+  arrangementType?: string
 }
 
 function toAvailability(value: unknown): ListingAvailability {
   return value === 'unavailable' ? 'unavailable' : 'available'
-}
-
-function toListingType(value: unknown, fallback?: ListingType): ListingType {
-  if (value === 'wanted' || value === 'lending') return value
-  return fallback ?? 'lending'
 }
 
 /**
@@ -36,26 +42,56 @@ export function normalizeListing(raw: unknown): Listing {
           ? [input.image]
           : []
 
-  const listingType = toListingType(input.listingType, input.listingMode)
+  const listingPurpose = toListingPurpose(
+    input.listingPurpose,
+    input.listingType ?? input.listingMode,
+  )
+  const listingType = listingPurposeToListingType(listingPurpose)
+
+  const arrangementType =
+    listingPurpose === 'offer'
+      ? normalizeOfferArrangement(input.arrangementType)
+      : undefined
+
+  const requestOptions =
+    listingPurpose === 'request'
+      ? normalizeRequestOptions(input.requestOptions, input.arrangementType)
+      : undefined
+
+  const { categories, category } = normalizeListingCategories(
+    input.categories,
+    input.category,
+  )
 
   return {
     id: String(input.id ?? `listing-${createdAt}`),
     title: String(input.title ?? 'Untitled listing'),
     description: String(input.description ?? ''),
     imageUrls,
+    listingPurpose,
     listingType,
-    category: String(input.category ?? 'Strategy'),
+    category: category ? normalizeCategoryLabel(category) : 'Strategy',
+    categories:
+      categories.length > 0
+        ? categories.map(normalizeCategoryLabel)
+        : undefined,
     ownerId: String(input.ownerId ?? 'unknown-owner'),
     ownerName: String(input.ownerName ?? input.owner?.name ?? 'Unknown owner'),
     createdAt,
     updatedAt,
     condition: String(input.condition ?? 'Good'),
     availability: toAvailability(input.availability),
-    arrangementType: input.arrangementType,
+    arrangementType,
+    requestOptions,
     price: input.price,
-    pricePerDay: input.pricePerDay,
+    pricePerDay:
+      listingPurpose === 'offer' ? input.pricePerDay : undefined,
     location: input.location,
     meetupPreferences: input.meetupPreferences,
+    tutorialUrl:
+      listingPurpose === 'offer'
+        ? normalizeTutorialUrl(input.tutorialUrl, 'offer')
+        : undefined,
   }
 }
 

@@ -123,18 +123,7 @@ export function PageHeader({
             {title ?? (variant === 'inbox' ? 'Inbox' : 'GameShelf')}
           </h1>
           <div className="flex items-center gap-md">
-            {actions ??
-              (variant === 'profile' ? (
-                <button
-                  type="button"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-full transition-transform hover:bg-surface-container-low active:scale-95"
-                  aria-label="Filter (not implemented)"
-                >
-                  <MaterialIcon name="tune" className="text-primary" />
-                </button>
-              ) : (
-                <div className="w-11" aria-hidden="true" />
-              ))}
+            {actions ?? <div className="w-11" aria-hidden="true" />}
           </div>
         </div>
       </header>

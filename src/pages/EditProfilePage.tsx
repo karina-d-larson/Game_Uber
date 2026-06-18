@@ -145,7 +145,7 @@ export function EditProfilePage() {
             className="gameshelf-field min-h-[6rem] resize-y"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell others about your collection and lending style…"
+            placeholder="Tell others about your collection and how you share games…"
           />
         </div>
 

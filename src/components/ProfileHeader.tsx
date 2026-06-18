@@ -21,9 +21,6 @@ export function ProfileHeader({ user, showPhoto = true }: ProfileHeaderProps) {
             className="h-32 w-32 rounded-full border-4 border-surface-container-high object-cover md:h-40 md:w-40"
             src={user.avatar}
           />
-          <div className="absolute right-2 bottom-2 flex items-center justify-center rounded-full border-2 border-surface-container-lowest bg-secondary p-1 text-on-secondary">
-            <MaterialIcon name="verified" filled className="text-sm" />
-          </div>
         </div>
       )}
       <div className="flex-1 space-y-sm text-center md:text-left">

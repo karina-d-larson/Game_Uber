@@ -33,13 +33,6 @@ export function SearchBar({
       >
         <MaterialIcon name="search" />
       </button>
-      <button
-        type="button"
-        className="rounded-full p-2 text-primary transition-colors hover:bg-surface-container-low active:scale-95 dark:text-primary-fixed"
-        aria-label="Filters"
-      >
-        <MaterialIcon name="tune" />
-      </button>
     </div>
   )
 }

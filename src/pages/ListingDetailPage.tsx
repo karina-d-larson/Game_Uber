@@ -6,9 +6,10 @@ import { ROUTES } from '../routes/paths'
 import { MaterialIcon } from '../components/MaterialIcon'
 import { useListings } from '../context/ListingsContext'
 import type { Listing } from '../types/listing'
-import { formatArrangementDetail } from '../utils/listingDisplay'
+import { formatArrangementDetail, formatRequestOptionsSummary } from '../utils/listingDisplay'
+import { formatListingCategoriesLabel } from '../utils/listingCategories'
+import { getExchangeLabels, isOfferListing, isRequestListing } from '../utils/listingHelpers'
 import { getListingImageUrls } from '../utils/listingMedia'
-import { getListingPriceLabel } from '../utils/listingPricing'
 import { useAuth } from '../context/AuthContext'
 import * as listingService from '../services/listingService'
 
@@ -102,17 +103,33 @@ export function ListingDetailPage() {
     )
   }
 
-  const gallery = getListingImageUrls(listing)
+  const isOffer = isOfferListing(listing)
+  const isRequest = isRequestListing(listing)
+  const gallery = isOffer ? getListingImageUrls(listing) : []
   const heroImage = gallery[0] ?? ''
   const thumbs = gallery.slice(1, 4)
-  const priceLabel = getListingPriceLabel(listing)
+  const showOfferPrice =
+    isOffer &&
+    listing.arrangementType === 'rent' &&
+    ((listing.pricePerDay != null && listing.pricePerDay > 0) ||
+      Boolean(listing.price?.trim()))
   const priceAmount =
-    listing.pricePerDay != null && listing.arrangementType === 'rent'
+    showOfferPrice && listing.pricePerDay != null && listing.pricePerDay > 0
       ? `$${listing.pricePerDay}`
-      : priceLabel.includes('/')
-        ? priceLabel.split('/')[0]
-        : priceLabel
-  const availabilityLabel = listing.availability === 'available' ? 'Available' : 'Unavailable'
+      : showOfferPrice && listing.price?.trim()
+        ? listing.price.replace(/\/day$/, '').trim()
+        : null
+  const availabilityLabel =
+    listing.availability === 'available'
+      ? isRequest
+        ? 'Still looking'
+        : 'Available'
+      : isRequest
+        ? 'Request closed'
+        : 'Unavailable'
+  const requestOptionLabels = getExchangeLabels(listing)
+  const categoriesLabel = formatListingCategoriesLabel(listing)
+  const hasDescription = listing.description.trim().length > 0
 
   async function handleDelete() {
     if (!id) return
@@ -155,43 +172,65 @@ export function ListingDetailPage() {
       <div className="pb-md">
         <div className="mt-md grid grid-cols-1 gap-lg md:grid-cols-12">
           <div className="space-y-md md:col-span-7">
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-lg">
-              {heroImage ? (
-                <img className="h-full w-full object-cover" alt="" src={heroImage} />
-              ) : (
-                <div className="h-full w-full bg-surface-container-high" />
-              )}
-              <div className="absolute top-4 left-4 flex gap-2">
-                <span className="rounded-full border border-outline-variant bg-surface/90 px-3 py-1 font-label-md text-label-md text-secondary shadow-sm backdrop-blur-sm">
-                  {availabilityLabel}
-                </span>
-                <span className="rounded-full border border-outline-variant bg-surface/90 px-3 py-1 font-label-md text-label-md text-tertiary-fixed-variant shadow-sm backdrop-blur-sm">
-                  {listing.condition}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-4 gap-sm">
-              {thumbs.map((src, index) => (
-                <div
-                  key={src}
-                  className="relative aspect-square overflow-hidden rounded-lg border border-outline-variant bg-surface-container"
-                >
-                  <img className="h-full w-full object-cover" alt="" src={src} />
-                  {index === 2 && gallery.length > 4 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-primary/40 font-headline-md text-headline-md text-on-primary">
-                      +{gallery.length - 4}
+            {isOffer ? (
+              <>
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-lg">
+                  {heroImage ? (
+                    <img className="h-full w-full object-cover" alt="" src={heroImage} />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
+                      <MaterialIcon name="casino" className="text-6xl text-on-surface-variant opacity-40" />
                     </div>
                   )}
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="rounded-full border border-outline-variant bg-surface/90 px-3 py-1 font-label-md text-label-md text-secondary shadow-sm backdrop-blur-sm">
+                      {availabilityLabel}
+                    </span>
+                    <span className="rounded-full border border-outline-variant bg-surface/90 px-3 py-1 font-label-md text-label-md text-tertiary-fixed-variant shadow-sm backdrop-blur-sm">
+                      {listing.condition}
+                    </span>
+                  </div>
                 </div>
-              ))}
-              <div className="flex aspect-square flex-col items-center justify-center overflow-hidden rounded-lg border border-outline-variant bg-surface-container p-2 text-center">
-                <MaterialIcon name="videocam" className="text-secondary" />
-                <span className="mt-1 text-[10px] font-bold text-on-surface-variant">
-                  View Video
-                </span>
+
+                {thumbs.length > 0 && (
+                  <div className="grid grid-cols-4 gap-sm">
+                    {thumbs.map((src, index) => (
+                      <div
+                        key={src}
+                        className="relative aspect-square overflow-hidden rounded-lg border border-outline-variant bg-surface-container"
+                      >
+                        <img className="h-full w-full object-cover" alt="" src={src} />
+                        {index === 2 && gallery.length > 4 && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-primary/40 font-headline-md text-headline-md text-on-primary">
+                            +{gallery.length - 4}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="rounded-xl border border-outline-variant bg-surface-container-low p-lg shadow-sm">
+                <div className="mb-md flex flex-wrap items-center gap-sm">
+                  <span className="rounded-full bg-tertiary-fixed-dim px-md py-1 font-label-md text-label-md text-on-tertiary-fixed">
+                    Requesting
+                  </span>
+                  <span className="rounded-full border border-outline-variant bg-surface px-md py-1 font-label-md text-label-md text-secondary">
+                    {availabilityLabel}
+                  </span>
+                </div>
+                <p className="font-body-md text-body-md text-on-surface-variant">
+                  {formatRequestOptionsSummary(listing)}
+                </p>
+                {listing.location && (
+                  <p className="mt-sm flex items-center gap-xs font-label-md text-label-md text-on-surface-variant">
+                    <MaterialIcon name="location_on" className="text-sm" />
+                    {listing.location}
+                  </p>
+                )}
               </div>
-            </div>
+            )}
           </div>
 
           <div className="space-y-lg md:col-span-5">
@@ -201,17 +240,17 @@ export function ListingDetailPage() {
                   {listing.title}
                 </h1>
                 <div className="text-right">
-                  {priceAmount ? (
+                  {isOffer && showOfferPrice && priceAmount ? (
                     <>
                       <span className="font-display-lg text-display-lg text-secondary">
                         {priceAmount}
                       </span>
-                      {listing.arrangementType === 'rent' && (
-                        <span className="block font-body-md text-body-md text-on-surface-variant">
-                          per day
-                        </span>
-                      )}
+                      <span className="block font-body-md text-body-md text-on-surface-variant">
+                        per day
+                      </span>
                     </>
+                  ) : isRequest ? (
+                    <span className="font-body-md text-body-md text-secondary">Looking for</span>
                   ) : (
                     <span className="font-body-md text-body-md text-on-surface-variant">
                       {availabilityLabel}
@@ -220,50 +259,107 @@ export function ListingDetailPage() {
                 </div>
               </div>
 
-              <div className="mb-md flex flex-wrap gap-sm">
-                <div className="flex items-center gap-xs rounded-md bg-surface-container px-2 py-1">
-                  <MaterialIcon
-                    name="category"
-                    className="text-sm text-on-surface-variant"
-                  />
-                  <span className="font-label-md text-label-md text-on-surface-variant">
-                    {listing.category}
-                  </span>
-                </div>
-              </div>
+              {categoriesLabel && (
+                <p className="mb-md text-label-md text-on-surface-variant">{categoriesLabel}</p>
+              )}
 
               <div className="mb-lg space-y-sm">
-                <div className="flex items-center justify-between border-b border-outline-variant py-sm">
-                  <span className="font-body-md text-body-md text-on-surface-variant">
-                    Arrangement
-                  </span>
-                  <span className="font-headline-md text-headline-md text-primary">
-                    {listing.arrangementType ? formatArrangementDetail(listing.arrangementType) : 'Listing'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between border-b border-outline-variant py-sm">
-                  <span className="font-body-md text-body-md text-on-surface-variant">
-                    Condition
-                  </span>
-                  <span className="font-headline-md text-headline-md text-primary">
-                    {listing.condition}
-                  </span>
-                </div>
+                {isOffer ? (
+                  <>
+                    <div className="flex items-center justify-between border-b border-outline-variant py-sm">
+                      <span className="font-body-md text-body-md text-on-surface-variant">
+                        How to share
+                      </span>
+                      <span className="font-headline-md text-headline-md text-primary">
+                        {listing.arrangementType
+                          ? formatArrangementDetail(listing.arrangementType)
+                          : 'Offer'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-outline-variant py-sm">
+                      <span className="font-body-md text-body-md text-on-surface-variant">
+                        Condition
+                      </span>
+                      <span className="font-headline-md text-headline-md text-primary">
+                        {listing.condition}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between border-b border-outline-variant py-sm">
+                      <span className="font-body-md text-body-md text-on-surface-variant">
+                        Listing type
+                      </span>
+                      <span className="font-headline-md text-headline-md text-primary">
+                        Game request
+                      </span>
+                    </div>
+                    <div className="border-b border-outline-variant py-sm">
+                      <span className="font-body-md text-body-md text-on-surface-variant">
+                        Open to
+                      </span>
+                      {requestOptionLabels.length > 0 ? (
+                        <div className="mt-sm flex flex-wrap gap-xs">
+                          {requestOptionLabels.map((label) => (
+                            <span
+                              key={label}
+                              className="rounded-full bg-surface-container-high px-md py-1 font-label-md text-label-md text-on-surface"
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-sm font-headline-md text-headline-md text-primary">
+                          Options not specified
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between border-b border-outline-variant py-sm">
+                      <span className="font-body-md text-body-md text-on-surface-variant">
+                        Status
+                      </span>
+                      <span className="font-headline-md text-headline-md text-primary">
+                        {availabilityLabel}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="space-y-sm">
-                <button
-                  type="button"
-                  className="w-full rounded-lg bg-secondary py-md font-headline-md text-headline-md text-on-primary shadow-md transition-all hover:opacity-90 active:scale-95"
-                >
-                  Request Game
-                </button>
-                <button
-                  type="button"
-                  className="w-full rounded-lg bg-surface-container-high py-md font-headline-md text-headline-md text-on-surface transition-all hover:bg-surface-container-highest active:scale-95"
-                >
-                  Message Owner
-                </button>
+                {isOffer ? (
+                  <>
+                    <button
+                      type="button"
+                      className="w-full rounded-lg bg-secondary py-md font-headline-md text-headline-md text-on-primary shadow-md transition-all hover:opacity-90 active:scale-95"
+                    >
+                      Request Game
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full rounded-lg bg-surface-container-high py-md font-headline-md text-headline-md text-on-surface transition-all hover:bg-surface-container-highest active:scale-95"
+                    >
+                      Message Owner
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="w-full rounded-lg bg-secondary py-md font-headline-md text-headline-md text-on-primary shadow-md transition-all hover:opacity-90 active:scale-95"
+                    >
+                      I have this game
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full rounded-lg bg-surface-container-high py-md font-headline-md text-headline-md text-on-surface transition-all hover:bg-surface-container-highest active:scale-95"
+                    >
+                      Message requester
+                    </button>
+                  </>
+                )}
               </div>
 
               {isOwner && (
@@ -294,9 +390,13 @@ export function ListingDetailPage() {
                       >
                         {busy === 'markUnavailable'
                           ? 'Updating…'
-                          : listing.availability === 'available'
-                            ? 'Mark unavailable'
-                            : 'Mark available'}
+                          : isRequest
+                            ? listing.availability === 'available'
+                              ? 'Close request'
+                              : 'Reopen request'
+                            : listing.availability === 'available'
+                              ? 'Mark unavailable'
+                              : 'Mark available'}
                       </button>
                       <button
                         type="button"
@@ -321,7 +421,8 @@ export function ListingDetailPage() {
                   </span>
                 </div>
                 <p className="font-body-md text-body-md text-on-surface-variant">
-                  Owner • {new Date(listing.createdAt).toLocaleDateString()}
+                  {isRequest ? 'Requester' : 'Owner'} •{' '}
+                  {new Date(listing.createdAt).toLocaleDateString()}
                 </p>
                 <Link
                   to="/profile"
@@ -338,12 +439,36 @@ export function ListingDetailPage() {
           <div className="space-y-lg md:col-span-7">
             <section>
               <h2 className="mb-md font-headline-lg text-headline-lg text-primary">
-                Detailed Description
+                {hasDescription ? 'Detailed Description' : 'Additional details'}
               </h2>
-              <p className="font-body-lg text-body-lg leading-relaxed text-on-surface-variant">
-                {listing.description}
-              </p>
+              {hasDescription ? (
+                <p className="font-body-lg text-body-lg leading-relaxed text-on-surface-variant">
+                  {listing.description}
+                </p>
+              ) : (
+                <p className="font-body-md text-body-md text-on-surface-variant">
+                  No additional details provided.
+                </p>
+              )}
             </section>
+            {isOfferListing(listing) && listing.tutorialUrl && (
+              <section>
+                <h2 className="mb-sm font-headline-lg text-headline-lg text-primary">
+                  Game tutorial video
+                </h2>
+                <p className="mb-md font-body-md text-body-md text-on-surface-variant">
+                  Learn how to play before borrowing.
+                </p>
+                <a
+                  href={listing.tutorialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center rounded-lg bg-secondary px-lg py-3 font-label-md text-label-md text-on-secondary shadow-sm transition-all hover:opacity-90"
+                >
+                  Watch tutorial
+                </a>
+              </section>
+            )}
             <section>
               <h2 className="mb-md font-headline-lg text-headline-lg text-primary">
                 Location
@@ -363,38 +488,40 @@ export function ListingDetailPage() {
           </div>
 
           <div className="md:col-span-5">
-            <section className="rounded-xl bg-surface-container-low p-md">
-              <h3 className="mb-sm font-headline-md text-headline-md text-primary">
-                What borrowers say
-              </h3>
-              <div className="space-y-md">
-                <div className="border-b border-outline-variant pb-md">
-                  <div className="mb-xs flex items-center gap-sm">
-                    <img
-                      className="h-8 w-8 rounded-full object-cover"
-                      alt=""
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt6mdIDBypkzZaY7RvLmNoyfbG8uN7kzzuSTi6chx0wYGKVwy2yX9ifqMhHyIN8p6R4CGapjQNq8hY7zWLuzWCwOOG3xGFAk7_WNEmxchft3T9DTydPipEkZnesPTGd0LcBmICslCg5VAbK7bRa6cvvH1wQtNS7Ltj-4PjvoBZRaVEv0PNg8rWmcjAu31basqQNEzh3dzvf38FOLZCOL65CnHu7x3Tqw6tJS8MlcBtq-MFhVqQnVL9CksvVCDM2ApJBlSOlLLy6Fw"
-                    />
-                    <span className="font-label-md text-label-md text-primary">
-                      Sarah J.
-                    </span>
-                    <span className="text-[10px] text-on-surface-variant">
-                      • 2 days ago
-                    </span>
+            {isOffer && (
+              <section className="rounded-xl bg-surface-container-low p-md">
+                <h3 className="mb-sm font-headline-md text-headline-md text-primary">
+                  What borrowers say
+                </h3>
+                <div className="space-y-md">
+                  <div className="border-b border-outline-variant pb-md">
+                    <div className="mb-xs flex items-center gap-sm">
+                      <img
+                        className="h-8 w-8 rounded-full object-cover"
+                        alt=""
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt6mdIDBypkzZaY7RvLmNoyfbG8uN7kzzuSTi6chx0wYGKVwy2yX9ifqMhHyIN8p6R4CGapjQNq8hY7zWLuzWCwOOG3xGFAk7_WNEmxchft3T9DTydPipEkZnesPTGd0LcBmICslCg5VAbK7bRa6cvvH1wQtNS7Ltj-4PjvoBZRaVEv0PNg8rWmcjAu31basqQNEzh3dzvf38FOLZCOL65CnHu7x3Tqw6tJS8MlcBtq-MFhVqQnVL9CksvVCDM2ApJBlSOlLLy6Fw"
+                      />
+                      <span className="font-label-md text-label-md text-primary">
+                        Sarah J.
+                      </span>
+                      <span className="text-[10px] text-on-surface-variant">
+                        • 2 days ago
+                      </span>
+                    </div>
+                    <p className="font-body-md text-body-md text-on-surface-variant">
+                      &quot;Game was in perfect condition. Marcus was very flexible with
+                      the pickup time!&quot;
+                    </p>
                   </div>
-                  <p className="font-body-md text-body-md text-on-surface-variant">
-                    &quot;Game was in perfect condition. Marcus was very flexible with
-                    the pickup time!&quot;
-                  </p>
+                  <button
+                    type="button"
+                    className="w-full rounded-lg py-2 text-center font-label-md text-label-md text-secondary transition-colors hover:bg-surface-container"
+                  >
+                    Read all 42 reviews
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="w-full rounded-lg py-2 text-center font-label-md text-label-md text-secondary transition-colors hover:bg-surface-container"
-                >
-                  Read all 42 reviews
-                </button>
-              </div>
-            </section>
+              </section>
+            )}
           </div>
         </div>
       </div>

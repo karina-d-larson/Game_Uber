@@ -1,35 +1,35 @@
-import type { ListingMode } from '../types/listing'
+import type { ListingPurpose } from '../types/listing'
 
 type MarketplaceToggleProps = {
-  mode: ListingMode
-  onChange: (mode: ListingMode) => void
+  purpose: ListingPurpose
+  onChange: (purpose: ListingPurpose) => void
 }
 
-export function MarketplaceToggle({ mode, onChange }: MarketplaceToggleProps) {
+export function MarketplaceToggle({ purpose, onChange }: MarketplaceToggleProps) {
   return (
-    <section className="my-xl flex justify-center">
+    <section className="my-xl flex justify-center" aria-label="Listing purpose">
       <div className="flex rounded-xl bg-surface-container-low p-1">
         <button
           type="button"
-          onClick={() => onChange('lending')}
+          onClick={() => onChange('offer')}
           className={
-            mode === 'lending'
+            purpose === 'offer'
               ? 'rounded-lg bg-surface px-xl py-2 font-semibold text-body-md text-secondary shadow-sm'
               : 'rounded-lg px-xl py-2 font-medium text-body-md text-on-surface-variant'
           }
         >
-          UP FOR LENDING
+          Offers
         </button>
         <button
           type="button"
-          onClick={() => onChange('wanted')}
+          onClick={() => onChange('request')}
           className={
-            mode === 'wanted'
+            purpose === 'request'
               ? 'rounded-lg bg-surface px-xl py-2 font-semibold text-body-md text-secondary shadow-sm'
               : 'rounded-lg px-xl py-2 font-medium text-body-md text-on-surface-variant'
           }
         >
-          WANTED TO RENT
+          Requests
         </button>
       </div>
     </section>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { MaterialIcon } from './MaterialIcon'
 import { LISTING_IMAGE_ACCEPT } from '../utils/imageFile'
 
@@ -8,6 +8,10 @@ type ImageUploaderProps = {
   onChange: (files: File[]) => void
   error?: string
   maxFiles?: number
+  compact?: boolean
+  uploadLabel?: string
+  uploadHint?: string
+  helperText?: string
 }
 
 export function ImageUploader({
@@ -16,6 +20,10 @@ export function ImageUploader({
   onChange,
   error,
   maxFiles = 1,
+  compact = false,
+  uploadLabel = 'Upload Game Photos',
+  uploadHint = 'Recommended: Front box art & open components',
+  helperText: helperTextProp,
 }: ImageUploaderProps) {
   const primary = value[0] ?? null
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -36,10 +44,9 @@ export function ImageUploader({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primary])
 
-  const helperText = useMemo(() => {
-    if (maxFiles === 1) return 'Optional — upload 1 photo for now.'
-    return `Optional — upload up to ${maxFiles} photos.`
-  }, [maxFiles])
+  const helperText = helperTextProp ?? (
+    maxFiles === 1 ? 'Optional — upload 1 photo for now.' : `Optional — upload up to ${maxFiles} photos.`
+  )
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -52,7 +59,11 @@ export function ImageUploader({
     <div>
       <label
         htmlFor={labelId}
-        className="group relative flex aspect-video cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low transition-colors hover:border-secondary"
+        className={
+          compact
+            ? 'group relative flex h-28 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-outline-variant bg-surface-container-low transition-colors hover:border-secondary'
+            : 'group relative flex aspect-video cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low transition-colors hover:border-secondary'
+        }
       >
         <input
           id={labelId}
@@ -83,20 +94,30 @@ export function ImageUploader({
           <>
             <MaterialIcon
               name="add_a_photo"
-              className="mb-2 text-5xl text-outline-variant group-hover:text-secondary"
+              className={
+                compact
+                  ? 'mb-1 text-3xl text-outline-variant group-hover:text-secondary'
+                  : 'mb-2 text-5xl text-outline-variant group-hover:text-secondary'
+              }
             />
-            <p className="font-label-md text-label-md tracking-wider text-on-surface-variant uppercase">
-              Upload Game Photos
+            <p
+              className={
+                compact
+                  ? 'font-label-md text-label-md text-on-surface-variant'
+                  : 'font-label-md text-label-md tracking-wider text-on-surface-variant uppercase'
+              }
+            >
+              {uploadLabel}
             </p>
-            <p className="mt-1 text-[10px] text-outline">
-              Recommended: Front box art &amp; open components
-            </p>
+            {!compact && (
+              <p className="mt-1 text-[10px] text-outline">{uploadHint}</p>
+            )}
           </>
         )}
       </label>
 
       {error && <p className="mt-1 text-body-md text-error">{error}</p>}
-      <p className="mt-2 text-[10px] text-on-surface-variant">{helperText}</p>
+      <p className="mt-1 text-label-md text-on-surface-variant">{helperText}</p>
     </div>
   )
 }

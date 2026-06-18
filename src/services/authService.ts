@@ -19,7 +19,10 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
   type Auth,
+  type User,
 } from 'firebase/auth'
 
 import {
@@ -80,6 +83,75 @@ function requireFirebaseAuth(): Auth {
   return auth
 }
 
+function requireFirestoreDb() {
+  if (!isFirebaseConfigured || !db) {
+    throw new AuthServiceError(
+      'Firebase is not configured. Copy .env.example to .env and add your Firebase keys.',
+    )
+  }
+  return db
+}
+
+function mapAuthError(err: unknown, fallback: string): AuthServiceError {
+  const code = typeof err === 'object' && err && 'code' in err ? String(err.code) : ''
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+    return new AuthServiceError('Sign-in was cancelled.')
+  }
+  if (code === 'auth/popup-blocked') {
+    return new AuthServiceError(
+      'Pop-up was blocked. Allow pop-ups for this site and try again.',
+    )
+  }
+  if (err instanceof Error && err.message) {
+    return new AuthServiceError(err.message)
+  }
+  return new AuthServiceError(fallback)
+}
+
+function deriveUsernameFromEmail(email: string, uid: string): string {
+  const prefix = email.split('@')[0]?.trim().toLowerCase() || 'user'
+  let sanitized = prefix
+    .replace(/[^a-z0-9_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+
+  if (sanitized.length < 3) {
+    sanitized = `${sanitized || 'user'}_${uid.slice(0, 4)}`.replace(/[^a-z0-9_]/g, '')
+  }
+
+  return sanitized.slice(0, 30) || `user_${uid.slice(0, 6)}`
+}
+
+async function ensureGoogleUserProfile(firebaseUser: User): Promise<AuthUser> {
+  const firestore = requireFirestoreDb()
+  const ref = doc(firestore, COLLECTIONS.users, firebaseUser.uid)
+  const snap = await getDoc(ref)
+
+  if (snap.exists()) {
+    return authUserFromProfile(firebaseUser, snap.data() as Record<string, unknown>)
+  }
+
+  const email = firebaseUser.email ?? ''
+  const username = deriveUsernameFromEmail(email, firebaseUser.uid)
+  const displayName = firebaseUser.displayName?.trim() || username
+  const avatar = firebaseUser.photoURL?.trim() || DEFAULT_AVATAR
+  const now = Date.now()
+
+  const newProfile = {
+    id: firebaseUser.uid,
+    email,
+    username,
+    displayName,
+    avatar,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  await setDoc(ref, newProfile, { merge: true })
+
+  return authUserFromProfile(firebaseUser, newProfile)
+}
+
 function userFromFirebaseAuth(firebaseUser: {
   uid: string
   email: string | null
@@ -134,8 +206,26 @@ export async function login(
 
     return userFromFirebaseAuth(userCredential.user)
 
-  } catch (err: any) {
-    throw new AuthServiceError(err.message)
+  } catch (err: unknown) {
+    throw mapAuthError(err, 'Sign-in failed. Please try again.')
+  }
+}
+
+/* =========================================================
+   GOOGLE LOGIN (FIREBASE + FIRESTORE)
+========================================================= */
+
+export async function loginWithGoogle(): Promise<AuthUser> {
+  try {
+    const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({ prompt: 'select_account' })
+
+    const userCredential = await signInWithPopup(requireFirebaseAuth(), provider)
+    const authUser = await ensureGoogleUserProfile(userCredential.user)
+    cachedUser = authUser
+    return authUser
+  } catch (err: unknown) {
+    throw mapAuthError(err, 'Google sign-in failed. Please try again.')
   }
 }
 
@@ -173,8 +263,8 @@ export async function signup(
 
     return newUser
 
-  } catch (err: any) {
-    throw new AuthServiceError(err.message)
+  } catch (err: unknown) {
+    throw mapAuthError(err, 'Could not create account. Please try again.')
   }
 }
 
@@ -186,8 +276,8 @@ export async function logout(): Promise<void> {
   if (!isFirebaseConfigured || !auth) return
   try {
     await signOut(auth)
-  } catch (err: any) {
-    throw new AuthServiceError(err.message)
+  } catch (err: unknown) {
+    throw mapAuthError(err, 'Sign-out failed. Please try again.')
   }
 }
 

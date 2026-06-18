@@ -32,7 +32,7 @@ By sprint end:
 | Settings page | **Done** — `/settings` (Account, Profile, Preferences, Privacy) |
 | User preferences in Firestore | **Done** — flattened on `users/{uid}` |
 | `firestore.rules` (users) | **Partial** — basic users rules may exist |
-| Google/Gmail login | **Not started** |
+| Google/Gmail login | **Done** — `loginWithGoogle()`, Continue with Google on login/signup |
 | Change password | **Not started** |
 | Follow button | **UI only** — not wired (`ProfileHeader.tsx`) |
 | Following list page | **Not started** |
@@ -138,12 +138,12 @@ By sprint end:
 
 ### Part D — Google / Gmail login
 
-- [ ] Enable **Google** provider in Firebase Console → Authentication → Sign-in method.
+- [X] Enable **Google** provider in Firebase Console → Authentication → Sign-in method.
 - [ ] Add authorized domain (localhost + deployment domain when known).
-- [ ] In `authService.ts`, add `loginWithGoogle()` using `signInWithPopup` or `signInWithRedirect` (popup is easier for local dev).
-- [ ] On first Google sign-in, create `users/{uid}` doc if missing (`setDoc` merge) with email, displayName, username derived from email, default avatar.
-- [ ] Add **Continue with Google** button on `LoginPage.tsx` and optionally `SignupPage.tsx`.
-- [ ] Do **not** add Firebase calls inside page — call `authService` only.
+- [x] In `authService.ts`, add `loginWithGoogle()` using `signInWithPopup` or `signInWithRedirect` (popup is easier for local dev).
+- [x] On first Google sign-in, create `users/{uid}` doc if missing (`setDoc` merge) with email, displayName, username derived from email, default avatar.
+- [x] Add **Continue with Google** button on `LoginPage.tsx` and optionally `SignupPage.tsx`.
+- [x] Do **not** add Firebase calls inside page — call `authService` only.
 
 ### Part E — Change password (email/password only)
 
@@ -315,7 +315,7 @@ Store on `users/{uid}` (flattened) **or** `users/{uid}/settings/main`:
 - [x] Profile fields stored in `users/{uid}`; edit page works; refresh persists.
 - [x] Preferences stored and editable in Settings.
 - [x] Settings page with Account, Profile, Preferences, Privacy sections.
-- [ ] Google/Gmail login works.
+- [x] Google/Gmail login works.
 - [ ] Change password works for email/password users only.
 - [ ] Avatar strategy implemented without Firebase Storage.
 - [ ] Follow button works; following list page exists.

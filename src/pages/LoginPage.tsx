@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AuthField } from '../components/auth/AuthField'
+import { AuthDivider, GoogleAuthButton } from '../components/auth/GoogleAuthButton'
 import { useAuth } from '../context/AuthContext'
 import { AuthServiceError } from '../services/authService'
 import { getPostAuthPath } from '../utils/authRedirect'
@@ -52,16 +53,23 @@ export function LoginPage() {
         </p>
       </div>
 
-      <form className="space-y-lg" onSubmit={handleSubmit} noValidate>
-        {formError && (
-          <p
-            className="rounded-lg border border-error/30 bg-error/5 px-md py-sm text-body-md text-error"
-            role="alert"
-          >
-            {formError}
-          </p>
-        )}
+      {formError && (
+        <p
+          className="rounded-lg border border-error/30 bg-error/5 px-md py-sm text-body-md text-error"
+          role="alert"
+        >
+          {formError}
+        </p>
+      )}
 
+      <GoogleAuthButton
+        disabled={submitting}
+        onError={setFormError}
+      />
+
+      <AuthDivider />
+
+      <form className="space-y-lg" onSubmit={handleSubmit} noValidate>
         <AuthField
           id="login-email"
           label="Email"

@@ -15,6 +15,7 @@ type AuthContextValue = {
   user: AuthUser | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithGoogle: () => Promise<void>
   signup: (email: string, password: string, username: string) => Promise<void>
   logout: () => Promise<void>
   /** Re-fetch Firestore profile into session state (e.g. after profile edit). */
@@ -45,6 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // subscribeToAuthChanges updates user + cachedUser with Firestore profile
   }, [])
 
+  const loginWithGoogle = useCallback(async () => {
+    await authService.loginWithGoogle()
+    // subscribeToAuthChanges updates user + cachedUser with Firestore profile
+  }, [])
+
   const signup = useCallback(async (
     email: string,
     password: string,
@@ -67,11 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       login,
+      loginWithGoogle,
       signup,
       logout,
       refreshProfile,
     }),
-    [user, loading, login, signup, logout, refreshProfile],
+    [user, loading, login, loginWithGoogle, signup, logout, refreshProfile],
   )
 
   return (

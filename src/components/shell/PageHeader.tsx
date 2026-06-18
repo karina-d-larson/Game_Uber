@@ -17,7 +17,7 @@ type PageHeaderProps = {
 }
 
 /**
- * Shared sticky header — preserves BoardLink prototype styling.
+ * Shared sticky header — preserves GameShelf prototype styling.
  */
 export function PageHeader({
   variant = 'feed',
@@ -56,7 +56,7 @@ export function PageHeader({
             </h1>
           </div>
           <div className="font-display-lg text-display-lg text-secondary dark:text-secondary-fixed">
-            BoardLink
+            GameShelf
           </div>
           <div className="w-10 shrink-0" aria-hidden="true" />
         </div>
@@ -78,7 +78,7 @@ export function PageHeader({
               <MaterialIcon name="arrow_back" className="text-primary" />
             </button>
             <span className="truncate font-display-lg text-display-lg text-secondary dark:text-secondary-fixed">
-              {title ?? 'BoardLink'}
+              {title ?? 'GameShelf'}
             </span>
           </div>
           {actions ?? (
@@ -120,7 +120,7 @@ export function PageHeader({
             )}
           </div>
           <h1 className="font-display-lg text-display-lg text-secondary">
-            {title ?? (variant === 'inbox' ? 'Inbox' : 'BoardLink')}
+            {title ?? (variant === 'inbox' ? 'Inbox' : 'GameShelf')}
           </h1>
           <div className="flex items-center gap-md">
             {actions ??
@@ -148,7 +148,7 @@ export function PageHeader({
           to={ROUTES.home}
           className="shrink-0 font-display-lg text-display-lg text-secondary dark:text-secondary-fixed"
         >
-          BoardLink
+          GameShelf
         </Link>
         <SearchBar value={searchValue} onChange={onSearchChange ?? (() => {})} />
       </div>

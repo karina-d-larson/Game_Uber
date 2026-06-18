@@ -103,7 +103,7 @@
   }
 
   /* Shared field styling (matches prototype inputs) */
-  .boardlink-field {
+  .gameshelf-field {
     width: 100%;
     border-radius: 0.5rem;
     border: 1px solid #c5c6cc;
@@ -118,12 +118,12 @@
       box-shadow 0.15s ease;
   }
 
-  .boardlink-field:focus {
+  .gameshelf-field:focus {
     border-color: #0058be;
     box-shadow: 0 0 0 1px #0058be;
   }
 
-  .boardlink-field::placeholder {
+  .gameshelf-field::placeholder {
     color: #44474c;
     opacity: 1;
   }

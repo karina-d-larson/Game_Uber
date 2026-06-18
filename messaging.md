@@ -1,7 +1,7 @@
-# BoardLink Messaging UI Tasks
+# GameShelf Messaging UI Tasks
 
 ## Your Goal
-Build and polish the messaging experience for the BoardLink MVP.
+Build and polish the messaging experience for the GameShelf MVP.
 
 You do **NOT** need to connect Firebase or implement backend logic.  
 Firebase integration will be handled separately.

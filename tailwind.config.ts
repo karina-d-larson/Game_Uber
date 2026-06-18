@@ -2,8 +2,8 @@ import type { Config } from 'tailwindcss'
 import forms from '@tailwindcss/forms'
 
 /**
- * BoardLink design tokens (from prototype builder).
- * Shared by the React app and static html/ prototypes (via html/boardlink.css).
+ * GameShelf design tokens (from prototype builder).
+ * Shared by the React app and static html/ prototypes (via html/gameshelf.css).
  */
 export default {
   darkMode: 'class',
@@ -66,7 +66,7 @@ export default {
         full: '9999px',
       },
       /**
-       * BoardLink spacing scale (padding/margin/gap). Required for p-xl, gap-md, etc. to generate.
+       * GameShelf spacing scale (padding/margin/gap). Required for p-xl, gap-md, etc. to generate.
        * Do not use max-w-xl / w-xl for layout width — use max-w-2xl, max-w-screen-xl, or
        * max-w-(--container-xl) (see @theme in src/index.css).
        */

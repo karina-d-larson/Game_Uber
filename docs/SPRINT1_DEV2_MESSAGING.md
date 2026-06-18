@@ -98,7 +98,7 @@ By sprint end:
 - [ ] Sign in → open `/inbox` — confirm seeded local conversations appear (`messageService.dev.ts`).
 - [ ] Open a thread → messages load.
 - [ ] Send a message → appears in thread and updates inbox preview.
-- [ ] Hard refresh — data still loads from localStorage (`boardlink_conversations`, `boardlink_messages`).
+- [ ] Hard refresh — data still loads from localStorage (`gameshelf_conversations`, `gameshelf_messages`).
 - [ ] Note gaps: `createConversation` throw, Message Owner unwired.
 
 ### Part B — Implement `createConversation` (local first, then Firestore)

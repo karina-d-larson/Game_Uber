@@ -14,8 +14,8 @@ import {
 import { readJson, writeJson } from '../utils/localStorage'
 import { getCurrentUser } from './authService'
 
-export const DEV_CONVERSATIONS_KEY = 'boardlink_conversations'
-export const DEV_MESSAGES_KEY = 'boardlink_messages'
+export const DEV_CONVERSATIONS_KEY = 'gameshelf_conversations'
+export const DEV_MESSAGES_KEY = 'gameshelf_messages'
 
 type MessageStore = Record<string, Message[]>
 

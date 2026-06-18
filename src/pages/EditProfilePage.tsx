@@ -142,7 +142,7 @@ export function EditProfilePage() {
           </label>
           <textarea
             id="edit-bio"
-            className="boardlink-field min-h-[6rem] resize-y"
+            className="gameshelf-field min-h-[6rem] resize-y"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Tell others about your collection and lending style…"

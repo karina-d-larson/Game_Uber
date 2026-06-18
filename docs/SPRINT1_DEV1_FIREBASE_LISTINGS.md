@@ -138,7 +138,7 @@ Implement in `src/services/listingService.firestore.ts`:
 ### Part E — Environment flip (Week 2)
 
 - [ ] Keep `VITE_LISTINGS_BACKEND=local` in `.env` until all CRUD tests pass.
-- [ ] Clear `boardlink_listings` from browser localStorage when testing Firestore (DevTools → Application → Local Storage).
+- [ ] Clear `gameshelf_listings` from browser localStorage when testing Firestore (DevTools → Application → Local Storage).
 - [ ] Set `VITE_LISTINGS_BACKEND=firestore` in `.env` — restart `npm run dev`.
 - [ ] Re-run full test checklist (section 9).
 - [ ] Update `.env.example` with comment explaining the switch.

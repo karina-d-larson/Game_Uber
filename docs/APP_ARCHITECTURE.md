@@ -1,4 +1,4 @@
-# BoardLink — App shell & routing architecture
+# GameShelf — App shell & routing architecture
 
 This document describes the React application structure: routing, layouts, navigation, and where future Firebase/messaging features attach.
 

@@ -40,7 +40,7 @@ export function MessageInput({
         onChange={(e) => setBody(e.target.value)}
         placeholder={placeholder}
         disabled={disabled || submitting}
-        className="boardlink-field min-h-11 flex-1 rounded-full"
+        className="gameshelf-field min-h-11 flex-1 rounded-full"
         aria-label="Message text"
       />
       <button

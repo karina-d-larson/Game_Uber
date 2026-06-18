@@ -94,7 +94,7 @@ export function LoginPage() {
       </form>
 
       <p className="text-center font-body-md text-body-md text-on-surface-variant">
-        New to BoardLink?{' '}
+        New to GameShelf?{' '}
         <Link to="/signup" className="font-semibold text-secondary hover:underline">
           Create an account
         </Link>

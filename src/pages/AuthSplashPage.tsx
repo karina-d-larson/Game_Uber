@@ -6,7 +6,7 @@ export function AuthSplashPage() {
     <div className="flex min-h-dvh flex-col items-center justify-center gap-lg bg-background px-gutter-mobile text-on-background">
       <div className="flex items-center gap-sm">
         <MaterialIcon name="grid_view" className="text-4xl text-secondary" />
-        <span className="font-display-lg text-display-lg text-primary">BoardLink</span>
+        <span className="font-display-lg text-display-lg text-primary">GameShelf</span>
       </div>
       <p className="font-body-md text-body-md text-on-surface-variant">
         Loading your session…

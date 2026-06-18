@@ -12,7 +12,7 @@ import { assertLocalListingsBackend } from '../config/listingsBackend'
 import { normalizeListings } from '../utils/listingNormalize'
 import { readJson, writeJson } from '../utils/localStorage'
 
-export const DEV_LISTINGS_STORAGE_KEY = 'boardlink_listings'
+export const DEV_LISTINGS_STORAGE_KEY = 'gameshelf_listings'
 
 export async function devFetchListings(): Promise<Listing[]> {
   assertLocalListingsBackend('devFetchListings')

@@ -61,7 +61,7 @@ npm run preview
 ```
 public/              Static assets (favicon, PWA icons)
 html/                Static prototype screens (reference while building React)
-  boardlink.css      Generated Tailwind output — run `npm run build:css` after token/class changes
+  gameshelf.css      Generated Tailwind output — run `npm run build:css` after token/class changes
 src/
   App.tsx            Providers + AppRouter
   routes/            paths, guards, AppRouter
@@ -76,14 +76,14 @@ src/
   main.tsx           React entry point
   index.css          Tailwind for the React app
   html.css           Tailwind input for html/ prototypes (reference only)
-tailwind.config.ts   Shared BoardLink design tokens
+tailwind.config.ts   Shared GameShelf design tokens
 index.html           Vite/React entry shell
 vite.config.ts       Vite, Tailwind, and PWA plugins
 ```
 
 ### Viewing `html/` prototypes
 
-Open any file in `html/` in the browser (e.g. `html/dashboard.html`). Pages link to `boardlink.css` in the same folder. After you change `tailwind.config.ts`, `src/html.css`, or classes in the HTML files, run:
+Open any file in `html/` in the browser (e.g. `html/dashboard.html`). Pages link to `gameshelf.css` in the same folder. After you change `tailwind.config.ts`, `src/html.css`, or classes in the HTML files, run:
 
 ```bash
 npm run build:css

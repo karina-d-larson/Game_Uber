@@ -1,4 +1,4 @@
-# BoardLink — Firebase reference
+# GameShelf — Firebase reference
 
 **Purpose:** Stable reference for architecture boundaries, collection schemas, and environment setup.  
 **Not a task list** — for Sprint 1 implementation steps, use the sprint docs below.
@@ -228,7 +228,7 @@ When Storage is enabled later, path convention: `listings/{userId}/{listingId}/{
 
 ## What not to change without team agreement
 
-- BoardLink visual identity / Tailwind styling
+- GameShelf visual identity / Tailwind styling
 - Layout shell architecture ([APP_ARCHITECTURE.md](./APP_ARCHITECTURE.md))
 - Public API signatures on `listingService.ts`
 - `AuthContext` auth listener pattern

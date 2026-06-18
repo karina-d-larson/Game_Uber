@@ -177,7 +177,7 @@ export function ListingForm({
             Game Title
           </label>
           <input
-            className="boardlink-field"
+            className="gameshelf-field"
             placeholder="e.g. Scythe, Terraforming Mars"
             type="text"
             value={form.title}
@@ -191,7 +191,7 @@ export function ListingForm({
             Genre
           </label>
           <select
-            className="boardlink-field appearance-none"
+            className="gameshelf-field appearance-none"
             value={form.category}
             onChange={(e) => updateField('category', e.target.value)}
           >
@@ -209,7 +209,7 @@ export function ListingForm({
             Condition
           </label>
           <select
-            className="boardlink-field appearance-none"
+            className="gameshelf-field appearance-none"
             value={form.condition}
             onChange={(e) => updateField('condition', e.target.value)}
           >
@@ -315,7 +315,7 @@ export function ListingForm({
                 $
               </span>
               <input
-                className="boardlink-field pl-8"
+                className="gameshelf-field pl-8"
                 placeholder="0.00"
                 type="number"
                 min="0"
@@ -332,7 +332,7 @@ export function ListingForm({
             Description
           </label>
           <textarea
-            className="boardlink-field min-h-[6rem] resize-y"
+            className="gameshelf-field min-h-[6rem] resize-y"
             placeholder="Tell us about the game condition, missing pieces, or house rules..."
             rows={4}
             value={form.description}
@@ -351,7 +351,7 @@ export function ListingForm({
             Meetup Preferences
           </label>
           <input
-            className="boardlink-field"
+            className="gameshelf-field"
             placeholder="e.g. Near Central Station, weekends only"
             type="text"
             value={form.meetupPreferences}
@@ -370,7 +370,7 @@ export function ListingForm({
                 className="absolute top-1/2 left-md -translate-y-1/2 text-outline"
               />
               <input
-                className="boardlink-field pl-10"
+                className="gameshelf-field pl-10"
                 placeholder="City, neighborhood, or campus"
                 type="text"
                 value={form.location}

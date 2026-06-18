@@ -32,7 +32,7 @@ if (isFirebaseConfigured) {
   storageInstance = getStorage(app)
 } else if (import.meta.env.DEV) {
   console.warn(
-    '[BoardLink] Firebase not configured. Copy .env.example → .env and add your Firebase keys.',
+    '[GameShelf] Firebase not configured. Copy .env.example → .env and add your Firebase keys.',
   )
 }
 

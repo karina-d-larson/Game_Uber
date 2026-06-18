@@ -1,14 +1,14 @@
-# Sprint 1 Overview — BoardLink
+# Sprint 1 Overview — GameShelf
 
 **Duration:** 2 weeks  
 **Team size:** 3 developers  
-**Product:** BoardLink — React + Tailwind + Firebase board game lending/renting marketplace
+**Product:** GameShelf — React + Tailwind + Firebase board game lending/renting marketplace
 
 ---
 
 ## Sprint 1 goal
 
-By the end of Sprint 1, BoardLink should feel like a **real, usable product foundation**:
+By the end of Sprint 1, GameShelf should feel like a **real, usable product foundation**:
 
 - User account flow works (sign up, log in, log out)
 - Profiles and settings are stored in Firebase and survive refresh

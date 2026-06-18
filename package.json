@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:css && tsc -b && vite build",
-    "build:css": "tailwindcss -i ./src/html.css -o ./html/boardlink.css",
+    "build:css": "tailwindcss -i ./src/html.css -o ./html/gameshelf.css",
     "preview": "vite preview"
   },
   "devDependencies": {

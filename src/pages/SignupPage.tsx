@@ -54,7 +54,7 @@ export function SignupPage() {
   return (
     <div className="space-y-xl">
       <div className="space-y-sm text-center md:text-left">
-        <h1 className="font-display-lg text-display-lg text-primary">Join BoardLink</h1>
+        <h1 className="font-display-lg text-display-lg text-primary">Join GameShelf</h1>
         <p className="font-body-md text-body-md text-on-surface-variant">
           Create an account to list games and connect with players.
         </p>

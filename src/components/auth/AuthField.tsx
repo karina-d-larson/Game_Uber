@@ -31,7 +31,7 @@ export function AuthField({
       <input
         id={id}
         type={type}
-        className="boardlink-field"
+        className="gameshelf-field"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

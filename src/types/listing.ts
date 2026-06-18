@@ -1,7 +1,7 @@
 /**
  * Shared listing types — used by UI and Firebase service layer.
  *
- * BoardLink MVP listing schema (required):
+ * GameShelf MVP listing schema (required):
  * {
  *   id,
  *   title,

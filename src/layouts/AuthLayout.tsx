@@ -12,7 +12,7 @@ export function AuthLayout() {
           className="inline-flex min-h-11 items-center gap-sm font-headline-md text-headline-md text-primary"
         >
           <MaterialIcon name="grid_view" className="text-secondary" aria-hidden="true" />
-          BoardLink
+          GameShelf
         </Link>
       </header>
 

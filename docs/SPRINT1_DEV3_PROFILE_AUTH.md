@@ -179,7 +179,7 @@ By sprint end:
 ### Part H — Wording cleanup
 
 - [ ] Review auth pages: “Sign in”, “Create account”, error messages — plain language.
-- [ ] Review listing form labels (coordinate Dev 1 if needed).
+- [X] Review listing form labels (coordinate Dev 1 if needed).
 - [ ] Review messaging empty states (coordinate Dev 2).
 - [ ] Replace technical jargon visible to users (“Firestore”, “backend”, etc.).
 

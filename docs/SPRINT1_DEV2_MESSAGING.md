@@ -31,7 +31,7 @@ By sprint end:
 | Messaging components | **Done** — `src/components/messaging/*` |
 | `MessagesContext` | **Done** — loads/sends via `messageService` |
 | `messageService.dev.ts` | **Done** — localStorage backend |
-| `createConversation` | **Not done** — throws in `messageService.ts` |
+| `createConversation` | **Done** — throws in `messageService.ts` |
 | Message Owner button | **Not wired** — exists on `ListingDetailPage.tsx`, no working handler |
 | `messageService.firestore.ts` | **Not done** — create or implement |
 | Firestore persistence | **Not done** — messages lost across browsers |

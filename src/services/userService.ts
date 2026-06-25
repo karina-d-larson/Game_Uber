@@ -3,7 +3,7 @@
  * UI must call this service, not Firebase directly.
  */
 
-import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
 
 import { COLLECTIONS } from '../config/firebaseCollections'
 import { db, isFirebaseConfigured } from '../lib/firebase'
@@ -15,11 +15,9 @@ import type {
   UserProfile,
 } from '../types/user'
 import { DEFAULT_USER_PREFERENCES } from '../types/user'
+import { normalizeAvatarFromDoc } from '../utils/avatarDisplay'
 
 import { getCurrentUser } from './authService'
-
-const DEFAULT_AVATAR =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDKHIZ20m5AdsPygH7mo9GAuD80aTL1xPNpdImx_PbFWb2frljMf0-fa9nge7yqMfhFyaoBDh6ebxk3Gw4W7FyskHsCV8GEnP61EJoS7kCkTtOeZ5DoilGGfNxKrkO4uQYnWY68kDyGSEOszS1csnfhTtXjjNVAxzPydRi1ChhsLJL0i2_KYXFjiuG3wqA0yiAkjW2HFNlQk3HJ6pv_AobcvOdPxIVOlOEGe78QMDjrvw8r3MQ9XRbkv05WoJl0boYQlLJFe_Z-7g'
 
 export class UserServiceError extends Error {
   constructor(message: string) {
@@ -73,13 +71,18 @@ function mapDocToUserProfile(
   email: string,
   data: Record<string, unknown>,
 ): UserProfile {
+  const following = Array.isArray(data.following)
+    ? data.following.filter((id): id is string => typeof id === 'string')
+    : []
+
   return {
     id: uid,
     email: typeof data.email === 'string' ? data.email : email,
     username: typeof data.username === 'string' ? data.username : 'user',
     displayName: typeof data.displayName === 'string' ? data.displayName : 'User',
-    avatar: typeof data.avatar === 'string' ? data.avatar : DEFAULT_AVATAR,
+    avatar: normalizeAvatarFromDoc(data.avatar),
     bio: typeof data.bio === 'string' ? data.bio : undefined,
+    following,
     rating: typeof data.rating === 'number' ? data.rating : undefined,
     reviewCount: typeof data.reviewCount === 'number' ? data.reviewCount : undefined,
     lenderScore: typeof data.lenderScore === 'number' ? data.lenderScore : undefined,
@@ -130,7 +133,7 @@ export async function updateProfile(
     email: current.email,
     displayName: patch.displayName.trim(),
     username: patch.username.trim(),
-    avatar: patch.avatar?.trim() || DEFAULT_AVATAR,
+    avatar: patch.avatar?.trim() ?? '',
     bio: patch.bio?.trim() ?? '',
   }
 
@@ -206,4 +209,50 @@ export async function updatePreferences(
   })
 
   return next
+}
+
+export async function getFollowingIds(uid: string): Promise<string[]> {
+  const profile = await getProfile(uid)
+  return profile?.following ?? []
+}
+
+export async function isFollowing(targetUserId: string): Promise<boolean> {
+  const current = getCurrentUser()
+  if (!current) return false
+  const following = await getFollowingIds(current.id)
+  return following.includes(targetUserId)
+}
+
+export async function followUser(targetUserId: string): Promise<void> {
+  const current = getCurrentUser()
+  if (!current) {
+    throw new UserServiceError('You must be signed in to follow someone.')
+  }
+  if (current.id === targetUserId) {
+    throw new UserServiceError('You cannot follow yourself.')
+  }
+
+  const target = await getProfile(targetUserId)
+  if (!target) {
+    throw new UserServiceError('User not found.')
+  }
+
+  await writeUserFields(current.id, {
+    id: current.id,
+    email: current.email,
+    following: arrayUnion(targetUserId),
+  })
+}
+
+export async function unfollowUser(targetUserId: string): Promise<void> {
+  const current = getCurrentUser()
+  if (!current) {
+    throw new UserServiceError('You must be signed in to unfollow someone.')
+  }
+
+  await writeUserFields(current.id, {
+    id: current.id,
+    email: current.email,
+    following: arrayRemove(targetUserId),
+  })
 }

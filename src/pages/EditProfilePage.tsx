@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthField } from '../components/auth/AuthField'
+import { Avatar } from '../components/Avatar'
 import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
 import { useAuth } from '../context/AuthContext'
@@ -103,6 +104,19 @@ export function EditProfilePage() {
             {formError}
           </p>
         )}
+
+        <div className="flex items-center gap-md">
+          <Avatar
+            displayName={displayName || user.displayName}
+            username={username || user.username}
+            avatar={avatar}
+            className="h-16 w-16 text-label-md"
+            alt="Profile preview"
+          />
+          <p className="font-body-md text-body-md text-on-surface-variant">
+            Preview — leave URL empty to use initials.
+          </p>
+        </div>
 
         <AuthField
           id="edit-display-name"

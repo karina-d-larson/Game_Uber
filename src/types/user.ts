@@ -41,6 +41,8 @@ export type AuthUser = {
  */
 export type UserProfile = AuthUser & {
   bio?: string
+  /** UIDs of users this profile follows — stored on users/{uid}.following */
+  following?: string[]
   rating?: number
   reviewCount?: number
   lenderScore?: number

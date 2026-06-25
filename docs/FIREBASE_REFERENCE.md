@@ -9,6 +9,7 @@
 
 | Need | Document |
 |------|----------|
+| **Finalized product choices** | [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md) |
 | Sprint goals, assignments, acceptance tests | [SPRINT1_OVERVIEW.md](./SPRINT1_OVERVIEW.md) |
 | Listings Firestore CRUD, rules, images | [SPRINT1_DEV1_FIREBASE_LISTINGS.md](./SPRINT1_DEV1_FIREBASE_LISTINGS.md) |
 | Messaging Firestore persistence | [SPRINT1_DEV2_MESSAGING.md](./SPRINT1_DEV2_MESSAGING.md) |
@@ -32,7 +33,7 @@ Services (all backend/data logic lives here)
   - userService
   - listingService (+ listingService.firestore.ts / listingService.dev.ts)
   - messageService (+ messageService.dev.ts / messageService.firestore.ts)
-  - storageService (deferred — Sprint 1 stays off Firebase Storage)
+  - storageService (listing photos — offers only; see PRODUCT_DECISIONS + Dev 1 sprint doc)
   ↓
 Firebase SDK layer
   - src/lib/firebase.ts
@@ -48,7 +49,7 @@ Firebase SDK layer
 - `src/services/userService.ts`
 - `src/services/listingService.ts` and `listingService.firestore.ts`
 - `src/services/messageService.ts` and `messageService.firestore.ts`
-- `src/services/storageService.ts` (when Storage is enabled — **not Sprint 1**)
+- `src/services/storageService.ts` (listing image uploads — offers only)
 
 ---
 
@@ -124,12 +125,12 @@ Aligned with `src/types/user.ts` (`AuthUser` + `UserProfile`):
 | `email` | string | |
 | `username` | string | Min 3 chars on edit |
 | `displayName` | string | |
-| `avatar` | string | URL or default — **no Storage in Sprint 1** |
+| `avatar` | string | Google photo URL, user-pasted external URL, or empty for initials — **no profile Storage** ([PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md)) |
 | `bio` | string | Optional |
 
 Preferences (Sprint 1 — Dev 3): `preferredListingTypes`, `preferredCategories`, `showProfilePhoto`, `showFollowingList` on user doc or settings subdoc.
 
-Follow data (Sprint 1 — Dev 3): see [SPRINT1_DEV3_PROFILE_AUTH.md](./SPRINT1_DEV3_PROFILE_AUTH.md).
+Follow data (Sprint 1 — Dev 3): `users/{uid}.following: string[]` — see [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md) and [SPRINT1_DEV3_PROFILE_AUTH.md](./SPRINT1_DEV3_PROFILE_AUTH.md).
 
 ### `conversations` + `messages`
 
@@ -178,8 +179,9 @@ VITE_LISTINGS_BACKEND=local
 1. `npm install` (includes `firebase` package)
 2. Firebase Console → Project settings → Your apps → copy Web app config into `.env`
 3. Restart `npm run dev` after changing `.env`
-4. Enable **Authentication** sign-in methods (Email/Password; Google when Dev 3 adds it)
+4. Enable **Authentication** sign-in methods (Email/Password, Google)
 5. Create **Firestore Database** and publish rules from `firestore.rules` (coordinate across devs)
+6. **Hosting:** Firebase Hosting for production — **Dev 3** implements ([SPRINT1_DEV3_PROFILE_AUTH.md](./SPRINT1_DEV3_PROFILE_AUTH.md))
 
 If `VITE_FIREBASE_API_KEY` is missing, `src/lib/firebase.ts` skips initialization and the app loads without crashing (dev warning in console).
 
@@ -195,7 +197,7 @@ Full rule snippets and test steps live in each dev’s sprint doc. Principles:
 | `users` | Authenticated (adjust for public profiles later) | User writes own `users/{uid}` only |
 | `conversations` / `messages` | Participants only | Participants only |
 
-**Firebase Storage:** Deferred for Sprint 1. Do not block sprint on Storage rules.
+**Firebase Storage:** Used for **optional offer listing photos** only (Dev 1). Profile avatars do **not** use Storage — see [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md).
 
 ---
 
@@ -224,15 +226,15 @@ Create indexes from Console links in error messages.
 
 ---
 
-## Firebase Storage (deferred)
+## Firebase Storage (listing photos)
 
-Sprint 1 intentionally avoids paid Storage usage. Images:
+Per [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md) and [SPRINT1_DEV1_FIREBASE_LISTINGS.md](./SPRINT1_DEV1_FIREBASE_LISTINGS.md):
 
-- Empty `imageUrls` + UI placeholder
-- External image URL field
-- Limited data-URL stub for local demo only
+- **Offer listings:** optional photo upload to Storage; download URL in `imageUrls[]`.
+- **Request listings:** no photos; `imageUrls` stays empty.
+- **Profile avatars:** Google photo URL, external URL, or initials — **not** Storage uploads.
 
-When Storage is enabled later, path convention: `listings/{userId}/{listingId}/{filename}`.
+Path convention: `listings/{ownerId}/{listingId}/{filename}`.
 
 ---
 

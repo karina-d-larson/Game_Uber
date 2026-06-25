@@ -5,6 +5,7 @@ import type { FirebaseStorage } from 'firebase/storage'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
+import { getAnalytics } from 'firebase/analytics'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,6 +14,7 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 }
 
 /** False when `.env` is missing or incomplete — app still loads in dev. */
@@ -39,5 +41,6 @@ if (isFirebaseConfigured) {
 export const auth = authInstance as Auth
 export const db = dbInstance as Firestore
 export const storage = storageInstance as FirebaseStorage
+export const analytics = getAnalytics(app)
 
 export default app

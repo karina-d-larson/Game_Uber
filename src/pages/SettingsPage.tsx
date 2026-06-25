@@ -1,10 +1,16 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AuthField } from '../components/auth/AuthField'
 import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
 import { LISTING_CATEGORY_OPTIONS } from '../config/listingCategories'
 import { useAuth } from '../context/AuthContext'
 import { ROUTES } from '../routes/paths'
+import {
+  AuthServiceError,
+  changePassword,
+  isEmailPasswordUser,
+} from '../services/authService'
 import {
   UserServiceError,
   getPreferences,
@@ -29,6 +35,13 @@ export function SettingsPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [logoutError, setLogoutError] = useState<string | null>(null)
+  const [isEmailUser, setIsEmailUser] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null)
+  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -51,6 +64,10 @@ export function SettingsPage() {
     return () => {
       cancelled = true
     }
+  }, [user?.id])
+
+  useEffect(() => {
+    setIsEmailUser(isEmailPasswordUser())
   }, [user?.id])
 
   if (!user) return null
@@ -105,6 +122,46 @@ export function SettingsPage() {
     }
   }
 
+  async function handleChangePassword(event: FormEvent) {
+    event.preventDefault()
+    setPasswordError(null)
+    setPasswordMessage(null)
+
+    if (!currentPassword) {
+      setPasswordError('Current password is required.')
+      return
+    }
+    if (!newPassword) {
+      setPasswordError('New password is required.')
+      return
+    }
+    if (newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters.')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match.')
+      return
+    }
+
+    setChangingPassword(true)
+    try {
+      await changePassword(currentPassword, newPassword)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setPasswordMessage('Password updated.')
+    } catch (error) {
+      if (error instanceof AuthServiceError) {
+        setPasswordError(error.message)
+      } else {
+        setPasswordError('Could not change password. Please try again.')
+      }
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
   async function handleLogout() {
     setLogoutError(null)
     setLoggingOut(true)
@@ -139,6 +196,65 @@ export function SettingsPage() {
           >
             {loggingOut ? 'Signing out…' : 'Log out'}
           </button>
+        </section>
+
+        <section className="space-y-md rounded-xl border border-outline-variant bg-surface-container-lowest p-lg custom-shadow">
+          <h2 className="font-headline-md text-headline-md text-primary">Password</h2>
+          {isEmailUser ? (
+            <form className="space-y-md" onSubmit={handleChangePassword} noValidate>
+              {passwordError && (
+                <p
+                  className="rounded-lg border border-error/30 bg-error/5 px-md py-sm text-body-md text-error"
+                  role="alert"
+                >
+                  {passwordError}
+                </p>
+              )}
+              {passwordMessage && (
+                <p
+                  className="rounded-lg border border-secondary/30 bg-secondary/5 px-md py-sm text-body-md text-secondary"
+                  role="status"
+                >
+                  {passwordMessage}
+                </p>
+              )}
+              <AuthField
+                id="settings-current-password"
+                label="Current password"
+                type="password"
+                value={currentPassword}
+                onChange={setCurrentPassword}
+                autoComplete="current-password"
+              />
+              <AuthField
+                id="settings-new-password"
+                label="New password"
+                type="password"
+                value={newPassword}
+                onChange={setNewPassword}
+                autoComplete="new-password"
+              />
+              <AuthField
+                id="settings-confirm-password"
+                label="Confirm new password"
+                type="password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                autoComplete="new-password"
+              />
+              <button
+                type="submit"
+                disabled={changingPassword}
+                className="rounded-lg bg-secondary px-lg py-3 font-label-md text-label-md text-on-secondary transition-colors hover:brightness-110 disabled:opacity-60"
+              >
+                {changingPassword ? 'Updating…' : 'Change password'}
+              </button>
+            </form>
+          ) : (
+            <p className="font-body-md text-body-md text-on-surface-variant">
+              Password is managed by Google.
+            </p>
+          )}
         </section>
 
         <section className="space-y-md rounded-xl border border-outline-variant bg-surface-container-lowest p-lg custom-shadow">

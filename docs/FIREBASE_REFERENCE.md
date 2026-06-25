@@ -244,3 +244,29 @@ Path convention: `listings/{ownerId}/{listingId}/{filename}`.
 - Layout shell architecture ([APP_ARCHITECTURE.md](./APP_ARCHITECTURE.md))
 - Public API signatures on `listingService.ts`
 - `AuthContext` auth listener pattern
+
+
+🧾 Sprint 1 — Listings status (Dev 1)
+##Completed
+Firestore CRUD fully implemented and verified
+Offer / Request schema implemented and validated
+Ownership enforcement (ownerId) working
+Firestore security rules for /listings applied and tested
+Two-account access testing completed successfully
+UI correctly hides "Manage Listing" for non-owners
+Backend confirmed: VITE_LISTINGS_BACKEND=firestore
+
+##Known non-blocking issue
+Auth profile sync error:
+permission-denied on /users/{uid} or profile sync path
+Does not affect listings functionality
+Does not block Sprint 1 progress
+
+##Deferred (not Sprint 1 scope)
+Firebase Storage integration (image uploads)
+Storage security rules
+Image optimization/compression
+Listing image persistence beyond URLs
+
+##Status
+Dev 1 Firestore Listings: COMPLETE (pre-Storage phase)

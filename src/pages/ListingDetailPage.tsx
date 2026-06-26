@@ -4,14 +4,18 @@ import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
 import { ROUTES } from '../routes/paths'
 import { MaterialIcon } from '../components/MaterialIcon'
+import { Avatar } from '../components/Avatar'
+import { FollowButton } from '../components/FollowButton'
 import { useListings } from '../context/ListingsContext'
 import type { Listing } from '../types/listing'
+import type { UserProfile } from '../types/user'
 import { formatArrangementDetail, formatRequestOptionsSummary } from '../utils/listingDisplay'
 import { formatListingCategoriesLabel } from '../utils/listingCategories'
 import { getExchangeLabels, isOfferListing, isRequestListing } from '../utils/listingHelpers'
 import { getListingImageUrls } from '../utils/listingMedia'
 import { useAuth } from '../context/AuthContext'
 import * as listingService from '../services/listingService'
+import { getProfile } from '../services/userService'
 
 // FIREBASE TODO: keep this page free of Firebase SDK imports.
 // Read/write listing data only via listingService and useListings context actions.
@@ -36,6 +40,7 @@ export function ListingDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [showActions, setShowActions] = useState(false)
   const [busy, setBusy] = useState<'delete' | 'markUnavailable' | null>(null)
+  const [ownerProfile, setOwnerProfile] = useState<UserProfile | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -66,6 +71,27 @@ export function ListingDetailPage() {
       cancelled = true
     }
   }, [id])
+
+  useEffect(() => {
+    if (!listing?.ownerId) {
+      setOwnerProfile(null)
+      return
+    }
+
+    let cancelled = false
+    void (async () => {
+      try {
+        const profile = await getProfile(listing.ownerId)
+        if (!cancelled) setOwnerProfile(profile)
+      } catch {
+        if (!cancelled) setOwnerProfile(null)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [listing?.ownerId])
 
   const isOwner = useMemo(() => {
     if (!listing || !user) return false
@@ -413,19 +439,28 @@ export function ListingDetailPage() {
             </div>
 
             <div className="flex items-center gap-md rounded-xl border border-outline-variant bg-surface-container-lowest p-md shadow-sm">
-              <div className="relative h-16 w-16 rounded-full bg-surface-container-high" />
+              <Avatar
+                displayName={ownerProfile?.displayName ?? listing.ownerName}
+                username={ownerProfile?.username ?? listing.ownerName}
+                avatar={ownerProfile?.avatar}
+                className="h-16 w-16 text-label-md"
+                alt={`${listing.ownerName} avatar`}
+              />
               <div className="flex-1">
-                <div className="flex justify-between">
+                <div className="flex flex-wrap items-start justify-between gap-sm">
                   <span className="font-headline-md text-headline-md text-primary">
                     {listing.ownerName}
                   </span>
+                  {!isOwner && user && (
+                    <FollowButton targetUserId={listing.ownerId} />
+                  )}
                 </div>
                 <p className="font-body-md text-body-md text-on-surface-variant">
                   {isRequest ? 'Requester' : 'Owner'} •{' '}
                   {new Date(listing.createdAt).toLocaleDateString()}
                 </p>
                 <Link
-                  to="/profile"
+                  to={ROUTES.profile}
                   className="mt-1 font-label-md text-label-md text-secondary hover:underline"
                 >
                   View full profile

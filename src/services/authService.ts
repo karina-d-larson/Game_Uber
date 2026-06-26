@@ -13,6 +13,7 @@ import type { AuthUser, LoginInput, SignupInput } from '../types/user'
 
 import { COLLECTIONS } from '../config/firebaseCollections'
 import { auth, db, isFirebaseConfigured } from '../lib/firebase'
+import { normalizeAvatarFromDoc } from '../utils/avatarDisplay'
 
 import {
   signInWithEmailAndPassword,
@@ -21,6 +22,10 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
   type Auth,
   type User,
 } from 'firebase/auth'
@@ -46,12 +51,33 @@ export class AuthServiceError extends Error {
    DEFAULTS
 ========================================================= */
 
-const DEFAULT_AVATAR =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDKHIZ20m5AdsPygH7mo9GAuD80aTL1xPNpdImx_PbFWb2frljMf0-fa9nge7yqMfhFyaoBDh6ebxk3Gw4W7FyskHsCV8GEnP61EJoS7kCkTtOeZ5DoilGGfNxKrkO4uQYnWY68kDyGSEOszS1csnfhTtXjjNVAxzPydRi1ChhsLJL0i2_KYXFjiuG3wqA0yiAkjW2HFNlQk3HJ6pv_AobcvOdPxIVOlOEGe78QMDjrvw8r3MQ9XRbkv05WoJl0boYQlLJFe_Z-7g'
-
-/* =========================================================
-   VALIDATION
-========================================================= */
+function mapAuthError(err: unknown, fallback: string): AuthServiceError {
+  const code = typeof err === 'object' && err && 'code' in err ? String(err.code) : ''
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+    return new AuthServiceError('Sign-in was cancelled.')
+  }
+  if (code === 'auth/popup-blocked') {
+    return new AuthServiceError(
+      'Pop-up was blocked. Allow pop-ups for this site and try again.',
+    )
+  }
+  if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+    return new AuthServiceError('Current password is incorrect.')
+  }
+  if (code === 'auth/weak-password') {
+    return new AuthServiceError('New password must be at least 6 characters.')
+  }
+  if (code === 'auth/requires-recent-login') {
+    return new AuthServiceError('Please sign out and sign in again, then retry.')
+  }
+  if (code === 'auth/user-not-found' || code === 'auth/invalid-email') {
+    return new AuthServiceError('No account found for that email.')
+  }
+  if (err instanceof Error && err.message) {
+    return new AuthServiceError(err.message)
+  }
+  return new AuthServiceError(fallback)
+}
 
 function validateLoginInput({ email, password }: LoginInput): void {
   if (!email.trim()) throw new AuthServiceError('Email is required.')
@@ -92,21 +118,9 @@ function requireFirestoreDb() {
   return db
 }
 
-function mapAuthError(err: unknown, fallback: string): AuthServiceError {
-  const code = typeof err === 'object' && err && 'code' in err ? String(err.code) : ''
-  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
-    return new AuthServiceError('Sign-in was cancelled.')
-  }
-  if (code === 'auth/popup-blocked') {
-    return new AuthServiceError(
-      'Pop-up was blocked. Allow pop-ups for this site and try again.',
-    )
-  }
-  if (err instanceof Error && err.message) {
-    return new AuthServiceError(err.message)
-  }
-  return new AuthServiceError(fallback)
-}
+/* =========================================================
+   VALIDATION
+========================================================= */
 
 function deriveUsernameFromEmail(email: string, uid: string): string {
   const prefix = email.split('@')[0]?.trim().toLowerCase() || 'user'
@@ -134,7 +148,7 @@ async function ensureGoogleUserProfile(firebaseUser: User): Promise<AuthUser> {
   const email = firebaseUser.email ?? ''
   const username = deriveUsernameFromEmail(email, firebaseUser.uid)
   const displayName = firebaseUser.displayName?.trim() || username
-  const avatar = firebaseUser.photoURL?.trim() || DEFAULT_AVATAR
+  const avatar = firebaseUser.photoURL?.trim() || ''
   const now = Date.now()
 
   const newProfile = {
@@ -161,7 +175,7 @@ function userFromFirebaseAuth(firebaseUser: {
     email: firebaseUser.email ?? '',
     username: firebaseUser.email?.split('@')[0] ?? 'user',
     displayName: firebaseUser.email?.split('@')[0] ?? 'User',
-    avatar: DEFAULT_AVATAR,
+    avatar: '',
   }
 }
 
@@ -180,8 +194,7 @@ function authUserFromProfile(
       (typeof profile?.displayName === 'string' && profile.displayName) ||
       firebaseUser.email?.split('@')[0] ||
       'User',
-    avatar:
-      (typeof profile?.avatar === 'string' && profile.avatar) || DEFAULT_AVATAR,
+    avatar: normalizeAvatarFromDoc(profile?.avatar),
     bio: typeof profile?.bio === 'string' && profile.bio ? profile.bio : undefined,
   }
 }
@@ -256,7 +269,7 @@ export async function signup(
       email: user.email ?? '',
       username,
       displayName: username,
-      avatar: DEFAULT_AVATAR,
+      avatar: '',
     }
 
     await setDoc(doc(db, COLLECTIONS.users, user.uid), newUser)
@@ -278,6 +291,66 @@ export async function logout(): Promise<void> {
     await signOut(auth)
   } catch (err: unknown) {
     throw mapAuthError(err, 'Sign-out failed. Please try again.')
+  }
+}
+
+/* =========================================================
+   PASSWORD / ACCOUNT RECOVERY (email/password only)
+========================================================= */
+
+/** True when the signed-in user has email/password as a sign-in provider. */
+export function isEmailPasswordUser(): boolean {
+  if (!isFirebaseConfigured || !auth?.currentUser) return false
+  return auth.currentUser.providerData.some(
+    (provider) => provider.providerId === 'password',
+  )
+}
+
+export async function sendPasswordReset(email: string): Promise<void> {
+  const trimmed = email.trim()
+  if (!trimmed) {
+    throw new AuthServiceError('Email is required.')
+  }
+
+  try {
+    await sendPasswordResetEmail(requireFirebaseAuth(), trimmed)
+  } catch (err: unknown) {
+    throw mapAuthError(err, 'Could not send reset email. Please try again.')
+  }
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  if (!currentPassword) {
+    throw new AuthServiceError('Current password is required.')
+  }
+  if (!newPassword) {
+    throw new AuthServiceError('New password is required.')
+  }
+  if (newPassword.length < 6) {
+    throw new AuthServiceError('New password must be at least 6 characters.')
+  }
+
+  const firebaseAuth = requireFirebaseAuth()
+  const firebaseUser = firebaseAuth.currentUser
+  if (!firebaseUser?.email) {
+    throw new AuthServiceError('You must be signed in to change your password.')
+  }
+  if (!isEmailPasswordUser()) {
+    throw new AuthServiceError('Password is managed by Google.')
+  }
+
+  try {
+    const credential = EmailAuthProvider.credential(
+      firebaseUser.email,
+      currentPassword,
+    )
+    await reauthenticateWithCredential(firebaseUser, credential)
+    await updatePassword(firebaseUser, newPassword)
+  } catch (err: unknown) {
+    throw mapAuthError(err, 'Could not change password. Please try again.')
   }
 }
 

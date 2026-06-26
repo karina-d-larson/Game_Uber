@@ -14,6 +14,7 @@ import { ListingDetailPage } from '../pages/ListingDetailPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { EditProfilePage } from '../pages/EditProfilePage'
+import { FollowingPage } from '../pages/FollowingPage'
 import { SettingsPage } from '../pages/SettingsPage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { SignupPage } from '../pages/SignupPage'
@@ -56,6 +57,7 @@ export function AppRouter() {
                 <Route path="listings/:id/edit" element={<EditListingPage />} />
                 <Route path="inbox/:conversationId" element={<ChatPage />} />
                 <Route path="profile/edit" element={<EditProfilePage />} />
+                <Route path="profile/following" element={<FollowingPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
             </Route>

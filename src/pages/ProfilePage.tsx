@@ -69,6 +69,9 @@ function StarRow({ count }: { count: number }) {
 export function ProfilePage() {
   const { user } = useAuth()
   const [showPhoto, setShowPhoto] = useState(DEFAULT_USER_PREFERENCES.showProfilePhoto)
+  const [showFollowingList, setShowFollowingList] = useState(
+    DEFAULT_USER_PREFERENCES.showFollowingList,
+  )
 
   useEffect(() => {
     if (!user) return
@@ -77,9 +80,15 @@ export function ProfilePage() {
     void (async () => {
       try {
         const prefs = await getPreferences(user.id)
-        if (!cancelled) setShowPhoto(prefs.showProfilePhoto)
+        if (!cancelled) {
+          setShowPhoto(prefs.showProfilePhoto)
+          setShowFollowingList(prefs.showFollowingList)
+        }
       } catch {
-        if (!cancelled) setShowPhoto(DEFAULT_USER_PREFERENCES.showProfilePhoto)
+        if (!cancelled) {
+          setShowPhoto(DEFAULT_USER_PREFERENCES.showProfilePhoto)
+          setShowFollowingList(DEFAULT_USER_PREFERENCES.showFollowingList)
+        }
       }
     })()
 
@@ -99,12 +108,22 @@ export function ProfilePage() {
           <p className="mb-md font-body-md text-body-md text-on-surface-variant">
             Signed in as {user.email}
           </p>
-          <Link
-            to={ROUTES.settings}
-            className="inline-flex min-h-11 items-center rounded-lg bg-secondary px-lg py-3 font-label-md text-label-md text-on-secondary transition-colors hover:brightness-110"
-          >
-            Settings
-          </Link>
+          <div className="flex flex-wrap gap-md">
+            <Link
+              to={ROUTES.settings}
+              className="inline-flex min-h-11 items-center rounded-lg bg-secondary px-lg py-3 font-label-md text-label-md text-on-secondary transition-colors hover:brightness-110"
+            >
+              Settings
+            </Link>
+            {showFollowingList && (
+              <Link
+                to={ROUTES.following}
+                className="inline-flex min-h-11 items-center rounded-lg border border-outline-variant px-lg py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+              >
+                Following
+              </Link>
+            )}
+          </div>
         </section>
 
         <section className="grid grid-cols-2 gap-md md:grid-cols-4">
@@ -124,26 +143,7 @@ export function ProfilePage() {
         </section>
 
         <section className="space-y-lg">
-          <div className="flex items-center border-b border-outline-variant">
-            <button
-              type="button"
-              className="border-b-2 border-secondary px-lg py-sm font-label-md text-label-md text-secondary"
-            >
-              Reviews
-            </button>
-            <button
-              type="button"
-              className="px-lg py-sm font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
-            >
-              Games Available
-            </button>
-            <button
-              type="button"
-              className="px-lg py-sm font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
-            >
-              About
-            </button>
-          </div>
+          <h3 className="font-headline-md text-headline-md text-primary">Reviews</h3>
 
           <div className="space-y-md">
             {REVIEWS.map((review) => (

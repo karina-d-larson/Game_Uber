@@ -1,4 +1,5 @@
 import type { AuthUser } from '../types/user'
+import { Avatar } from './Avatar'
 import { MaterialIcon } from './MaterialIcon'
 
 type ProfileHeaderProps = {
@@ -6,20 +7,17 @@ type ProfileHeaderProps = {
   showPhoto?: boolean
 }
 
-/**
- * Profile hero — data from AuthContext (mock) or Firestore users/{uid} later.
- *
- * FIREBASE TODO: pass Firestore profile fields; keep this component presentational.
- */
 export function ProfileHeader({ user, showPhoto = true }: ProfileHeaderProps) {
   return (
     <section className="flex flex-col items-center gap-lg rounded-xl bg-surface-container-lowest p-lg custom-shadow md:flex-row md:items-start">
       {showPhoto && (
         <div className="relative">
-          <img
-            alt="Avatar"
-            className="h-32 w-32 rounded-full border-4 border-surface-container-high object-cover md:h-40 md:w-40"
-            src={user.avatar}
+          <Avatar
+            displayName={user.displayName}
+            username={user.username}
+            avatar={user.avatar}
+            className="h-32 w-32 border-4 border-surface-container-high text-headline-lg md:h-40 md:w-40"
+            alt="Your profile photo"
           />
         </div>
       )}
@@ -50,20 +48,6 @@ export function ProfileHeader({ user, showPhoto = true }: ProfileHeaderProps) {
             {user.bio}
           </p>
         )}
-        <div className="flex flex-wrap justify-center gap-md pt-sm md:justify-start">
-          <button
-            type="button"
-            className="rounded-lg bg-primary px-lg py-2 font-label-md text-label-md text-on-primary active:scale-95 transition-transform"
-          >
-            Message
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-outline-variant px-lg py-2 font-label-md text-label-md text-on-surface active:scale-95 transition-transform hover:bg-surface-container-low"
-          >
-            Follow
-          </button>
-        </div>
       </div>
     </section>
   )

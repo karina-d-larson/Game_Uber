@@ -342,7 +342,6 @@ Mapping: `src/utils/listingMapping.ts`, reads via `mapDocToListing()` in `listin
 
 ### Part E — Stretch
 
-- [ ] Hosting comparison (Firebase Hosting vs GitHub Pages vs Vercel).
 - [ ] Firestore composite indexes if Console prompts.
 - [ ] Image compression helper.
 

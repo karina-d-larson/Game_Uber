@@ -1,29 +1,9 @@
-/**
- * FIRESTORE LISTINGS BACKEND — implement here when VITE_LISTINGS_BACKEND=firestore
- * ================================================================================
- *
- * This module is the ONLY place for Firestore listing reads/writes.
- * Do NOT import listingService.dev.ts from here.
- *
- * Wire-up checklist:
- * 1. Implement each exported function below
- * 2. Use mapDocToListing from listingService.ts for reads
- * 3. Use COLLECTIONS.listings from config/firebaseCollections.ts
- * 4. Set VITE_LISTINGS_BACKEND=firestore in .env
- * 5. Delete listingService.dev.ts after migration is verified
- */
-
-/**
- * FIRESTORE LISTINGS BACKEND — implement here when VITE_LISTINGS_BACKEND=firestore
- * ================================================================================
- */
-
 import {
   collection,
   doc,
   getDoc,
   getDocs,
-  addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   serverTimestamp,
@@ -36,31 +16,23 @@ import type {
   Listing,
   UpdateListingInput,
 } from '../types/listing'
+
 import { mapDocToListing } from './listingService'
 import { getCurrentUser } from './authService'
+
 import {
   buildFirestoreCreatePayload,
   buildFirestoreUpdatePayload,
   toListingPurpose,
 } from '../utils/listingMapping'
 
-export class FirestoreListingsNotImplementedError extends Error {
-  constructor(method: string) {
-    super(
-      `Firestore listings: \`${method}\` is not implemented yet. ` +
-        'Add the implementation in src/services/listingService.firestore.ts.',
-    )
-    this.name = 'FirestoreListingsNotImplementedError'
-  }
-}
+import { uploadListingImageFirebase } from './storageService'
 
 /**
  * READ ALL LISTINGS
  */
 export async function fetchListings(): Promise<Listing[]> {
-  const snapshot = await getDocs(
-    collection(db, COLLECTIONS.listings),
-  )
+  const snapshot = await getDocs(collection(db, COLLECTIONS.listings))
 
   return snapshot.docs.map((docSnap) =>
     mapDocToListing(docSnap.id, docSnap.data()),
@@ -73,9 +45,7 @@ export async function fetchListings(): Promise<Listing[]> {
 export async function getListingById(
   id: string,
 ): Promise<Listing | undefined> {
-  const snapshot = await getDoc(
-    doc(db, COLLECTIONS.listings, id),
-  )
+  const snapshot = await getDoc(doc(db, COLLECTIONS.listings, id))
 
   if (!snapshot.exists()) return undefined
 
@@ -83,10 +53,10 @@ export async function getListingById(
 }
 
 /**
- * CREATE LISTING (NO STORAGE VERSION)
+ * CREATE LISTING (WITH FIREBASE STORAGE FOR OFFERS)
  */
 export async function createListing(
-  input: CreateListingInput,
+  input: CreateListingInput & { imageFiles?: File[] },
 ): Promise<Listing> {
   const currentUser = getCurrentUser()
 
@@ -94,17 +64,41 @@ export async function createListing(
     throw new Error('You must be signed in to create a listing.')
   }
 
-  const docRef = await addDoc(
-    collection(db, COLLECTIONS.listings),
-    {
-      ...buildFirestoreCreatePayload(input, {
-        id: currentUser.id,
-        displayName: currentUser.displayName,
-      }),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-  )
+  const docRef = doc(collection(db, COLLECTIONS.listings))
+  const listingId = docRef.id
+
+  let imageUrls: string[] = []
+
+  if (
+    input.listingPurpose === 'offer' &&
+    input.imageFiles &&
+    input.imageFiles.length > 0
+  ) {
+    const file = input.imageFiles[0]
+
+    const url = await uploadListingImageFirebase(
+      file,
+      currentUser.id,
+      listingId,
+    )
+
+    imageUrls = [url]
+  }
+
+  const basePayload = buildFirestoreCreatePayload(input, {
+    id: currentUser.id,
+    displayName: currentUser.displayName,
+  })
+
+  const payload = {
+    ...basePayload,
+    imageUrls,
+    ownerId: currentUser.id,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }
+
+  await setDoc(docRef, payload)
 
   const snapshot = await getDoc(docRef)
 
@@ -112,11 +106,11 @@ export async function createListing(
 }
 
 /**
- * UPDATE LISTING
+ * UPDATE LISTING (SAFE IMAGE HANDLING)
  */
 export async function updateListing(
   id: string,
-  input: UpdateListingInput,
+  input: UpdateListingInput & { imageFiles?: File[] },
 ): Promise<Listing> {
   const currentUser = getCurrentUser()
 
@@ -137,21 +131,39 @@ export async function updateListing(
     throw new Error('You can only edit your own listings.')
   }
 
-  const { imageFiles: _imageFiles, ...inputWithoutFiles } = input
   const existingPurpose = toListingPurpose(
     existing.listingPurpose,
     existing.listingType,
   )
 
-  await updateDoc(
-    ref,
-    {
-      ...buildFirestoreUpdatePayload(inputWithoutFiles, existingPurpose),
-      updatedAt: serverTimestamp(),
-    },
-  )
+  const imageFiles = input.imageFiles
 
-  // 🔥 THIS is what you're missing:
+  let imageUrls: string[] = existing.imageUrls ?? []
+
+  if (existingPurpose === 'offer') {
+    if (imageFiles && imageFiles.length > 0) {
+      const file = imageFiles[0]
+
+      const url = await uploadListingImageFirebase(
+        file,
+        currentUser.id,
+        id,
+      )
+
+      imageUrls = [url]
+    }
+  } else {
+    imageUrls = []
+  }
+
+  const { imageFiles: _ignored, ...inputWithoutFiles } = input
+
+  await updateDoc(ref, {
+    ...buildFirestoreUpdatePayload(inputWithoutFiles, existingPurpose),
+    imageUrls,
+    updatedAt: serverTimestamp(),
+  })
+
   const updatedSnap = await getDoc(ref)
 
   return mapDocToListing(ref.id, updatedSnap.data()!)

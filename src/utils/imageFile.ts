@@ -1,7 +1,7 @@
 /** Accepted image MIME types for listing photos (frontend-only preview). */
 export const LISTING_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp'
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024
 
 /**
  * Read a user-selected file as a data URL (base64) for local preview + localStorage.
@@ -14,7 +14,7 @@ export function readImageAsDataUrl(file: File): Promise<string> {
     return Promise.reject(new Error('Please choose a JPEG, PNG, or WebP image.'))
   }
   if (file.size > MAX_IMAGE_BYTES) {
-    return Promise.reject(new Error('Image must be 5 MB or smaller.'))
+    return Promise.reject(new Error('Image must be 2 MB or smaller.'))
   }
 
   return new Promise((resolve, reject) => {

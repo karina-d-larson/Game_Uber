@@ -246,27 +246,37 @@ Path convention: `listings/{ownerId}/{listingId}/{filename}`.
 - `AuthContext` auth listener pattern
 
 
-🧾 Sprint 1 — Listings status (Dev 1)
-##Completed
-Firestore CRUD fully implemented and verified
-Offer / Request schema implemented and validated
-Ownership enforcement (ownerId) working
-Firestore security rules for /listings applied and tested
-Two-account access testing completed successfully
-UI correctly hides "Manage Listing" for non-owners
-Backend confirmed: VITE_LISTINGS_BACKEND=firestore
+# Sprint 1 — Listings Status (Dev 1)
 
-##Known non-blocking issue
-Auth profile sync error:
-permission-denied on /users/{uid} or profile sync path
-Does not affect listings functionality
-Does not block Sprint 1 progress
+## Completed
 
-##Deferred (not Sprint 1 scope)
-Firebase Storage integration (image uploads)
-Storage security rules
-Image optimization/compression
-Listing image persistence beyond URLs
+* Firestore CRUD fully implemented and verified
+* Offer / Request schema implemented and validated
+* Firebase Storage integration for Offer listing images
+* Offer listings upload a single optional image to Firebase Storage
+* Request listings never upload or store images (`imageUrls: []`)
+* Firebase Storage download URLs saved in `imageUrls`
+* Ownership enforcement (`ownerId`) working
+* Firestore security rules for `/listings` applied and tested
+* Firebase Storage security rules applied and tested
+* Two-account access testing completed successfully
+* UI correctly hides **Manage Listing** for non-owners
+* Backend confirmed: `VITE_LISTINGS_BACKEND=firestore`
 
-##Status
-Dev 1 Firestore Listings: COMPLETE (pre-Storage phase)
+## Known non-blocking issue
+
+* Auth profile sync error:
+
+  * `permission-denied` on `/users/{uid}` or profile sync path
+  * Does not affect listings functionality
+  * Does not block Sprint 1 progress
+
+## Deferred (Future Sprint)
+
+* Automatic deletion of Firebase Storage images when a listing is deleted (orphaned file cleanup)
+* Image optimization/compression before upload
+* Multiple image support (Sprint 1 supports one optional Offer image)
+
+## Status
+
+**Dev 1 Firestore Listings: COMPLETE**

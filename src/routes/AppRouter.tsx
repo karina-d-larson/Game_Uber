@@ -23,9 +23,8 @@ import { AuthGate, GuestRoute, ProtectedRoute } from './guards'
 /**
  * Application routing — organized by access level and shell type.
  *
- * Public: login, signup (AuthLayout)
- * Protected + tabs: home, inbox, create, profile (AppShellLayout)
- * Protected + stack: listing detail, edit, chat (StackShellLayout)
+ * Public: home feed, listing detail, login, signup
+ * Protected: create, inbox, profile, settings, edit, chat
  */
 export function AppRouter() {
   return (
@@ -33,7 +32,7 @@ export function AppRouter() {
       <Suspense fallback={<PageLoadingFallback />}>
         <Routes>
           <Route element={<AuthGate />} errorElement={<RouteErrorFallback />}>
-            {/* Guest auth */}
+            {/* Guest auth pages only */}
             <Route element={<GuestRoute />}>
               <Route element={<AuthLayout />}>
                 <Route path="login" element={<LoginPage />} />
@@ -41,19 +40,23 @@ export function AppRouter() {
               </Route>
             </Route>
 
-            {/* Authenticated */}
+            {/* Public browse — guests and signed-in users */}
+            <Route element={<AppShellLayout />}>
+              <Route index element={<DashboardPage />} />
+            </Route>
+            <Route element={<StackShellLayout />}>
+              <Route path="listings/:id" element={<ListingDetailPage />} />
+            </Route>
+
+            {/* Authenticated-only */}
             <Route element={<ProtectedRoute />} errorElement={<RouteErrorFallback />}>
-              {/* Tab shell — bottom navigation */}
               <Route element={<AppShellLayout />}>
-                <Route index element={<DashboardPage />} />
                 <Route path="inbox" element={<InboxPage />} />
                 <Route path="listings/new" element={<CreateListingPage />} />
                 <Route path="profile" element={<ProfilePage />} />
               </Route>
 
-              {/* Stack shell — no bottom tabs */}
               <Route element={<StackShellLayout />}>
-                <Route path="listings/:id" element={<ListingDetailPage />} />
                 <Route path="listings/:id/edit" element={<EditListingPage />} />
                 <Route path="inbox/:conversationId" element={<ChatPage />} />
                 <Route path="profile/edit" element={<EditProfilePage />} />

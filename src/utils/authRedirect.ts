@@ -10,3 +10,23 @@ export function getPostAuthPath(state: unknown): string {
   }
   return from
 }
+
+/** Build return path from current location (pathname + search + hash). */
+export function getReturnPathFromLocation(location: {
+  pathname: string
+  search?: string
+  hash?: string
+}): string {
+  return `${location.pathname}${location.search ?? ''}${location.hash ?? ''}`
+}
+
+/** Login navigation target preserving intended return URL after sign-in. */
+export function buildLoginRedirect(from: string): {
+  pathname: string
+  state: AuthRedirectState
+} {
+  return {
+    pathname: ROUTES.login,
+    state: { from },
+  }
+}

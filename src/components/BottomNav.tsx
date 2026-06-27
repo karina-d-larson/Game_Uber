@@ -1,5 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { ROUTES } from '../routes/paths'
+import { buildLoginRedirect } from '../utils/authRedirect'
 import { MaterialIcon } from './MaterialIcon'
 
 type TabConfig = {
@@ -7,6 +9,7 @@ type TabConfig = {
   to: string
   label: string
   icon: string
+  requiresAuth?: boolean
   /** When set, overrides default NavLink active matching */
   isActive?: (pathname: string) => boolean
 }
@@ -24,6 +27,7 @@ const tabs: TabConfig[] = [
     to: ROUTES.createListing,
     label: 'Create',
     icon: 'add_box',
+    requiresAuth: true,
     isActive: (pathname) => pathname === ROUTES.createListing,
   },
   {
@@ -31,6 +35,7 @@ const tabs: TabConfig[] = [
     to: ROUTES.inbox,
     label: 'Inbox',
     icon: 'mail',
+    requiresAuth: true,
     isActive: (pathname) =>
       pathname === ROUTES.inbox || pathname.startsWith(`${ROUTES.inbox}/`),
   },
@@ -39,17 +44,14 @@ const tabs: TabConfig[] = [
     to: ROUTES.profile,
     label: 'Profile',
     icon: 'person',
-    isActive: (pathname) => pathname === ROUTES.profile,
+    requiresAuth: true,
+    isActive: (pathname) => pathname.startsWith('/profile'),
   },
 ]
 
-/**
- * Persistent mobile bottom navigation (tab shell).
- *
- * FIREBASE TODO: badge count for unread messages on Inbox tab.
- */
 export function BottomNav() {
   const { pathname } = useLocation()
+  const { user } = useAuth()
 
   return (
     <nav
@@ -64,10 +66,15 @@ export function BottomNav() {
               ? pathname === ROUTES.home
               : pathname === tab.to
 
+          const destination =
+            !user && tab.requiresAuth
+              ? buildLoginRedirect(tab.to)
+              : { pathname: tab.to }
+
           return (
             <NavLink
               key={tab.id}
-              to={tab.to}
+              to={destination}
               end={tab.id === 'home'}
               aria-current={active ? 'page' : undefined}
               className={[

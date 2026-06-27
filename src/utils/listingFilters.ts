@@ -1,6 +1,7 @@
 import type { ExchangeOption, Listing, ListingPurpose } from '../types/listing'
+import { listingMatchesCategory } from './listingCategories'
 import { toExchangeOption, toListingPurpose } from './listingMapping'
-import { getListingCategories, listingMatchesCategory } from './listingCategories'
+import { listingMatchesSearch } from './listingSearch'
 export type ListingFilterState = {
   search: string
   category: string | null
@@ -34,8 +35,6 @@ export function filterListings(
   listings: Listing[],
   filters: ListingFilterState,
 ): Listing[] {
-  const query = filters.search.trim().toLowerCase()
-
   return listings.filter((listing) => {
     const purpose = resolveListingPurpose(listing)
     if (purpose !== filters.listingPurpose) return false
@@ -48,17 +47,11 @@ export function filterListings(
       return false
     }
 
-    if (!query) return true
+    if (!listingMatchesSearch(listing, filters.search)) {
+      return false
+    }
 
-    const categories = getListingCategories(listing)
-
-    return (
-      listing.title.toLowerCase().includes(query) ||
-      listing.description.toLowerCase().includes(query) ||
-      listing.category.toLowerCase().includes(query) ||
-      categories.some((cat) => cat.toLowerCase().includes(query)) ||
-      listing.ownerName.toLowerCase().includes(query)
-    )
+    return true
   })
 }
 

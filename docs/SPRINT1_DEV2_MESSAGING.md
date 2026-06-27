@@ -1,262 +1,263 @@
-# Sprint 1 — Dev 2: Messaging
+# Final Project — Dev 2: Messaging
 
 **Owner:** Developer 2  
-**Sprint length:** 2 weeks  
-**Related:** [SPRINT1_OVERVIEW.md](./SPRINT1_OVERVIEW.md) · [FIREBASE_REFERENCE.md](./FIREBASE_REFERENCE.md)
+**Period:** Final two-week development sprint (post–Sprint 1)  
+**App:** GameShelf  
+**Sources:** [QA_AUDIT_FINAL.md](./QA_AUDIT_FINAL.md) · [FINAL_WORKING_APP_BACKLOG.md](./FINAL_WORKING_APP_BACKLOG.md) · [FIREBASE_REFERENCE.md](./FIREBASE_REFERENCE.md)
+
+Dev 2 owns **messaging audit, Message Owner/Requester flows, I Have This Game flow, conversation creation, conversation deduplication, and Firestore messaging (if feasible)**. Do **not** modify listing Firestore CRUD or Dev 3 auth/routing unless coordinating on `ListingDetailPage` CTA handlers only.
 
 ---
 
-## 1. Sprint goal
+# Current Status
 
-Users can tap **Message Owner** on a listing, open a chat, send messages, and **see those messages after refresh** — stored in Firestore, not localStorage only.
+## Messaging UI — complete
 
-By sprint end:
+| Area | Status | Evidence |
+|------|--------|----------|
+| Inbox page | **Complete** | `InboxPage.tsx` — conversation list, empty state |
+| Chat page | **Complete** | `ChatPage.tsx`, `ChatWindow`, `MessageBubble`, `MessageInput` |
+| Messages context | **Complete** | `MessagesContext.tsx` — load conversations/messages, send message |
+| Protected routes | **Complete** | `/inbox`, `/inbox/:conversationId` behind `ProtectedRoute` |
+| Send message (dev backend) | **Complete** | Persists to localStorage; survives refresh in same browser |
+| Seed conversations | **Complete** | `mockMessages.seed.ts` for first-load demo |
+| Service layer boundary | **Complete** | Pages/context call `messageService.ts` only — no Firebase in UI |
 
-- `createConversation` works end-to-end.
-- Conversations and messages persist in Firestore.
-- Inbox shows real threads; chat shows real message history.
-- No duplicate conversations for the same listing + same two participants.
-- Messaging-related dead buttons are fixed or hidden.
+## Messaging backend — not production-ready
 
-**Out of scope for Sprint 1:** typing indicators, read receipts, reactions, push notifications, group chats, realtime `onSnapshot` (optional stretch only).
+| Area | Status | Evidence |
+|------|--------|----------|
+| Firestore messaging | **Not implemented** | No `messageService.firestore.ts`; router always uses dev backend (QA-005) |
+| Cross-account messaging | **Not working** | localStorage keys `gameshelf_conversations`, `gameshelf_messages` — per-browser only (QA-110) |
+| `createConversation` in context | **Not exposed** | Exists in `messageService.ts` but not on `MessagesContext` (QA-104) |
+| Conversation deduplication | **Not implemented** | `devCreateConversation` always creates new thread (QA-105) |
+| Participant display names | **Placeholder** | Hardcoded `'Recipient'` in dev backend (QA-105) |
+| Listing detail CTAs (signed-in) | **Not wired** | Buttons call `useRequireAuth()` only — guests go to login; **logged-in users get no-op** (QA-001 partial) |
+| Firestore rules for conversations/messages | **Not done** | Dev 2 adds when Firestore backend ships |
+| Real-time updates | **Not implemented** | `subscribeToMessages` does one-time fetch in dev mode |
 
----
+## Related changes by other developers (context only)
 
-## 2. Current status
-
-| Area | Status |
-|------|--------|
-| Inbox page (`/inbox`) | **Done** — UI + routing |
-| Chat page (`/inbox/:conversationId`) | **Done** — UI + routing |
-| Messaging components | **Done** — `src/components/messaging/*` |
-| `MessagesContext` | **Done** — loads/sends via `messageService` |
-| `messageService.dev.ts` | **Done** — localStorage backend |
-| `createConversation` | **Done** — throws in `messageService.ts` |
-| Message Owner button | **Not wired** — exists on `ListingDetailPage.tsx`, no working handler |
-| `messageService.firestore.ts` | **Not done** — create or implement |
-| Firestore persistence | **Not done** — messages lost across browsers |
-| Realtime listeners | **Optional stretch** — fetch-on-load is enough for Sprint 1 |
-
----
-
-## 3. Files to inspect first
-
-- [ ] `docs/APP_ARCHITECTURE.md` — inbox/chat routes and stack shell
-- [ ] `docs/FIREBASE_REFERENCE.md` — conversations/messages overview (details in this sprint doc §7)
-- [ ] `src/services/messageService.ts` — public API (router)
-- [ ] `src/services/messageService.dev.ts` — local backend reference
-- [ ] `src/context/MessagesContext.tsx` — inbox state, send, load
-- [ ] `src/types/message.ts` — `Conversation`, `Message`, `CreateConversationInput`
-- [ ] `src/pages/InboxPage.tsx`
-- [ ] `src/pages/ChatPage.tsx`
-- [ ] `src/components/messaging/ConversationList.tsx`
-- [ ] `src/components/messaging/ConversationItem.tsx`
-- [ ] `src/components/messaging/ChatWindow.tsx`
-- [ ] `src/components/messaging/MessageBubble.tsx`
-- [ ] `src/components/messaging/MessageInput.tsx`
-- [ ] `src/pages/ListingDetailPage.tsx` — Message Owner button
-- [ ] `src/routes/paths.ts` — `ROUTES.inbox`, `ROUTES.chat(id)`
-- [ ] `src/data/mockMessages.seed.ts` — seed shape reference
-- [ ] `src/config/firebaseCollections.ts` — `conversations`, `messages`
-- [ ] `src/services/authService.ts` — `getCurrentUser()`
-- [ ] `src/services/listingService.ts` — `getListingById` for listing title/owner (orchestration only)
+| Area | Owner | Status |
+|------|-------|--------|
+| Guest → login on Message/Request CTAs | Dev 3 | **Complete** — `useRequireAuth()` on `ListingDetailPage` |
+| Guest browse (public listing detail) | Dev 3 | **Complete** — non-owners see CTAs; auth required to proceed |
+| Listing detail mock reviews removed | Dev 3 | **Complete** — no longer blocks messaging UX |
 
 ---
 
-## 4. Files this developer owns
+# Remaining Critical Tasks
 
-| File | Action |
-|------|--------|
-| `src/services/messageService.ts` | Route `createConversation`, send, fetch to firestore/dev |
-| `src/services/messageService.firestore.ts` | **Create/implement** Firestore backend |
-| `src/services/messageService.dev.ts` | Implement `devCreateConversation` if still missing |
-| `src/context/MessagesContext.tsx` | Expose `createConversation`; refresh list after create |
-| `src/pages/ListingDetailPage.tsx` | Wire Message Owner button |
-| `src/pages/InboxPage.tsx` | Empty/loading/error states (if easy) |
-| `src/pages/ChatPage.tsx` | Empty/loading/error states (if easy) |
-| `firestore.rules` | Add conversations/messages rules (coordinate with Dev 1/3) |
+## D2-C1 — Team decision: Firestore messaging vs demo-only (QA-005, D2-008)
 
----
+**Problem:** Sprint acceptance expects cross-user messaging. Current backend cannot satisfy two-browser QA.
 
-## 5. Files to avoid touching
+**Decision required (document in README or sprint note):**
 
-| File | Why |
-|------|-----|
-| `src/services/listingService.firestore.ts` | Dev 1 |
-| `src/context/AuthContext.tsx` | Dev 3 — no second listener |
-| `src/services/authService.ts` | Dev 3 — only **call** `getCurrentUser()` |
-| `src/services/userService.ts` | Dev 3 |
-| `src/pages/ProfilePage.tsx`, settings pages | Dev 3 |
-| `src/services/listingService.ts` public API | Dev 1 |
+| Option | When to choose | Minimum deliverable |
+|--------|----------------|---------------------|
+| **A — Ship Firestore messaging** | Required for full cross-user demo | D2-C2 through D2-C6 |
+| **B — Demo-only localStorage** | Time-constrained; explicit team sign-off | Wire CTAs to dev backend + in-app banner on Inbox: “Messaging demo — single browser only” |
+
+**Owner:** Dev 2 leads recommendation; team confirms before Week 2.
 
 ---
 
-## 6. Step-by-step task list
+## D2-C2 — Wire listing detail CTAs for signed-in users (QA-001, QA-104)
 
-### Part A — Audit local messaging (Day 1)
+**Problem:** “Request Game”, “Message Owner”, “I have this game”, “Message requester” redirect guests to login but do **nothing** when already signed in.
 
-- [ ] Sign in → open `/inbox` — confirm seeded local conversations appear (`messageService.dev.ts`).
-- [ ] Open a thread → messages load.
-- [ ] Send a message → appears in thread and updates inbox preview.
-- [ ] Hard refresh — data still loads from localStorage (`gameshelf_conversations`, `gameshelf_messages`).
-- [ ] Note gaps: `createConversation` throw, Message Owner unwired.
+**Work (minimum — works with dev backend first):**
+- Extend `MessagesContext` with `createConversation(input)` wrapping `messageService.createConversation`.
+- On `ListingDetailPage` (coordinate with Dev 3 — handler only, no routing changes):
+  - **Message Owner** / **Message requester:** `createConversation({ listingId, recipientId: listing.ownerId })` → navigate to `ROUTES.chat(conversationId)` → refresh inbox.
+  - **Request Game** / **I have this game:** same thread creation (initial message optional) or documented equivalent — product decision: both start a conversation about the listing.
+- Preserve guest behavior: `requireAuth(() => startConversation())` pattern.
 
-### Part B — Implement `createConversation` (local first, then Firestore)
+**Files:** `MessagesContext.tsx`, `ListingDetailPage.tsx` (CTA handlers only), optionally thin helper in `src/utils/` or page-local function.
 
-**In `messageService.dev.ts`:**
-
-- [ ] Add `devCreateConversation(input: CreateConversationInput)`:
-  - Input: `listingId`, `recipientId` (listing owner uid), optional `initialMessage`
-  - **Find existing** conversation: same `listingId` + same two participant IDs (order-independent)
-  - If found → return existing (no duplicate)
-  - If not found → create `Conversation` with generated id, `participantIds`, `participantNames`, `listingId`, `listingTitle`, `lastMessageText`, `lastMessageAt`, `unreadCount`
-  - If `initialMessage` → append first `Message`
-
-**In `messageService.ts`:**
-
-- [ ] `createConversation` → call dev or firestore implementation based on backend flag (mirror listings pattern if one exists; otherwise default to firestore when ready).
-
-### Part C — Wire Message Owner (`ListingDetailPage.tsx`)
-
-- [ ] Add `onClick` handler on **Message Owner** button.
-- [ ] Require signed-in user (`useAuth`).
-- [ ] If `user.id === listing.ownerId` → hide button or show “This is your listing” (no self-message).
-- [ ] Call `createConversation({ listingId, recipientId: listing.ownerId })`.
-- [ ] Navigate to `ROUTES.chat(conversation.id)`.
-- [ ] Show loading state on button while creating; show error if fails.
-- [ ] Optional: refresh `MessagesContext` conversation list after create.
-
-### Part D — Firestore backend (`messageService.firestore.ts`)
-
-Create file if missing. Implement:
-
-- [ ] **`fetchConversations()`** — query conversations where `participantIds` array-contains `getCurrentUser().id`, order by `lastMessageAt` desc.
-- [ ] **`fetchMessages(conversationId)`** — read subcollection `conversations/{id}/messages`, order by `createdAt` asc.
-- [ ] **`sendMessage(conversationId, text)`** — add message doc; update parent conversation `lastMessage`, `lastMessageAt`, `updatedAt`.
-- [ ] **`createConversation(input)`** — find-or-create in Firestore (query by `listingId` + participants before `addDoc`).
-
-**Use fetch-based reads for Sprint 1** — call on page load / after send. Realtime `onSnapshot` is optional stretch.
-
-### Part E — Route service to Firestore
-
-- [ ] Update `messageService.ts` to use `messageService.firestore.ts` when Firestore path is ready (keep `messageService.dev.ts` as fallback for local testing).
-- [ ] Do **not** put Firestore imports in `InboxPage`, `ChatPage`, or messaging components.
-
-### Part F — UX polish
-
-- [ ] Inbox empty state: “No conversations yet — message a listing owner from a game page.”
-- [ ] Chat empty state: “Send a message to start the conversation.”
-- [ ] Loading states while fetching.
-- [ ] Error banner if fetch/send fails.
-- [ ] Hide **Message** button on `ProfileHeader` if not functional in Sprint 1 (coordinate Dev 3).
-
-### Part G — Security rules
-
-Add to `firestore.rules` (coordinate merge):
-
-```text
-match /conversations/{conversationId} {
-  allow read, update: if request.auth != null
-    && request.auth.uid in resource.data.participantIds;
-  allow create: if request.auth != null
-    && request.auth.uid in request.resource.data.participantIds;
-  match /messages/{messageId} {
-    allow read, create: if request.auth != null
-      && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
-  }
-}
-```
-
-- [ ] Publish and test with two accounts.
+**Do not:** rewrite `messageService.dev.ts` architecture unless fixing dedup (D2-C3).
 
 ---
 
-## 7. Firestore messaging data shape
+## D2-C3 — Conversation deduplication (QA-105)
 
-### `conversations/{conversationId}`
+**Problem:** Repeated clicks on Message Owner create duplicate inbox rows.
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `participantIds` | `string[]` | Exactly two uids for Sprint 1 |
-| `participantNames` | `map` or `string[]` | Denormalized for inbox UI |
-| `listingId` | `string` | Link to listing |
-| `listingTitle` | `string` | Denormalized for inbox preview |
-| `lastMessage` | `string` | Preview text |
-| `lastMessageAt` | `Timestamp` | Sort inbox |
-| `createdAt` | `Timestamp` | |
-| `updatedAt` | `Timestamp` | |
+**Work:**
+- Before creating, find existing conversation with same `listingId` and same two participant IDs (order-independent).
+- Return existing conversation id if found.
+- Apply in dev backend now; mirror logic in Firestore backend when implemented.
 
-### `conversations/{conversationId}/messages/{messageId}`
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `senderId` | `string` | Firebase uid |
-| `text` | `string` | Message body |
-| `createdAt` | `Timestamp` | |
-
-**Dedup rule:** Before creating, query conversations where `listingId == X` and `participantIds` contains current user; filter client-side for matching recipient.
+**Files:** `messageService.dev.ts`; future `messageService.firestore.ts`
 
 ---
 
-## 8. How to test
+## D2-C4 — Resolve participant display names (QA-105, QA-106)
 
-### Message Owner flow
+**Problem:** Inbox shows `'Recipient'` instead of listing owner/requester name.
 
-- [ ] User A creates a listing (with Dev 1’s Firestore listings when ready).
-- [ ] User B opens listing detail → taps **Message Owner**.
-- [ ] Navigates to chat thread.
-- [ ] User B sends message → appears immediately.
-- [ ] User B refreshes → message still there.
-- [ ] User A opens Inbox → sees conversation.
-- [ ] User A opens thread → sees User B’s message.
-- [ ] User B taps Message Owner **again** on same listing → **same** conversation (no duplicate).
+**Work:**
+- Resolve name from `listing.ownerName` on create, or `userService.getProfile(recipientId)`.
+- Store denormalized `participantNames` on conversation for inbox display.
+- Update seed resolution if needed.
 
-### Edge cases
-
-- [ ] Owner viewing own listing — Message Owner hidden or disabled.
-- [ ] Logged out user — redirected to login (protected route).
-- [ ] Guest cannot access `/inbox`.
-
-### Build
-
-- [ ] `npm run build` passes.
-- [ ] No `firebase/firestore` imports in pages or `src/components/messaging/*`.
+**Files:** `messageService.dev.ts`, `conversationDisplay.ts`, types if needed.
 
 ---
 
-## 9. Definition of done
+## D2-C5 — Implement `messageService.firestore.ts` (if Option A — QA-005)
 
-- [ ] Message Owner button works on `ListingDetailPage.tsx`.
-- [ ] `createConversation` implemented (dev + firestore).
-- [ ] Conversations stored in Firestore `conversations`.
-- [ ] Messages stored in Firestore subcollection `messages`.
-- [ ] Inbox shows real Firestore conversations for signed-in user.
-- [ ] Chat shows real messages; send persists after refresh.
-- [ ] No duplicate conversations for same listing + participants.
-- [ ] Fetch-based messaging works (realtime optional).
-- [ ] No typing indicators, read receipts, reactions, push, or group chat.
-- [ ] Dead messaging buttons hidden or working.
-- [ ] `messageService.dev.ts` not deleted.
+**Problem:** No Firestore persistence for conversations or messages.
 
----
+**Work:**
+- Create `messageService.firestore.ts` with:
+  - `fetchConversations` — query where current user is participant
+  - `fetchMessages` — query by `conversationId`
+  - `sendMessage` — add message doc + update conversation `lastMessageText` / `lastMessageAt`
+  - `createConversation` — with dedup (D2-C3)
+- Update `messageService.ts` router to use Firestore when configured (mirror listings pattern or always Firestore for final app — team choice).
+- Collection names from `firebaseCollections.ts`.
 
-## 10. Handoff notes
+**Files:** `messageService.firestore.ts`, `messageService.ts`, `firebaseCollections.ts`
 
-Tell the team:
-
-1. Collection paths and field names used.
-2. How conversation dedup works (query + filter rules).
-3. Whether realtime was added or deferred.
-4. Firestore indexes created (e.g. `participantIds` + `lastMessageAt`).
-5. Env vars or flags to switch dev vs firestore messaging (if any).
-6. Remaining UX gaps for Sprint 2.
+**Do not:** import Firebase in pages or context beyond existing service boundary.
 
 ---
 
-## If confused, check…
+## D2-C6 — Firestore rules for conversations and messages (if Option A)
 
-- `src/types/message.ts` — TypeScript shapes
-- `src/data/mockMessages.seed.ts` — example conversations
-- `messageService.dev.ts` — working local pattern to mirror
-- [SPRINT1_OVERVIEW.md](./SPRINT1_OVERVIEW.md) — conflict files (`ListingDetailPage.tsx`)
-- Dev 1 — confirm `listing.ownerId` is real Firebase uid on Firestore listings
+**Work:**
+- Add rules: only participants can read/write their threads.
+- Authenticated users can create conversations where they are a participant.
+- Coordinate single `firestore.rules` PR with Dev 1 (listings) and Dev 3 (users).
+
+**Files:** `firestore.rules` (Dev 2 section)
+
+---
+
+# Remaining Major Tasks
+
+## D2-M1 — Cross-account messaging QA (QA-007, QA-110)
+
+- Account A creates listing; Account B clicks Message Owner → sends message.
+- Account A sees thread in inbox after refresh (Firestore mode).
+- Document failure mode if staying on localStorage backend.
+
+## D2-M2 — Inbox UX after conversation create
+
+- Ensure new thread appears in inbox without manual full page reload (call `refreshConversations` after create).
+- Optional: unread count / last message preview accuracy.
+
+## D2-M3 — Messaging audit cleanup (QA-206)
+
+- `src/messaging.css` — orphan file, not imported; delete or integrate intentionally.
+- Remove stale FIREBASE TODOs in messaging paths once Firestore ships or scope is documented.
+
+## D2-M4 — `subscribeToMessages` improvement
+
+- If time: Firestore `onSnapshot` for active chat thread.
+- Otherwise document one-time fetch as acceptable for submission.
+
+## D2-M5 — Dev backend banner (Option B only)
+
+- Visible notice on `InboxPage` when using localStorage backend.
+- Demo script updated in [E2E_TEST_PLAN.md](./E2E_TEST_PLAN.md).
+
+---
+
+# Out of Scope
+
+| Item | Owner / notes |
+|------|----------------|
+| Firestore listings rules, Storage rules, listing CRUD | Dev 1 |
+| Guest browsing, public routes, `useRequireAuth` | Dev 3 — **complete** |
+| Search, listing detail layout, mock profile stats | Dev 3 |
+| Auth/signup/analytics hardening | Dev 3 |
+| Firebase Hosting deploy | Dev 3 |
+| Real-time feed/listings `onSnapshot` | Future |
+| Push notifications, read receipts, typing indicators | Future |
+| Message search, attachments, blocking | Future |
+| Rewriting `AuthContext` or adding second auth listener | Forbidden per architecture rules |
+| Deep refactor of `messageService.dev.ts` beyond dedup + names | Avoid scope creep |
+
+---
+
+# Testing Checklist
+
+## Signed-in CTA wiring (required regardless of backend)
+
+- [ ] Signed-in user on **another user’s offer** → **Message Owner** → lands in chat thread
+- [ ] Signed-in user on **another user’s offer** → **Request Game** → meaningful action (conversation or documented behavior)
+- [ ] Signed-in user on **request listing** → **I have this game** → opens/creates thread
+- [ ] Signed-in user on **request listing** → **Message requester** → lands in chat
+- [ ] **Guest** on listing detail → any CTA → `/login` with return path → after login, can complete action
+- [ ] **Owner** viewing own listing → no Message/Request CTAs for self (unchanged)
+
+## Conversation deduplication
+
+- [ ] Message Owner twice on same listing → **one** inbox row (same conversation id)
+
+## Inbox and chat (single browser — dev backend)
+
+- [ ] Inbox lists conversations with correct other participant name (not `'Recipient'`)
+- [ ] Open thread → messages load
+- [ ] Send message → appears in thread; persists after refresh
+- [ ] Empty message → validation error, not sent
+
+## Cross-account (Firestore backend — if Option A)
+
+- [ ] Account B sends message on A’s listing
+- [ ] Account A sees message in inbox after refresh (different browser or incognito)
+- [ ] Account C cannot read A↔B thread (rules test via Console or denied client)
+
+## Regression
+
+- [ ] `npm run build` passes
+- [ ] Existing seed conversations still load for dev
+- [ ] Protected routes: guest cannot access `/inbox` directly without login redirect
+
+---
+
+# Definition of Done
+
+Dev 2’s final-project work is **done** when:
+
+1. **No silent dead CTAs:** Every listing-detail messaging action either performs a real flow or shows explicit disabled state with explanation (prefer real flow).
+2. **`MessagesContext` exposes `createConversation`** and listing detail uses it for signed-in users.
+3. **Deduplication works:** Same listing + same two users → one conversation.
+4. **Inbox labels** show real participant names (from listing or profile).
+5. **Team decision documented:** Firestore messaging shipped **or** demo-only mode explicitly disclosed in UI/docs.
+6. **If Firestore option chosen:** Two-account message round-trip persists after refresh; rules deployed; `messageService.ts` routes to Firestore.
+7. **If demo-only option chosen:** CTAs work in single-browser dev mode; Inbox banner + demo script warn evaluators; cross-user limitation documented.
+8. **`npm run build` passes**; no Firebase imports added to UI components.
+
+---
+
+## Key files (reference)
+
+| File | Role |
+|------|------|
+| `src/services/messageService.ts` | Public API — **add Firestore router here** |
+| `src/services/messageService.dev.ts` | localStorage backend — dedup + names |
+| `src/context/MessagesContext.tsx` | **Add createConversation** |
+| `src/pages/ListingDetailPage.tsx` | CTA handlers (coordinate with Dev 3) |
+| `src/pages/InboxPage.tsx` | Inbox UI |
+| `src/pages/ChatPage.tsx` | Chat UI |
+| `src/types/message.ts` | Conversation, Message types |
+| `src/config/firebaseCollections.ts` | Collection names |
+| `firestore.rules` | Conversations/messages rules (if Firestore) |
+
+---
+
+## Suggested implementation order
+
+1. D2-C1 decision (Day 1)
+2. D2-C2 + D2-C4 on dev backend (quick win for demo)
+3. D2-C3 deduplication
+4. D2-C5 + D2-C6 if Firestore feasible
+5. D2-M1 cross-account QA
+
+---
+
+*Last updated: June 2026 — regenerated from QA audit and current codebase. Supersedes Sprint 1 messaging doc that treated UI as in-progress.*

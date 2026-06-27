@@ -1,795 +1,301 @@
-# Sprint 1 — Dev 3: Profile, Auth & Settings
-
-
+# Final Project — Dev 3: Auth, Profile & App Flow
 
 **Owner:** Developer 3  
-
-**Sprint length:** 2 weeks  
-
+**Period:** Final two-week development sprint (post–Sprint 1)  
 **App:** GameShelf  
+**Sources:** [QA_AUDIT_FINAL.md](./QA_AUDIT_FINAL.md) · [FINAL_WORKING_APP_BACKLOG.md](./FINAL_WORKING_APP_BACKLOG.md) · [APP_ARCHITECTURE.md](./APP_ARCHITECTURE.md)
 
-**Related:** [SPRINT1_OVERVIEW.md](./SPRINT1_OVERVIEW.md) · [FIREBASE_REFERENCE.md](./FIREBASE_REFERENCE.md) · **[PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md)** (source of truth for finalized choices)
-
-
-
----
-
-
-
-## 1. Sprint goal
-
-
-
-Users have a complete **account and profile experience**: edit profile/settings stored in Firestore, Google login, **change password** and **forgot password** for email users, working follow system, clear wording, and **no dead buttons**.
-
-
-
-By sprint end:
-
-
-
-- Profile + preferences persist in Firebase and survive refresh.
-
-- Google/Gmail sign-in works.
-
-- Email/password users can **change password** (Settings) and use **forgot password** (login); Google-only users see **“Password is managed by Google.”**
-
-- Follow button works; user can see **who they are following** (not “view followers”).
-
-- Settings section is defined and implemented.
-
-- **Avatar strategy** implemented per [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md) — **no Firebase Storage** for profile photos.
-
-
-
-**Hosting:** Production deploy target is **Firebase Hosting** (see PRODUCT_DECISIONS.md).
-
-
+Dev 3 owns **guest browsing, login-required actions, search improvements, listing detail UX, mock content cleanup, final UX polish, final QA, and deployment verification**. Dev 3 does **not** own Firestore/Storage listing rules, listing CRUD internals, or messaging service internals.
 
 ---
 
+# Current Status
 
+## Authentication & profile — largely complete
 
-## 2. Current status
+| Area | Status | Evidence |
+|------|--------|----------|
+| Email/password signup & login | **Complete** | `authService.ts`, `LoginPage`, `SignupPage` |
+| Google Sign In | **Complete** | `loginWithGoogle()`, `GoogleAuthButton`, Firestore profile on first login |
+| Session management | **Complete** | Single `subscribeToAuthChanges`; `AuthGate` splash |
+| Forgot password | **Complete** | `sendPasswordReset()` + Login UI |
+| Change password | **Complete** | Settings form for email users; Google copy for others |
+| Profile edit | **Complete** | `EditProfilePage`, `userService.updateProfile()` |
+| Settings & preferences | **Complete** | `SettingsPage`, visibility toggles, listing type prefs |
+| Avatar system | **Complete** | `Avatar.tsx`, Google photo / initials / URL |
+| Follow system | **Complete** | `FollowButton`, `FollowingPage`, Firestore `following[]` |
+| Firestore users rules (in repo) | **Partial** | Valid inner block; orphan outer block needs Dev 1 cleanup (QA-002) |
+| `firebase.json` / `.firebaserc` | **Complete** | Hosting + rules references |
+| Firebase Hosting deploy | **Complete** | Team confirmed deploy + authorized domain |
+| `.env.example` | **Complete** | Firebase keys + `VITE_LISTINGS_BACKEND` |
 
+## App flow & UX — final-project work largely complete
 
+| Area | Status | Evidence |
+|------|--------|----------|
+| Guest browsing — public feed | **Complete** | `/` public in `AppRouter.tsx` |
+| Guest browsing — listing detail | **Complete** | `/listings/:id` public |
+| Protected routes | **Complete** | Create, inbox, profile, settings, edit, chat behind `ProtectedRoute` |
+| Login-required actions | **Complete** | `useRequireAuth()`, `buildLoginRedirect()`, `BottomNav` auth tabs |
+| Post-login return path | **Complete** | `getPostAuthPath()`, `getReturnPathFromLocation()` |
+| Search partial/close match | **Complete** | `listingSearch.ts` + `listingFilters.ts` |
+| Search + filter AND logic | **Complete** | Purpose, category, exchange optional except purpose toggle |
+| Filter-aware empty state | **Complete** | “No listings match your search…” on `DashboardPage` |
+| Listing detail layout polish | **Complete** | Side-by-side md+ grid; capped image height; requests skip image column |
+| Listing detail mock reviews | **Complete** | Removed fake review section |
+| Follow hidden for guests | **Complete** | `FollowButton` only when `user` on listing detail |
+| “View full profile” dead link | **Complete** | Removed from listing detail (QA-101) |
 
-| Area | Status |
+## Remaining gaps (Dev 3 scope)
 
-|------|--------|
-
-| Sign up / login / logout | **Done** |
-
-| `userService.ts` | **Done** — `getProfile`, `updateProfile`, `getPreferences`, `updatePreferences` |
-
-| `EditProfilePage.tsx` | **Done** — `/profile/edit` route |
-
-| Profile display + bio | **Done** — from Firestore via auth sync + `getPreferences` for photo toggle |
-
-| Settings page | **Done** — `/settings` (Account, Profile, Preferences, Privacy) |
-
-| User preferences in Firestore | **Done** — flattened on `users/{uid}` |
-
-| `firestore.rules` (users) | **Partial** — basic users rules may exist |
-
-| Google/Gmail login | **Done** — `loginWithGoogle()`, Continue with Google on login/signup |
-
-| Change password | **Complete** |
-
-| Forgot password | **Complete** |
-
-| Follow button | **Complete** — listing owner card |
-
-| Following list page | **Complete** — `/profile/following` |
-
-| Avatar strategy | **Complete** — `Avatar.tsx`, initials fallback |
-
-| Follow data model | **Complete** — `users/{uid}.following: string[]` |
-
-| Hosting | **Config complete** — deploy requires Console/CLI |
-
-| Wording cleanup | **Mostly done** — final review pass remains |
-
-| Button audit | **Complete** on Dev 3 profile surfaces |
-
-| Firebase Storage for **profile** photos | **Out of scope** — per product decision |
-
-
-
----
-
-
-
-## 3. Files to inspect first
-
-
-
-- [ ] `docs/PRODUCT_DECISIONS.md` — finalized avatar, follow, hosting, password decisions
-
-- [ ] `docs/APP_ARCHITECTURE.md` — profile route, guards, shells
-
-- [ ] `docs/FIREBASE_REFERENCE.md` — `users` schema
-
-- [ ] `src/services/authService.ts` — login, signup, logout, Google, password helpers (to add)
-
-- [ ] `src/context/AuthContext.tsx` — **read only**; add minimal methods only if needed (no second listener)
-
-- [ ] `src/services/userService.ts` — profile read/update + follows (to extend)
-
-- [ ] `src/types/user.ts` — `AuthUser`, `UserProfile`, `ProfileUpdateInput`
-
-- [ ] `src/pages/ProfilePage.tsx`
-
-- [ ] `src/components/ProfileHeader.tsx` — Follow button
-
-- [ ] `src/pages/EditProfilePage.tsx`
-
-- [ ] `src/pages/LoginPage.tsx` — forgot password entry point
-
-- [ ] `src/routes/paths.ts`, `AppRouter.tsx`
-
-- [ ] `firestore.rules` — users + `following` array writes
-
-- [ ] `firebase.json` — Hosting config (Dev 3 creates)
-
-
+| Area | Status | QA ref |
+|------|--------|--------|
+| Profile mock stats & reviews | **Not done** | QA-103 — `ProfilePage.tsx` `STATS`, `REVIEWS`; `ProfileHeader.tsx` hardcoded 4.8 rating |
+| Follow on seed listing owners | **Not done** | QA-102 — `ownerId: 'seed-owner-*'` has no Firestore user doc |
+| Analytics init without `.env` | **Not done** | QA-006 — `getAnalytics(app)` when `app` undefined |
+| Signup Firestore write consistency | **Not done** | QA-007 — signup uses `doc(db, ...)` not `requireFirestoreDb()` |
+| Signed-in listing CTAs | **Dev 2** | QA-001 — guests redirect; signed-in no-op until Dev 2 wires messaging |
+| Stale `CURRENT_BUGS.md` | **Not done** | QA-108 |
+| Minor polish (ROUTES in auth pages, PWA name, a11y) | **Partial** | QA-201–QA-208 |
 
 ---
 
+# Remaining Critical Tasks
 
+## D3-C1 — Remove or label mock profile content (QA-103)
 
-## 4. Files this developer owns
+**Problem:** Profile shows hardcoded lender scores, review cards, and 4.8 rating as if real.
 
+**Work:**
+- **Preferred:** Hide `STATS`, `REVIEWS`, and hardcoded rating until features exist.
+- **Alternative:** Label sections “Sample data” with clear non-production styling.
+- Do not add fake Firestore documents for reviews.
 
-
-| File | Action |
-
-|------|--------|
-
-| `src/services/userService.ts` | Extend profile + preferences + `following` array |
-
-| `src/services/authService.ts` | Change password, forgot password, provider detection |
-
-| `src/components/Avatar.tsx` | **Create** — Google URL / initials / external URL (per §9) |
-
-| `src/pages/EditProfilePage.tsx` | Avatar display + optional external URL |
-
-| `src/pages/ProfilePage.tsx` | Settings links, following entry point |
-
-| `src/pages/SettingsPage.tsx` | Account: change password (email only) |
-
-| `src/pages/FollowingPage.tsx` | **Create** — list of users followed |
-
-| `src/pages/LoginPage.tsx` | Forgot password link/flow |
-
-| `src/components/ProfileHeader.tsx` | Wire Follow |
-
-| `src/routes/paths.ts`, `AppRouter.tsx` | `settings`, `following`, etc. |
-
-| `firestore.rules` | users + `following` on own doc |
-
-| `firebase.json` | Firebase Hosting + SPA rewrite config |
-
-| `.firebaserc` | Firebase project alias (if using CLI deploy) |
-
-
-
-**Coordinate (do not own alone):**
-
-
-
-- `src/pages/ListingDetailPage.tsx` — Message Owner (Dev 2)
-
-- Final button review — Dev 3 leads; remaining planned buttons wired by owning dev
-
-
+**Files:** `ProfilePage.tsx`, `ProfileHeader.tsx`
 
 ---
 
+## D3-C2 — Guard Firebase Analytics init (QA-006)
 
+**Problem:** `export const analytics = getAnalytics(app)` runs when `app` may be `undefined` (missing `.env`).
 
-## 5. Files to avoid touching
+**Work:**
+- Only call `getAnalytics` when `app` is defined.
+- Export `analytics` as optional or lazy-init.
+- Verify fresh clone without `.env` loads app (dev warning only, no white screen).
 
-
-
-| File | Why |
-
-|------|-----|
-
-| `src/services/listingService.firestore.ts` | Dev 1 |
-
-| `src/services/messageService*.ts` | Dev 2 |
-
-| `src/context/ListingsContext.tsx` | Dev 1 |
-
-| `src/context/MessagesContext.tsx` | Dev 2 |
-
-| `src/services/listingService.ts` public API | Dev 1 |
-
-| `src/lib/firebase.ts` | Shared — change only with team agreement |
-
-| Firebase Storage for **profile** photos | **Out of scope** — see PRODUCT_DECISIONS.md |
-
-
-
-**AuthContext rule:** Do not rewrite or add a second `onAuthStateChanged`. Use `refreshSessionProfile()` / `refreshProfile()` after profile save.
-
-
+**Files:** `src/lib/firebase.ts`
 
 ---
 
+## D3-C3 — Signup Firestore write hardening (QA-007)
 
+**Problem:** Signup path uses `setDoc(doc(db, ...))` directly instead of `requireFirestoreDb()`.
 
-## 6. Step-by-step task list
+**Work:**
+- Use same guard pattern as other auth/profile writes.
+- Clear error if Firestore unavailable after Auth user created.
 
-
-
-### Part A — Finish profile Firebase implementation
-
-
-
-- [x] Verify `userService.getProfile(uid)` reads `users/{uid}` from Firestore.
-
-- [x] Verify `userService.updateProfile(uid, patch)` writes `displayName`, `username`, `avatar`, `bio`.
-
-- [x] Ensure `authService` profile sync includes `bio`.
-
-- [x] After save on `EditProfilePage`, call `refreshProfile()` and confirm Profile page updates without logout.
-
-- [x] Hard refresh — profile fields still correct.
-
-
-
-### Part B — User preferences
-
-
-
-- [x] Store preferences on `users/{uid}` (flattened on same doc as profile).
-
-- [x] `getPreferences(uid)` / `updatePreferences(uid, patch)` in `userService.ts`.
-
-- [x] Settings UI toggles/inputs for each preference.
-
-
-
-### Part C — Settings page
-
-
-
-- [x] Create `src/pages/SettingsPage.tsx` (`/settings`).
-
-- [x] Routes in `paths.ts` and `AppRouter.tsx`.
-
-- [x] Link from Profile page.
-
-- [x] Sections (see §7).
-
-- [x] **Log out** in Account section.
-
-
-
-### Part D — Google / Gmail login
-
-
-
-- [x] Enable **Google** provider in Firebase Console.
-
-- [x] `loginWithGoogle()` in `authService.ts` (`signInWithPopup`).
-
-- [x] First Google sign-in creates `users/{uid}` if missing (`setDoc` merge).
-
-- [x] **Continue with Google** on `LoginPage.tsx` and `SignupPage.tsx`.
-
-- [x] No Firebase calls inside pages — `authService` / `AuthContext` only.
-
-
-
-### Part E — Password / account recovery (email/password only)
-
-
-
-**Product decision:** Implement **change password** and **forgot password**. Google-only users do not use these flows.
-
-
-
-#### Change password (signed-in, Settings → Account)
-
-
-
-- [x] Add `changePassword(currentPassword, newPassword)` in `authService.ts` using `reauthenticateWithCredential` + `updatePassword`.
-
-- [x] Detect email/password provider (`auth.currentUser.providerData` or equivalent).
-
-- [x] Show change-password form **only** for email/password users.
-
-- [x] For Google-only (or Google-linked without password): show **“Password is managed by Google.”** — no broken form.
-
-- [x] Add UI under Settings → Account.
-
-
-
-#### Forgot password (signed-out, Login)
-
-
-
-- [x] Add `sendPasswordResetEmail(email)` (or wrapper) in `authService.ts`.
-
-- [x] Add **Forgot password?** flow on `LoginPage.tsx` (email field + submit + success/error copy).
-
-- [x] Do not expose forgot-password for Google-only sign-in path (copy should clarify it applies to email accounts).
-
-
-
-### Part F — Avatar strategy (decision final — implement)
-
-
-
-**Chosen approach** ([PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md)):
-
-
-
-| User type | Avatar behavior |
-
-|-----------|-----------------|
-
-| **Google** | Use Google `photoURL` on `users/{uid}.avatar` when available |
-
-| **Email/password** | **Initials** avatar by default when no custom URL |
-
-| **All users** | May set optional **external avatar URL** on Edit Profile |
-
-
-
-**Implementation tasks:**
-
-
-
-- [x] Create `Avatar.tsx` — image URL if valid; else initials from display name / username.
-
-- [x] Google sign-in / profile sync: persist Google `photoURL` to `avatar` when present (do not overwrite user’s custom URL if they set one later — define merge rule in implementation).
-
-- [x] Email/password signup: leave `avatar` empty or omit so initials render.
-
-- [x] Edit Profile: optional external avatar URL field (already partially present — align with initials fallback).
-
-- [x] Use `Avatar` in `ProfileHeader` and other profile surfaces.
-
-- [x] **Do not** implement Firebase Storage uploads for profile photos.
-
-- [x] Honor `showProfilePhoto: false` preference where applicable.
-
-
-
-### Part G — Follow system
-
-
-
-**Data model (chosen):** `users/{uid}.following: string[]` — no subcollection, no followers page.
-
-
-
-- [x] Add `followUser(targetUserId)` / `unfollowUser(targetUserId)` in `userService.ts`.
-
-- [x] Read/write `following` array on current user’s `users/{uid}` doc only.
-
-- [x] Wire **Follow** on listing owner card (`ListingDetailPage.tsx`); no dead button on own profile header.
-
-- [x] Toggle Follow / Following state.
-
-- [x] Prevent following yourself.
-
-- [x] Create **Following** page — list users the current user follows (avatar, displayName, username).
-
-- [x] **Do not** implement view followers or a followers page.
-
-
-
-### Part H — Wording cleanup (final review pass)
-
-
-
-Major issues are **mostly fixed** (Offer/Request, listing form, etc.). Remaining:
-
-
-
-- [x] Hide dead Message button on own profile (`ProfileHeader.tsx`).
-
-- [x] Remove non-functional profile tabs (Games Available, About).
-
-- [ ] Coordinate messaging empty states with Dev 2 if needed.
-
-
-
-### Part I — Button audit (final review pass)
-
-
-
-Dead buttons with no planned functionality are **mostly removed/hidden**. Remaining planned buttons are **owned by teammates**:
-
-
-
-| Location | Button | Owner |
-
-|----------|--------|-------|
-
-| `ListingDetailPage` | Message Owner / Message requester | Dev 2 |
-
-| `ProfileHeader` | Message | Dev 2 |
-
-| `ProfileHeader` | Follow | **Dev 3** (this sprint) |
-
-
-
-- [ ] Dev 3: final click-through on profile, settings, auth — no silent failures.
-
-- [ ] Confirm no resurrected dead buttons on main flows before sprint sign-off.
-
-
-
-### Part J — Security rules
-
-
-
-- [x] Users can read profiles when signed in (adjust for public profiles later).
-
-- [x] Users can write only their own `users/{uid}`.
-
-- [x] `following` array: only `auth.uid` can update their own doc’s `following` field.
-
-
-
-### Part K — Firebase Hosting (Dev 3 implements)
-
-
-
-Production host is **Firebase Hosting** ([PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md)). Dev 3 owns setup and deploy — not Dev 1 or Dev 2.
-
-
-
-- [x] Add `firebase.json` with SPA rewrite rules (`**` → `/index.html`).
-
-- [x] Confirm production build: `npm run build` → deploy `dist/`.
-
-- [ ] Deploy to Firebase Hosting (`firebase deploy --only hosting` or CI).
-
-- [ ] Add **Authorized domains** in Firebase Console → Authentication:
-
-  - `localhost` (local dev)
-
-  - Production Hosting domain (e.g. `*.web.app`, `*.firebaseapp.com`, custom domain if used)
-
-- [ ] Verify **Google sign-in** works on deployed URL.
-
-- [ ] Verify **forgot-password** reset links work with deployed auth domain.
-
-- [ ] Share deployed URL with team for integration testing (listings, messaging).
-
-
+**Files:** `src/services/authService.ts`
 
 ---
 
+## D3-C4 — Final QA pass & deployment verification (QA-109)
 
+**Problem:** QA audit predates several Dev 3 fixes; evaluators need current truth.
 
-## 7. Settings section plan
+**Work:**
+- Run [E2E_TEST_PLAN.md](./E2E_TEST_PLAN.md) guest browse + auth return paths.
+- Smoke-test **deployed** Hosting URL: SPA routes, Google login, password reset domain.
+- Update or supersede `CURRENT_BUGS.md` with pointers to `QA_AUDIT_FINAL.md` + this doc.
+- Confirm authorized domains in Firebase Console for production URL.
 
-
-
-Route: `/settings`
-
-
-
-| Section | Contents |
-
-|---------|----------|
-
-| **Account** | Email (read-only), **change password** (email/password users only), Google copy for password-managed-by-Google, log out |
-
-| **Profile** | Link to Edit Profile — display name, username, bio, optional external avatar URL |
-
-| **Preferences** | Preferred listing types, categories, show profile photo, show following list |
-
-| **Privacy** | What is visible to others; toggles tied to preference fields |
-
-
-
-**Login page (not Settings):** **Forgot password?** for email/password account recovery.
-
-
+**Files:** `docs/CURRENT_BUGS.md` (update), team demo script
 
 ---
 
+## D3-C5 — Coordinate guest Firestore read with Dev 1 (D1-C2)
 
+**Problem:** Guest routes work in app, but Firestore may deny unauthenticated listing reads until rules updated.
 
-## 8. User preferences data shape
+**Work:**
+- Verify logged-out browser loads feed when `VITE_LISTINGS_BACKEND=firestore`.
+- If permission-denied, flag Dev 1 immediately — not a routing fix.
+- Document demo requirement: rules must allow public listing read.
 
-
-
-Stored as top-level fields on `users/{uid}` (same document as profile):
-
-
-
-```json
-
-{
-
-  "preferredListingTypes": ["lending", "wanted"],
-
-  "preferredCategories": ["Strategy", "Party"],
-
-  "showProfilePhoto": true,
-
-  "showFollowingList": true
-
-}
-
-```
-
-
-
-- [x] `UserPreferences` type in `src/types/user.ts`.
-
-- [x] Map in `userService` read/write.
-
-
+**Owner:** Dev 3 verifies; Dev 1 implements rules.
 
 ---
 
+# Remaining Major Tasks
 
+## D3-M1 — Follow UX for missing owner profiles (QA-102)
 
-## 9. Avatar strategy (final)
+- Hide `FollowButton` when `getProfile(ownerId)` returns null (seed listings).
+- Or show disabled state: “Owner profile unavailable.”
+- Avoid raw “User not found.” in UI during demos.
 
-
-
-See [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md) § Profile / avatar strategy.
-
-
-
-**Summary:**
-
-
-
-1. **Google users** — Google profile photo when available (`photoURL` → `avatar`).
-
-2. **Email/password users** — **initials** avatar by default.
-
-3. **Optional** external avatar URL on Edit Profile for any user.
-
-4. **No** Firebase Storage for profile photos.
-
-5. `showProfilePhoto: false` may hide avatar on public profile.
-
-
-
-**Implementation:** [ ] not complete until `Avatar.tsx` and provider-specific defaults are wired (§6 Part F).
-
-
+**Files:** `FollowButton.tsx` and/or `ListingDetailPage.tsx` (display logic only — not `userService` internals unless minimal)
 
 ---
 
+## D3-M2 — Final UX polish
 
-
-## 10. Follow system data shape (final)
-
-
-
-**Chosen:** array on user document.
-
-
-
-```text
-
-users/{uid}.following: string[]
-
-```
-
-
-
-- Each entry is a followed user’s `uid`.
-
-- `FollowingPage` loads current user’s `following` array and resolves display fields from `users/{targetUid}` (or cached denormalized data if added later).
-
-- **No** followers collection, **no** view-followers page, **no** followers UI in Sprint 1.
-
-
-
-**Not chosen:** subcollection `users/{uid}/following/{targetUid}` (may revisit at scale).
-
-
+| Item | QA | Action |
+|------|-----|--------|
+| PWA manifest name “Game Uber” | QA-201 | Rename to GameShelf in `vite.config.ts` |
+| Hardcoded auth links | QA-202 | Use `ROUTES.login` / `ROUTES.signup` in Login/Signup pages |
+| Bottom nav Profile active on sub-routes | QA-203 | Already uses `pathname.startsWith('/profile')` — verify `/settings` behavior |
+| FollowButton loading a11y | QA-207 | `aria-busy` or live region |
+| Auth error message mapping | QA-208 | Generic fallback for unknown Firebase codes |
 
 ---
 
-
-
-## 11. How to test
-
-
-
-### Profile & settings
-
-
-
-- [ ] Edit display name, username, bio, external avatar URL → save → Profile updates.
-
-- [ ] Hard refresh → changes persist.
-
-- [ ] Google user shows Google photo (or initials/URL per rules).
-
-- [ ] Email user without URL shows initials.
-
-- [ ] Change preferences → persist after refresh.
-
-
-
-### Google login
-
-
-
-- [ ] New user: Continue with Google → `users/{uid}` created with Google photo when available.
-
-- [ ] Returning Google user: login works.
-
-- [ ] Google user sees **“Password is managed by Google.”** in Settings — not a change-password form.
-
-
-
-### Change password
-
-
-
-- [ ] Email user: change password in Settings → can sign in with new password.
-
-- [ ] Wrong current password → clear error.
-
-
-
-### Forgot password
-
-
-
-- [ ] Login → Forgot password → email sent (check inbox or Firebase Console).
-
-- [ ] Reset link works for email/password account.
-
-
-
-### Follow
-
-
-
-- [ ] User A follows User B → button shows Following.
-
-- [ ] User A opens Following list → User B appears.
-
-- [ ] User A unfollows → removed from list.
-
-- [ ] Cannot follow self.
-
-- [ ] No view-followers page exists.
-
-
-
-### Final review
-
-
-
-- [ ] Wording pass on auth/profile/settings complete.
-
-- [ ] Button click-through — no silent failures on Dev 3 surfaces.
-
-
-
-### Firebase Hosting
-
-
-
-- [ ] Deployed build loads on Firebase Hosting URL.
-
-- [ ] Google login works on production domain.
-
-- [ ] Password reset email links resolve correctly.
-
-
-
-### Build
-
-
-
-- [ ] `npm run build` passes.
-
-
+## D3-M3 — Dead UI audit (QA-001, QA-009)
+
+- Walk all pages; confirm no button without handler or explicit disabled+reason.
+- Listing detail CTAs: document as **Dev 2** until wired; guests already redirect correctly.
+- Profile: no revived dead Message/Follow buttons on own profile.
 
 ---
 
+## D3-M4 — Documentation refresh (QA-108)
 
-
-## 12. Definition of done
-
-
-
-- [x] Profile fields stored in `users/{uid}`; edit page works; refresh persists.
-
-- [x] Preferences stored and editable in Settings.
-
-- [x] Settings page with Account, Profile, Preferences, Privacy sections.
-
-- [x] Google/Gmail login works.
-
-- [ ] Change password works for **email/password users only**.
-
-- [ ] Forgot password works for **email/password users**.
-
-- [ ] Google-only users see **“Password is managed by Google.”** — no broken password UI.
-
-- [ ] Avatar strategy **implemented** (Google photo, initials, optional URL — no profile Storage).
-
-- [ ] Follow button works; **Following** page exists.
-
-- [ ] **No** view-followers feature.
-
-- [x] Logout available from settings/account.
-
-- [ ] Final wording review pass complete.
-
-- [ ] Final button review pass complete.
-
-- [ ] **Firebase Hosting** configured and deployed (or documented blocker).
-
-- [ ] Auth **authorized domains** include localhost + Hosting URL.
-
-- [ ] No Firebase imports in pages/components (services only).
-
-- [ ] AuthContext not rewritten; no second auth listener.
-
-
+- Update `FINAL_PROJECT_SUMMARY.md` status table if presenting to instructors.
+- Ensure `APP_ARCHITECTURE.md` reflects public vs protected routes.
+- Cross-link [FINAL_WORKING_APP_BACKLOG.md](./FINAL_WORKING_APP_BACKLOG.md).
 
 ---
 
+## D3-M5 — Demo script & evaluator notes
 
-
-## 13. Handoff notes
-
-
-
-Tell the team:
-
-
-
-1. **Product decisions:** [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md)
-
-2. **Firebase Hosting** URL + **authorized domains** for Google and password reset.
-
-3. Preferences live on `users/{uid}`.
-
-4. **Avatar:** Google photo / initials / external URL — no profile Storage.
-
-5. **Follow model:** `users/{uid}.following: string[]`.
-
-6. **Password:** change (Settings, email only) + forgot (Login).
-
-7. Settings route: `/settings`; Following route: TBD in `paths.ts`.
-
-8. Firestore rules for users + `following`.
-
-
+- Document: use real-user listings for Follow demo (not seed owners).
+- Document: messaging scope per Dev 2 decision.
+- Document: `VITE_LISTINGS_BACKEND=firestore` for cross-account listing demo.
 
 ---
 
+# Out of Scope
 
+| Item | Owner / notes |
+|------|----------------|
+| Firestore rules structure fix | Dev 1 — QA-002 |
+| Listings + Storage rules | Dev 1 — QA-003, QA-004 |
+| Listing Firestore CRUD changes | Dev 1 — unless bug blocking guest read verification |
+| `messageService.dev.ts` / Firestore messaging | Dev 2 |
+| Wire Message Owner for signed-in users | Dev 2 — D2-C2 |
+| Conversation deduplication | Dev 2 |
+| Public profile routes (`/users/:id`) | Future version |
+| Real reviews/ratings system | Future — hide mocks instead |
+| Followers page | Out of product scope |
+| Profile photo Storage upload | Product decision: URLs/initials/Google only |
+| Automated Playwright/Cypress suite | Post-submit |
+| Rewrite app architecture or second auth listener | Forbidden |
 
-## If confused, check…
+---
 
+# Testing Checklist
 
+## Guest browsing
 
-- [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md) — finalized choices
+- [ ] Incognito: `/` loads dashboard without login redirect
+- [ ] Incognito: open listing from feed → detail loads
+- [ ] Incognito: search and category filters work
+- [ ] Incognito: tap **Create** / **Inbox** / **Profile** in bottom nav → `/login` with return path
+- [ ] Incognito: **Message Owner** on listing → login → returns to listing after sign-in
+- [ ] Signed-in user: all routes work as before
 
-- `src/services/userService.ts` — profile CRUD
+## Search (regression)
 
-- `src/services/authService.ts` — auth + Google
+- [ ] Search `cat` finds listing titled **Catan** (partial match)
+- [ ] Search by category label narrows results
+- [ ] Search + category filter + Offers/Requests toggle combine (AND)
+- [ ] No matches → “No listings match your search. Try changing your search or filters.”
 
-- [FIREBASE_REFERENCE.md](./FIREBASE_REFERENCE.md) — users fields
+## Listing detail layout (regression)
 
-- [SPRINT1_OVERVIEW.md](./SPRINT1_OVERVIEW.md) — conflict files
+- [ ] Offer with image: balanced side-by-side on tablet/desktop; image not full viewport
+- [ ] Offer without image: placeholder, no broken layout
+- [ ] Request listing: no empty image column
+- [ ] No mock review section visible
+- [ ] Owner manage actions still work for owner
 
-- Firebase Console → Authentication → Sign-in method → Google
+## Auth & profile
 
+- [ ] Email signup → profile in Firestore
+- [ ] Google login → photo on profile when available
+- [ ] Forgot password email sends (deployed domain)
+- [ ] Change password (email user) in Settings
+- [ ] Edit profile persists after refresh
+- [ ] Follow real user from listing → appears on Following page
 
+## Mock content cleanup (after D3-C1)
+
+- [ ] Profile shows no fake stats/reviews as real data
+- [ ] No hardcoded 4.8 rating unless labeled sample
+
+## Firebase resilience (after D3-C2, D3-C3)
+
+- [ ] App loads without `.env` in dev — warning only, no crash
+- [ ] Signup with valid Firebase config creates Auth + Firestore user doc
+
+## Deployment (D3-C4)
+
+- [ ] Deployed URL: `/`, `/listings/:id`, `/login` load
+- [ ] Deep link refresh works (SPA rewrite)
+- [ ] Google sign-in on deployed domain
+- [ ] `npm run build` passes
+
+## Firestore guest read (with Dev 1)
+
+- [ ] Logged-out + `firestore` backend: feed and detail load (not permission-denied)
+
+---
+
+# Definition of Done
+
+Dev 3’s final-project work is **done** when:
+
+1. **Guest browsing** works end-to-end: public feed and detail; login only for create, message, follow, profile, settings, owner actions; return URL after login.
+2. **Search and listing detail UX** remain stable (no regressions from final-project polish).
+3. **Mock profile content** is hidden or clearly labeled — no misleading stats/reviews/ratings.
+4. **Firebase init** does not crash without `.env`; signup uses consistent Firestore guards.
+5. **Follow UX** does not show confusing errors on seed listings (hidden or graceful message).
+6. **Deployed site** smoke-tested; authorized domains confirmed; demo script updated.
+7. **Final QA** completed per checklist; bug doc refreshed or superseded.
+8. **`npm run build` passes**; no changes to messaging service internals or listing CRUD unless coordinated bugfix.
+
+---
+
+## Key files (reference)
+
+| File | Role |
+|------|------|
+| `src/routes/AppRouter.tsx` | Public vs protected routes |
+| `src/routes/guards.tsx` | AuthGate, ProtectedRoute, GuestRoute |
+| `src/hooks/useRequireAuth.ts` | Guest → login with return path |
+| `src/utils/authRedirect.ts` | `buildLoginRedirect`, `getPostAuthPath` |
+| `src/components/BottomNav.tsx` | Guest tab redirects |
+| `src/utils/listingSearch.ts` | Partial/close search |
+| `src/utils/listingFilters.ts` | Filter + search AND logic |
+| `src/pages/DashboardPage.tsx` | Feed, empty states |
+| `src/pages/ListingDetailPage.tsx` | Layout polish; CTA shell for Dev 2 |
+| `src/pages/ProfilePage.tsx` | **Mock cleanup target** |
+| `src/components/ProfileHeader.tsx` | **Mock rating target** |
+| `src/lib/firebase.ts` | **Analytics guard target** |
+| `src/services/authService.ts` | **Signup hardening target** |
+| `firebase.json`, `.firebaserc` | Hosting deploy |
+
+---
+
+## Completed final-project deliverables (do not redo)
+
+- Public routes for home + listing detail
+- `useRequireAuth` + BottomNav login redirects
+- `listingSearch.ts` partial matching
+- Listing detail side-by-side layout + mock review removal
+- Filter-aware dashboard empty state
+
+---
+
+*Last updated: June 2026 — regenerated from QA audit and current codebase. Supersedes Sprint 1 Dev 3 checklist items already shipped (Google auth, follow, password flows, avatar, etc.).*

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { CategoryChips } from '../components/CategoryChips'
 import { ListingsFeed } from '../components/ListingsFeed'
 import { ListingSkeleton } from '../components/ListingSkeleton'
@@ -6,7 +7,9 @@ import { EmptyState } from '../components/EmptyState'
 import { MarketplaceToggle } from '../components/MarketplaceToggle'
 import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
+import { useAuth } from '../context/AuthContext'
 import { useListings } from '../context/ListingsContext'
+import { ROUTES } from '../routes/paths'
 import type { ExchangeOption, ListingPurpose } from '../types/listing'
 import { getExchangeFilterOptions } from '../utils/listingDisplay'
 import { filterListings } from '../utils/listingFilters'
@@ -17,6 +20,7 @@ import { filterListings } from '../utils/listingFilters'
  * FIREBASE TODO (teammate): no page changes needed if listingService.fetchListings uses Firestore.
  */
 export function DashboardPage() {
+  const { user } = useAuth()
   const { listings, loading, error, refreshListings } = useListings()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string | null>(null)
@@ -44,7 +48,20 @@ export function DashboardPage() {
     setExchangeOption(null)
   }
 
-  const emptyTitle = listingPurpose === 'offer' ? 'No offers found' : 'No requests found'
+  const hasActiveFilters =
+    search.trim().length > 0 || category != null || exchangeOption != null
+
+  const emptyTitle = hasActiveFilters
+    ? 'No listings match your search'
+    : listingPurpose === 'offer'
+      ? 'No offers yet'
+      : 'No requests yet'
+
+  const emptyDescription = hasActiveFilters
+    ? 'Try changing your search or filters.'
+    : user
+      ? 'Create a listing from the Create tab to get started.'
+      : 'Sign in to create a listing, or check back later for new games.'
 
   return (
     <Page
@@ -118,7 +135,17 @@ export function DashboardPage() {
         <div className="py-xl">
           <EmptyState
             title={emptyTitle}
-            description="Try changing your search or filters, or create a listing from the Create tab."
+            description={emptyDescription}
+            action={
+              !user ? (
+                <Link
+                  to={ROUTES.login}
+                  className="inline-flex min-h-11 items-center rounded-lg bg-secondary px-lg py-3 font-label-md text-label-md text-on-secondary shadow-sm transition-all hover:opacity-90"
+                >
+                  Sign in
+                </Link>
+              ) : undefined
+            }
           />
         </div>
       ) : (

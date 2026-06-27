@@ -1,414 +1,254 @@
-# Sprint 1 — Dev 1: Firebase Listings (GameShelf)
+# Final Project — Dev 1: Listings & Firebase
 
 **Owner:** Developer 1  
-**Sprint length:** 2 weeks  
+**Period:** Final two-week development sprint (post–Sprint 1)  
 **App:** GameShelf  
-**Current priority:** Listing photos for **Offer** listings  
-**Related:** [SPRINT1_OVERVIEW.md](./SPRINT1_OVERVIEW.md) · [FIREBASE_REFERENCE.md](./FIREBASE_REFERENCE.md)
+**Sources:** [QA_AUDIT_FINAL.md](./QA_AUDIT_FINAL.md) · [FINAL_WORKING_APP_BACKLOG.md](./FINAL_WORKING_APP_BACKLOG.md) · [FIREBASE_REFERENCE.md](./FIREBASE_REFERENCE.md)
+
+Dev 1 owns **Firestore rules, Storage rules, listing image integration, listing permissions, and listing Firebase QA**. Dev 1 does **not** own guest browsing, search improvements, or listing detail layout (Dev 3).
 
 ---
 
-## Developer 1 responsibilities
+# Current Status
 
-Use this as the top-level checklist:
+Verified against source code (June 2026). Items marked complete should not be re-implemented unless regression is found.
 
-1. [ ] **Verify Firestore listings CRUD** — all five methods work on live Firestore (`VITE_LISTINGS_BACKEND=firestore`).
-2. [ ] **Confirm Offer/Request schema** — Firestore docs match `listingPurpose`, purpose-specific fields, `categories[]`, optional `description`.
-3. [ ] **Implement listing photo upload** — Firebase Storage for **Offer** listings only; download URLs in `imageUrls[]`.
-4. [ ] **Ensure Request listings never upload/store photos** — always `imageUrls: []`; ignore `imageFiles`.
-5. [ ] **Add/update Firestore + Storage rules** — listings collection + `listings/{ownerId}/…` image paths.
-6. [ ] **Test across two accounts** — shared feed, ownership enforcement, image read access.
-7. [ ] **Document remaining gaps** — handoff notes at end of sprint (section 12).
+## Listings application layer — complete
 
----
+| Area | Status | Evidence |
+|------|--------|----------|
+| Offer/Request model | **Complete** | `listingPurpose`, `requestOptions`, purpose-specific form/cards/detail |
+| Multi-category support | **Complete** | `categories[]` with legacy `category` fallback |
+| Listing CRUD service (Firestore) | **Complete in code** | `listingService.firestore.ts` — fetch, get, create, update, delete with ownership checks |
+| Backend router | **Complete** | `listingService.ts` routes to `local` or `firestore` via `VITE_LISTINGS_BACKEND` |
+| Offer image upload (Firebase Storage) | **Complete in code** | `uploadListingImageFirebase()` in `storageService.ts`; wired in create/update for offers only |
+| Request listings — no photos | **Complete** | Form and Firestore path force `imageUrls: []`; no upload for requests |
+| Client image validation | **Complete** | JPEG/PNG/WebP, 2 MB max (`imageFile.ts`) |
+| Storage path pattern | **Complete** | `listings/{userId}/{listingId}/{timestamp}-{filename}` |
+| Listing form, cards, filters (UI) | **Complete** | `ListingForm`, `ListingCard`, `DashboardPage`, `listingFilters.ts` |
+| Owner actions on detail page | **Complete** | Edit, delete, mark unavailable/close request (`ListingDetailPage.tsx`) |
+| `.env.example` | **Complete** | Documents `VITE_LISTINGS_BACKEND=firestore` and Firebase keys |
+| `npm run build` | **Passing** | Verified after recent changes |
 
-## 1. Sprint goal
+## Firebase configuration — partial
 
-Listings are **real shared data** in Firestore using the **Offer / Request** model. **Offer** listings may have **one optional photo** in Firebase Storage. **Request** listings never have photos. Usage stays small to avoid unnecessary cost.
+| Area | Status | Evidence |
+|------|--------|----------|
+| `firebase.json` | **Complete** | References `firestore.rules`, `storage.rules`, Hosting (`dist`) |
+| `.firebaserc` | **Complete** | Project id configured |
+| Firebase SDK bootstrap | **Complete** | `src/lib/firebase.ts` — Auth, Firestore, Storage when env set |
+| Firestore users rules | **Partial** | Valid block inside `service cloud.firestore`; **orphan duplicate block outside service** (QA-002) |
+| Firestore listings rules | **Not done** | No `match /listings/{id}` rules (QA-004) |
+| Guest-readable listings | **Not done** | Required for Dev 3 guest browse against Firestore — `allow read: if true` on listings only (coordinate with Dev 3) |
+| `storage.rules` | **Missing** | Referenced in `firebase.json` but file not in repo (QA-003) |
+| Firestore messaging rules | **Not Dev 1** | Dev 2 scope |
 
----
+## Explicitly not Dev 1 (completed elsewhere)
 
-## 2. Current status (code audit)
-
-| Area | Status |
-|------|--------|
-| **UI** — create, edit, feed, detail, filters | **Done** — Offer/Request refactor |
-| **`listingPurpose`** / **`requestOptions`** / **`tutorialUrl`** | **Done** — types, mapping, form, display |
-| **`categories: string[]`** + **`category`** fallback | **Done** |
-| **Description optional** | **Done** — form allows empty; Firestore may store `""` |
-| **Request — no photo, no availability UI** | **Done** — form sends `imageFiles: []`; compact cards |
-| **Offer — optional photo UI** | **Done** — `ImageUploader` max 1 file, offers only |
-| **`listingService.firestore.ts` CRUD** | **Implemented in code** — **not yet verified** on live Firestore by team |
-| **`VITE_LISTINGS_BACKEND`** | Default **`local`** — flip after CRUD + Storage tests |
-| **`storageService.ts`** | **Stub** — data URLs via `readImageAsDataUrl()`; **not Firebase Storage** |
-| **Firestore photo wiring** | **Not done** — create payload hard-codes `imageUrls: []`; update strips `imageFiles` |
-| **`firestore.rules` listings** | **Not done** — only `users/{userId}` rules exist |
-| **`storage.rules`** | **Missing** — file not in repo |
-| **`firebase.json`** | **Missing** |
-| **`src/lib/firebase.ts`** | **Ready** — exports `storage` when env is configured |
-
-### Legacy fields (still written internally — keep for compatibility)
-
-| Field | Notes |
-|-------|--------|
-| `listingType` (`lending` \| `wanted`) | Derived from `listingPurpose`; not the primary model |
-| `category` (string) | Equals `categories[0]` when array is set |
-| `arrangementType: 'free'` | Normalized to `borrow` on read/write |
+| Area | Owner | Status |
+|------|-------|--------|
+| Guest browsing (public feed + detail routes) | Dev 3 | **Complete** |
+| Search partial/close match | Dev 3 | **Complete** — `listingSearch.ts` |
+| Listing detail layout polish | Dev 3 | **Complete** — side-by-side layout, mock reviews removed |
+| Message Owner / Requester CTAs | Dev 2 | **Partial** — guests redirect to login; signed-in users not wired to messaging |
 
 ---
 
-## 3. Already done (mark complete — do not redo)
+# Remaining Critical Tasks
 
-### Firestore CRUD (code exists in `listingService.firestore.ts`)
+Must finish before final submission. QA references from [QA_AUDIT_FINAL.md](./QA_AUDIT_FINAL.md).
 
-- [x] **`fetchListings()`** — `getDocs` + `mapDocToListing()`
-- [x] **`getListingById(id)`** — `getDoc`; returns `undefined` if missing
-- [x] **`createListing(input)`** — auth check; `buildFirestoreCreatePayload()`; timestamps
-- [x] **`updateListing(id, input)`** — ownership check; `buildFirestoreUpdatePayload()`
-- [x] **`deleteListing(id)`** — ownership check; `deleteDoc`
+## D1-C1 — Fix invalid `firestore.rules` structure (QA-002)
 
-### Schema & mapping
+**Problem:** Lines 6–10 define `match /users/{userId}` **outside** `service cloud.firestore { ... }`. Duplicate users block exists inside the service block.
 
-- [x] **`listingPurpose`**: `"offer"` \| `"request"` — `listingMapping.ts`, `mapDocToListing()`
-- [x] **`requestOptions`** for requests
-- [x] **`arrangementType`** for offers (`rent` \| `trade` \| `borrow`)
-- [x] **`tutorialUrl`** for offers (optional https URL)
-- [x] **`categories[]`** + **`category`** fallback on read/write
-- [x] **Optional description** — not required in `ListingForm` validation
-- [x] **Request listings** — no image UI; `imageFiles: []` on submit
-- [x] **Offer listings** — optional single photo in form; placeholder in card/detail when empty
+**Work:**
+- Remove the orphan outer block.
+- Consolidate into one valid rules file.
+- Ensure `firebase deploy --only firestore:rules` succeeds with no parser errors.
 
-### Service errors (Firestore backend)
-
-- [x] `"You must be signed in…"` on create/update/delete without session
-- [x] `"You can only edit your own listings"` / delete variant on wrong owner
-- [x] `"Listing not found"` on missing doc
-
-### Architecture
-
-- [x] Backend router in `listingService.ts` (`local` \| `firestore`)
-- [x] No Firebase imports in pages/components for listings
-- [x] `npm run build` passes (last verified during listing UX work)
+**Files:** `firestore.rules`
 
 ---
 
-## 4. What remains (Developer 1 focus)
+## D1-C2 — Add Firestore security rules for `listings` (QA-004, D1-011)
 
-| Priority | Task |
-|----------|------|
-| **P0** | Implement Firebase Storage in `storageService.ts` |
-| **P0** | Wire uploads in `listingService.firestore.ts` create/update (offers only) |
-| **P0** | Store **download URLs** in `imageUrls[]`; no base64 in Firestore |
-| **P1** | Add Firestore **listings** rules to `firestore.rules` |
-| **P1** | Create **storage.rules** (content type + size limits) |
-| **P1** | Verify all CRUD + photos with `VITE_LISTINGS_BACKEND=firestore` |
-| **P1** | Two-account testing |
-| **P2** | `.env.example`, `firebase.json`, Storage cleanup on delete (or document deferral) |
-| **P2** | Align client max file size (1–2 MB) with Storage rules |
+**Problem:** Listings CRUD has no rules. Creates/updates may be permission-denied or insecure depending on Console defaults.
 
----
+**Work:**
+- Add `match /listings/{listingId}` with:
+  - **Read:** unauthenticated allowed (guest browse) **or** authenticated — align with Dev 3 public routes.
+  - **Create:** authenticated; `request.auth.uid == request.resource.data.ownerId`.
+  - **Update/delete:** authenticated; `request.auth.uid == resource.data.ownerId`.
+- Do **not** modify `users/{userId}` rules beyond cleanup in D1-C1 unless coordinating with Dev 3.
 
-## 5. Priority: Listing photos for Offer listings
+**Files:** `firestore.rules`
 
-**This is Developer 1’s main implementation track.** Request listings must never participate in this flow.
-
-### 5.1 Before coding
-
-- [ ] Confirm **Firebase Storage** is enabled in Firebase Console for the project.
-- [ ] Confirm **`VITE_FIREBASE_STORAGE_BUCKET`** is set in `.env` (see `src/lib/firebase.ts`).
-- [ ] Confirm **billing / free-tier expectations** with the team (Spark limits vs Blaze if needed).
-- [ ] Confirm signed-in users can upload (Firebase Auth working — Dev 3).
-
-### 5.2 Product rules
-
-- [ ] Use Firebase Storage **only for Offer listing photos**.
-- [ ] **Do not upload** photos for Request listings.
-- [ ] Photo is **optional** — empty `imageUrls: []` is valid; UI shows placeholder.
-- [ ] **One image per listing** for Sprint 1 (`ImageUploader` defaults to `maxFiles={1}`).
-- [ ] **Allowed types:** jpg, jpeg, png, webp (match `LISTING_IMAGE_ACCEPT` in `src/utils/imageFile.ts`).
-- [ ] **Max file size:** 1–2 MB recommended (client + Storage rules); local stub currently allows 5 MB.
-
-### 5.3 Upload path & Firestore field
-
-- [ ] Storage path: `listings/{ownerId}/{listingId}/{safeFilename}`
-- [ ] After upload, store Firebase **download URL** in `listing.imageUrls[]` (single URL for Sprint 1).
-- [ ] **Do not** store base64 or data URLs in Firestore documents.
-
-### 5.4 Create flow
-
-- [ ] If `listingPurpose === 'request'`: save `imageUrls: []`; skip Storage entirely.
-- [ ] If Offer with **no** `imageFiles`: save `imageUrls: []`.
-- [ ] If Offer **with** `imageFiles`:
-  - Option A: `addDoc` first to get `listingId`, then upload, then `updateDoc` with URL.
-  - Option B: generate id client-side (`doc(collection(...))`) then `setDoc` after upload.
-  - Pick one approach; document in handoff.
-- [ ] Ensure final Firestore doc has HTTPS URL(s), not local blob/data URLs.
-
-### 5.5 Update flow
-
-- [ ] If **no new** `imageFiles` in input: **preserve** existing `imageUrls` from Firestore.
-- [ ] If **new** `imageFiles` provided (Offer only): upload to Storage; **replace** `imageUrls` with new download URL.
-- [ ] Request listings on update: force `imageUrls: []` (ignore any stray files).
-
-### 5.6 Delete flow
-
-- [ ] Delete Firestore listing document (already implemented).
-- [ ] **Either** delete Storage objects under `listings/{ownerId}/{listingId}/` **or** document orphaned-file cleanup as deferred TODO.
-
-### 5.7 Stretch (not required for sprint sign-off)
-
-- [ ] Client-side compress/resize before upload.
-- [ ] Delete old Storage file when user replaces image.
-- [ ] Multi-image gallery (UI does not target this in Sprint 1).
+**Coordination:** Dev 3 ships guest-readable feed/detail; rules must allow unauthenticated **read** on listings collection only.
 
 ---
 
-## 6. Implementation guidance
+## D1-C3 — Create and deploy `storage.rules` (QA-003)
 
-### Where to implement (service layer only)
+**Problem:** `firebase.json` references `storage.rules`; file is missing. Deploy fails or Storage behavior is undefined.
 
-| File | Responsibility |
+**Work:**
+- Create `storage.rules` at repo root.
+- Require authentication for writes under `listings/{userId}/{listingId}/`.
+- Restrict content type to images; align max size with 2 MB client cap.
+- Deny unauthenticated writes.
+- Verify `firebase deploy --only storage` succeeds.
+
+**Files:** `storage.rules`, `firebase.json` (verify reference only)
+
+---
+
+## D1-C4 — Two-account Firestore listings QA (QA-106, QA-107)
+
+**Problem:** Code default for `VITE_LISTINGS_BACKEND` is `local` if env unset. Cross-browser listing tests fail in local mode.
+
+**Work:**
+- Confirm team demo/submission uses `VITE_LISTINGS_BACKEND=firestore`.
+- Run two-account test: Account A creates offer (+ optional image) and request; Account B sees both on home and detail after refresh.
+- Verify B cannot edit/delete A’s listings.
+- Document any env/setup steps for teammates.
+
+**Files:** `.env.example` (comments only if needed), team README or handoff note — **do not commit secrets**.
+
+---
+
+## D1-C5 — End-to-end offer image upload verification (QA-003, QA-004)
+
+**Problem:** Upload code exists but rules were missing at audit time; live upload may fail.
+
+**Work:**
+- With Storage rules deployed: create offer with JPEG ≤ 2 MB.
+- Confirm HTTPS URL in `imageUrls[]` (not base64 in Firestore).
+- Confirm second account/browser sees image on feed and detail.
+- Confirm request listing create path never writes to Storage.
+
+**Files:** `listingService.firestore.ts`, `storageService.ts`, `ImageUploader.tsx` — verify only; change CRUD only if bug found.
+
+---
+
+# Remaining Major Tasks
+
+Complete if time allows after critical tasks.
+
+## D1-M1 — Align listings backend documentation (QA-106)
+
+- Ensure `.env.example` comments explain `local` vs `firestore` and that final demo requires `firestore`.
+- Note in handoff: fresh clone without `.env` defaults to localStorage + seed.
+
+## D1-M2 — Listing image accessibility (QA-204)
+
+- Replace empty `alt` on listing images in `ListingCard.tsx` and any remaining listing display components Dev 1 touches.
+- Use listing title: e.g. `Photo of {title}`.
+
+## D1-M3 — Use `ROUTES` constants in listing navigation (QA-209)
+
+- `ListingCard.tsx`: use `ROUTES.listing(id)` instead of hardcoded path string.
+
+## D1-M4 — Storage orphan cleanup on listing delete
+
+- **Deferred unless quick:** deleting a listing does not remove Storage objects. Document deferral or implement cleanup in `listingService.firestore.ts` delete path.
+
+## D1-M5 — Seed listings behavior in Firestore mode
+
+- Clarify with team: seed data (`mockListings.seed.ts`) applies in local mode only. In Firestore mode, feed is Firestore-only. Document for demo script.
+
+---
+
+# Out of Scope
+
+| Item | Owner / notes |
 |------|----------------|
-| **`src/services/storageService.ts`** | Replace stub: `uploadListingImage(file, ownerId, listingId)` → Storage upload → `getDownloadURL()` |
-| **`src/services/listingService.firestore.ts`** | Call `storageService` on create/update for offers; pass URLs into Firestore write |
-| **`src/utils/listingMapping.ts`** | Update `buildFirestoreCreatePayload` / update helpers if `imageUrls` should be set from service layer instead of hard-coded `[]` |
-| **`src/utils/imageFile.ts`** | Optional: lower max size to 1–2 MB to match Storage rules |
-| **`src/components/ImageUploader.tsx`** | Touch only if client validation must match Storage rules (types/size messaging) |
-
-### Do **not** implement in
-
-- `ListingForm.tsx`, `ListingCard.tsx`, `ListingDetailPage.tsx`, or other pages/components — they already call `listingService` via context; **no direct Firebase Storage imports in UI**.
-
-### Suggested call flow
-
-```text
-ListingForm → ListingsContext → listingService.ts (router)
-  → listingService.firestore.ts
-       → storageService.uploadListingImage()  [offers with files only]
-       → Firestore setDoc / updateDoc with imageUrls: [downloadUrl]
-```
-
-### Local backend note
-
-`VITE_LISTINGS_BACKEND=local` may keep the data-URL stub in `storageService.ts` for offline demo. Production path is Firestore + real Storage URLs.
+| Guest browsing, public routes, login redirects | Dev 3 — **complete** |
+| Search improvements (`listingSearch.ts`, filter UX) | Dev 3 — **complete** |
+| Listing detail layout redesign | Dev 3 — **complete** |
+| Message Owner / Requester / I have this game wiring | Dev 2 |
+| Firestore messaging backend and conversation rules | Dev 2 |
+| Profile mock stats/reviews cleanup | Dev 3 |
+| `messageService.dev.ts` internals | Dev 2 — do not modify |
+| Auth, signup hardening, analytics guard | Dev 3 |
+| Firebase Hosting deploy and authorized domains | Dev 3 (verify); Dev 1 supports rules deploy |
+| Public profile pages (`/users/:id`) | Future version |
+| Real-time `onSnapshot` on listings feed | Future version |
+| Advanced search (geo, fuzzy library) | Dev 3 / future |
+| Automated E2E tests | Post-submit recommendation |
 
 ---
 
-## 7. Security rules checklist
+# Testing Checklist
 
-### Firestore — listings
+Run with `VITE_LISTINGS_BACKEND=firestore` and deployed rules unless noted.
 
-Add to `firestore.rules` (coordinate merge with Dev 2/3):
+## Rules deploy
 
-- [ ] Signed-in users can **read** listings.
-- [ ] Signed-in users can **create** listings only when `request.resource.data.ownerId == request.auth.uid`.
-- [ ] Only **owner** can **update** or **delete** (`resource.data.ownerId == request.auth.uid`).
+- [ ] `firebase deploy --only firestore:rules` — no errors
+- [ ] `firebase deploy --only storage` — no errors
+- [ ] Firebase Console shows single valid rules tree (no orphan blocks)
 
-**Baseline snippet:**
+## Guest read (coordinate Dev 3)
 
-```text
-match /listings/{listingId} {
-  allow read: if request.auth != null;
-  allow create: if request.auth != null
-    && request.resource.data.ownerId == request.auth.uid;
-  allow update, delete: if request.auth != null
-    && resource.data.ownerId == request.auth.uid;
-}
-```
+- [ ] Logged-out browser loads home feed from Firestore (not permission-denied)
+- [ ] Logged-out browser opens `/listings/:id` for an existing listing
 
-**Optional stretch** (strict schema — enable only if team wants):
+## Two-account listings
 
-- `listingPurpose in ['offer', 'request']`
-- Request writes: `imageUrls.size() == 0`
+- [ ] Account A: create **Offer** with title, categories, arrangement, optional image
+- [ ] Account A: create **Request** (no image field in UI)
+- [ ] Account B: sees both listings on home after refresh
+- [ ] Account B: opens each listing detail
+- [ ] Account B: cannot edit or delete A’s listings (UI + Firestore denied)
+- [ ] Account A: edit own listing — changes visible to B after refresh
+- [ ] Account A: delete own listing — removed for B after refresh
 
-### Storage — listing images
+## Images (offers only)
 
-Create `storage.rules` (file missing today):
+- [ ] Upload JPEG/PNG/WebP ≤ 2 MB — succeeds
+- [ ] Image URL loads on detail and card for both accounts
+- [ ] File > 2 MB or wrong type — client rejects before upload
+- [ ] Request listing — no Storage write; `imageUrls` empty
 
-- [ ] Signed-in users can **read** objects under `listings/…`.
-- [ ] Only **owner** can **write** to `listings/{ownerId}/{listingId}/{fileName}` when `request.auth.uid == ownerId`.
-- [ ] **Validate content type** on write, e.g. `request.resource.contentType.matches('image/(jpeg|png|webp)')`.
-- [ ] **Enforce max file size** on write, e.g. `request.resource.size < 2 * 1024 * 1024` (2 MB).
+## Permissions
 
-**Example snippet:**
+- [ ] Unauthenticated user cannot create/update/delete listings
+- [ ] Authenticated user cannot update/delete another user’s listing
 
-```text
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /listings/{ownerId}/{listingId}/{fileName} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && request.auth.uid == ownerId
-        && request.resource.size < 2 * 1024 * 1024
-        && request.resource.contentType.matches('image/(jpeg|png|webp)');
-    }
-  }
-}
-```
+## Regression (local mode — optional)
 
-- [ ] Publish Firestore + Storage rules (Console or `firebase deploy` when `firebase.json` exists).
-- [ ] Two-account test: User B cannot write to User A’s Storage path or edit User A’s listing.
+- [ ] With `VITE_LISTINGS_BACKEND=local`, app still loads seed + localStorage listings for solo dev
 
 ---
 
-## 8. Testing checklist
+# Definition of Done
 
-### Build
+Dev 1’s final-project work is **done** when all of the following are true:
 
-- [x] `npm run build` passes (re-run after Storage implementation).
-
-### Offer listings — photos
-
-- [ ] Create **offer without image** — saves; card/detail show placeholder; no Storage object.
-- [ ] Create **offer with image** — file appears in Firebase Storage at `listings/{ownerId}/{listingId}/…`.
-- [ ] Firestore `imageUrls` contains **HTTPS download URL**, not base64.
-- [ ] **Listing card** shows uploaded image (`OfferListingCard` hero).
-- [ ] **Listing detail** shows uploaded image.
-- [ ] **Refresh** — image still loads from URL.
-- [ ] **Edit offer** without selecting new image — **preserves** existing `imageUrls`.
-- [ ] **Edit offer** with new image — **replaces** URL; new Storage object (old file cleanup per team decision).
-
-### Request listings — no photos
-
-- [ ] Create **request** — no image field in form; no Storage upload.
-- [ ] Firestore doc has `imageUrls: []`.
-- [ ] Request card has **no** hero/placeholder photo area (compact layout).
-
-### Firestore CRUD (both purposes)
-
-- [ ] `fetchListings` / `getListingById` / create / update / delete work with `VITE_LISTINGS_BACKEND=firestore`.
-- [ ] Docs include `listingPurpose`, `categories`, purpose-specific fields, optional empty `description`.
-
-### Two accounts
-
-- [ ] Account A creates offer (with photo) and request.
-- [ ] Account B sees both on feed; can load images.
-- [ ] Account B **cannot** edit/delete Account A’s listings or upload to A’s Storage path.
-
-### Firebase Console verification
-
-- [ ] `listings` collection — correct schema, URLs in `imageUrls`.
-- [ ] Storage bucket — objects only for offers that had photos.
+1. **`firestore.rules`** is syntactically valid, deploys successfully, includes **listings** rules with correct ownership permissions, and allows **guest read** on listings (aligned with Dev 3 routing).
+2. **`storage.rules`** exists, deploys successfully, and protects listing image paths per authenticated owner writes.
+3. **Two real Firebase accounts** can create, view, edit, and delete their own listings; cannot modify each other’s; shared feed works after refresh.
+4. **Offer image upload** stores HTTPS URLs in Firestore via Storage; visible cross-account; requests never upload.
+5. **Team demo env** is documented: `VITE_LISTINGS_BACKEND=firestore` required for submission.
+6. **No Dev 1 regressions:** `npm run build` passes; listing CRUD changes are minimal and scoped to bugs/rules only.
+7. **Handoff note** lists any remaining non-blocking gaps (Storage cleanup on delete, etc.).
 
 ---
 
-## 9. Listing schema reference (GameShelf)
+## Key files (reference)
 
-Primary field: **`listingPurpose`**: `"offer"` | `"request"`.
-
-| Field | Offer | Request |
-|-------|-------|---------|
-| `listingPurpose` | `"offer"` | `"request"` |
-| `listingType` | `"lending"` (legacy) | `"wanted"` (legacy) |
-| `arrangementType` | `rent` \| `trade` \| `borrow` | — |
-| `requestOptions` | — | ≥1 in UI |
-| `categories` / `category` | multi-select + fallback | same |
-| `description` | Optional | Optional |
-| `imageUrls` | 0–1 photo (Storage URL) | Always `[]` |
-| `tutorialUrl` | Optional https | Not used |
-| `availability` | Available / Unavailable | Internal; UI: Still looking / Request closed |
-| `condition` | Required in UI | Default/hidden |
-| `location` | Required in UI | Required in UI |
-
-Mapping: `src/utils/listingMapping.ts`, reads via `mapDocToListing()` in `listingService.ts`.
+| File | Role |
+|------|------|
+| `src/services/listingService.ts` | Public API; backend router |
+| `src/services/listingService.firestore.ts` | Firestore CRUD + image wiring |
+| `src/services/listingService.dev.ts` | localStorage backend |
+| `src/services/storageService.ts` | Firebase Storage upload |
+| `src/config/listingsBackend.ts` | `VITE_LISTINGS_BACKEND` selector |
+| `firestore.rules` | **Primary Dev 1 deliverable** |
+| `storage.rules` | **Primary Dev 1 deliverable** |
+| `firebase.json` | Rules + hosting references |
 
 ---
 
-## 10. Step-by-step task list (ordered)
-
-### Part A — Verify existing work
-
-- [ ] Run `VITE_LISTINGS_BACKEND=local` — offer + request CRUD on feed/detail.
-- [ ] Run `VITE_LISTINGS_BACKEND=firestore` — verify five CRUD methods against live Firestore (no photos yet).
-- [ ] Inspect Firestore Console — doc shape matches section 9.
-
-### Part B — Implement listing photos (section 5)
-
-- [ ] Complete all checkboxes in **§5 Priority: Listing photos for Offer listings**.
-- [ ] Complete **§6 Implementation guidance** files.
-
-### Part C — Security rules (section 7)
-
-- [ ] Firestore listings rules published and tested.
-- [ ] Storage rules published and tested.
-
-### Part D — Env flip & handoff
-
-- [ ] Keep `local` until CRUD + Storage + two-account tests pass.
-- [ ] Flip to `VITE_LISTINGS_BACKEND=firestore`; restart dev server.
-- [ ] Add `.env.example` if missing (document backend switch).
-- [ ] Fill out **§12 Handoff notes** and **§13 Known gaps**.
-
-### Part E — Stretch
-
-- [ ] Firestore composite indexes if Console prompts.
-- [ ] Image compression helper.
-
----
-
-## 11. Definition of done
-
-- [ ] Firestore CRUD **verified** on live project (all five methods).
-- [x] Offer/Request schema supported in app code.
-- [ ] Offer photos upload to **Firebase Storage**; `imageUrls[]` holds download URLs.
-- [x] Request listings never upload or require photos (UI + service behavior).
-- [ ] No base64/data URLs in Firestore listing docs (Firestore backend).
-- [ ] Firestore listings rules **published and tested**.
-- [ ] Storage rules **published and tested** (type + size).
-- [ ] Two-account test passes.
-- [ ] Team knows how to set `VITE_LISTINGS_BACKEND=firestore`.
-- [x] `listingService.dev.ts` retained until team signs off.
-- [ ] Remaining gaps documented in section 13.
-
----
-
-## 12. Handoff notes (fill in when done)
-
-1. **Env flip:** `VITE_LISTINGS_BACKEND=firestore` + restart.
-2. **Photo strategy:** one optional offer photo; Storage path; max size/types; request = no photos.
-3. **Create flow:** how listing id is obtained before/after upload.
-4. **Delete flow:** Storage cleanup implemented or deferred.
-5. **Firestore indexes** created (if any).
-6. **Rules deploy method:** Console vs CLI.
-7. **Known gaps** for next sprint (gallery, compression, pagination, strict schema rules).
-
----
-
-## 13. Known gaps / code inconsistencies
-
-| Issue | Current code |
-|-------|----------------|
-| `buildFirestoreCreatePayload` | Always sets `imageUrls: []` |
-| `listingService.firestore.ts` update | Strips `imageFiles`; never uploads |
-| `storageService.ts` | Data-URL stub only |
-| `firestore.rules` | No `listings` block |
-| `storage.rules` / `firebase.json` | Not in repo |
-| `.env.example` | Referenced in docs; missing from repo |
-| `imageFile.ts` | 5 MB limit vs 1–2 MB target for Storage |
-| `FIREBASE_REFERENCE.md` | May still say Storage deferred — update separately when Storage ships |
-| Local backend | Stores base64 in `imageUrls` via stub — OK for `local` only |
-
----
-
-## Files to inspect before implementing
-
-- [x] `src/types/listing.ts`
-- [x] `src/services/listingService.ts` + `listingService.firestore.ts` + `listingService.dev.ts`
-- [x] `src/services/storageService.ts`
-- [x] `src/utils/listingMapping.ts` + `listingNormalize.ts` + helpers/display
-- [x] `src/components/ListingForm.tsx` + `ImageUploader.tsx` + `ListingCard.tsx`
-- [x] `src/pages/ListingDetailPage.tsx`
-- [x] `src/config/firebaseCollections.ts` + `src/lib/firebase.ts`
-- [ ] `firestore.rules` — add listings
-- [ ] `storage.rules` — create
-- [ ] `docs/FIREBASE_REFERENCE.md` — align Storage section after implementation
-
----
-
-## If confused, check…
-
-- `src/services/listingService.dev.ts` — local behavior reference (includes stub upload path)
-- `src/utils/listingMapping.ts` — Firestore write payloads
-- [FIREBASE_REFERENCE.md](./FIREBASE_REFERENCE.md) — env vars and listing fields
-- Firebase Console → Firestore / Storage → Rules → Simulator
+*Last updated: June 2026 — regenerated from QA audit and current codebase. Supersedes Sprint 1 task tables that assumed Storage and Firestore CRUD were not yet implemented.*

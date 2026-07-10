@@ -21,10 +21,12 @@
 
   html {
     min-height: 100dvh;
+    overflow-y: auto;
   }
 
   body {
     min-height: 100dvh;
+    overflow-y: auto;
     background-color: #fbf9fa;
     color: #1b1b1d;
     font-family: 'Inter', sans-serif;

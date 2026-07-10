@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Listing } from '../types/listing'
+import { ROUTES } from '../routes/paths'
 import { MaterialIcon } from './MaterialIcon'
 import {
   formatRequestOptionLabel,
@@ -16,14 +17,29 @@ type ListingCardProps = {
 }
 
 function OfferListingCard({ listing }: ListingCardProps) {
+  const navigate = useNavigate()
   const hero = getListingImageUrls(listing)[0] ?? ''
   const summary = getOfferCardSummary(listing)
   const categoriesLabel = formatListingCategoriesLabel(listing)
 
+  function openListing() {
+    navigate(ROUTES.listing(listing.id), { state: { listing } })
+  }
+
   return (
-    <article className="group overflow-hidden rounded-xl bg-surface shadow-sm transition-shadow hover:shadow-md">
-      <Link to={`/listings/${listing.id}`} state={{ listing }} className="block">
-        <div className="relative h-64 overflow-hidden bg-surface-container-high">
+    <article
+      className="group cursor-pointer overflow-hidden rounded-xl bg-surface shadow-sm transition-shadow hover:shadow-md"
+      onClick={openListing}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          openListing()
+        }
+      }}
+      role="link"
+      tabIndex={0}
+    >
+      <div className="relative h-64 overflow-hidden bg-surface-container-high">
           {hero ? (
             <img
               src={hero}
@@ -51,28 +67,43 @@ function OfferListingCard({ listing }: ListingCardProps) {
           )}
         </div>
 
-        <div className="p-md">
-          <CardUserRow listing={listing} />
-          <GameTitleBlock
-            title={listing.title}
-            categoriesLabel={categoriesLabel}
-            description={listing.description}
-          />
-          <CardFooter summary={summary} />
-        </div>
-      </Link>
+      <div className="p-md">
+        <CardUserRow listing={listing} />
+        <GameTitleBlock
+          title={listing.title}
+          categoriesLabel={categoriesLabel}
+          description={listing.description}
+        />
+        <CardFooter summary={summary} />
+      </div>
     </article>
   )
 }
 
 function RequestListingCard({ listing }: ListingCardProps) {
+  const navigate = useNavigate()
   const requestOptions = listing.requestOptions ?? []
   const categoriesLabel = formatListingCategoriesLabel(listing)
   const statusLabel = getRequestStatusLabel(listing.availability)
 
+  function openListing() {
+    navigate(ROUTES.listing(listing.id), { state: { listing } })
+  }
+
   return (
-    <article className="group overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low shadow-sm transition-shadow hover:shadow-md">
-      <Link to={`/listings/${listing.id}`} state={{ listing }} className="block p-md">
+    <article
+      className="group cursor-pointer overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low shadow-sm transition-shadow hover:shadow-md"
+      onClick={openListing}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          openListing()
+        }
+      }}
+      role="link"
+      tabIndex={0}
+    >
+      <div className="p-md">
         <div className="mb-sm flex items-center justify-between gap-sm">
           <span className="rounded-full bg-tertiary-fixed-dim px-md py-1 font-label-md text-label-md text-on-tertiary-fixed">
             Requesting
@@ -100,7 +131,7 @@ function RequestListingCard({ listing }: ListingCardProps) {
 
         <CardUserRow listing={listing} />
         <CardFooter summary={statusLabel} />
-      </Link>
+      </div>
     </article>
   )
 }
@@ -132,7 +163,17 @@ function CardUserRow({ listing }: { listing: Listing }) {
     <div className="mb-sm flex items-center gap-sm">
       <div className="h-8 w-8 shrink-0 rounded-full border border-outline-variant bg-surface-container-high" />
       <div className="min-w-0">
-        <p className="font-semibold text-body-md">{listing.ownerName}</p>
+        {listing.ownerId ? (
+          <Link
+            to={ROUTES.userProfile(listing.ownerId)}
+            onClick={(event) => event.stopPropagation()}
+            className="font-semibold text-body-md text-primary hover:underline"
+          >
+            {listing.ownerName}
+          </Link>
+        ) : (
+          <p className="font-semibold text-body-md">{listing.ownerName}</p>
+        )}
         {listing.location && (
           <p className="truncate text-label-md text-on-surface-variant">{listing.location}</p>
         )}

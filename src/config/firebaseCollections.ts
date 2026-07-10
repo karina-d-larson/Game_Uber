@@ -8,4 +8,5 @@ export const COLLECTIONS = {
   /** Planned for Inbox / messaging milestone */
   conversations: 'conversations',
   messages: 'messages',
+  reviews: 'reviews',
 } as const

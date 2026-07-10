@@ -12,7 +12,7 @@ Deliver a demo-ready GameShelf where:
 
 - **Guests** can browse listings and open listing details without an account.
 - **Signed-in users** can create listings, message owners, follow users, and manage profile/settings — with data persisting in **Firestore** (not single-browser localStorage).
-- **No dead buttons** on primary flows; mock content is **hidden or clearly labeled**.
+- **No dead buttons** on primary flows; **no fake review/rating data** — real Firestore reviews or empty states.
 - **Firebase rules, Storage, and Hosting** deploy successfully for team QA and presentation.
 
 **Duration:** 2 weeks (Final Project sprint)  
@@ -425,7 +425,7 @@ Code-verified only — use as baseline, not backlog work:
 
 ---
 
-## D3-004 — Guard Firebase analytics init
+## D3-004 — Remove Firebase Analytics (QA-006)
 
 | Field | Value |
 |-------|-------|
@@ -433,9 +433,10 @@ Code-verified only — use as baseline, not backlog work:
 | **Owner** | Dev 3 |
 | **Status** | Not started |
 | **QA ref** | QA-006 |
-| **Files** | `src/lib/firebase.ts` |
-| **Acceptance criteria** | App loads without `.env`; no `getAnalytics(undefined)` crash. |
-| **Testing** | Remove/rename `.env` → `npm run dev` → app renders with warning, no white screen. |
+| **Decision** | Analytics **not needed** — remove, do not guard |
+| **Files** | `src/lib/firebase.ts`, any `analytics` imports |
+| **Acceptance criteria** | No `getAnalytics` call; no unused `firebase/analytics` imports; `npm run build` passes; app loads without `.env` (warning only). |
+| **Testing** | Remove/rename `.env` → `npm run dev` → no white screen; `npm run build` succeeds. |
 
 ---
 
@@ -453,17 +454,31 @@ Code-verified only — use as baseline, not backlog work:
 
 ---
 
-## D3-006 — Remove or label mock profile stats and reviews
+## D3-006 — MVP review & rating system (replaces mock profile stats) (QA-103)
+
+| Field | Value |
+|-------|-------|
+| **Priority** | Critical |
+| **Owner** | Dev 3 (rules: Dev 1) |
+| **Status** | Not started |
+| **QA ref** | QA-103 |
+| **Decision** | Real review system — **not** hide/label mocks |
+| **Files** | `ProfilePage.tsx`, `ProfileHeader.tsx`, `reviewService.ts` (new), `ListingDetailPage.tsx`, `firestore.rules` |
+| **Acceptance criteria** | Logged-in users create review (rating 1–5, optional comment) stored in Firestore; profile shows real average rating + count + review list; empty state when none; **no** fake 4.8 rating or static `STATS`/`REVIEWS`; listing detail shows real reviews only if data exists. Transaction-verified reviews **out of scope** unless time allows. |
+| **Testing** | Submit review → appears on profile; empty profile shows “No reviews yet”; no hardcoded stats. |
+
+---
+
+## D3-015 — Seed data cleanup for final demo
 
 | Field | Value |
 |-------|-------|
 | **Priority** | Major |
-| **Owner** | Dev 3 |
+| **Owner** | Dev 3 (messaging seed: coordinate Dev 2) |
 | **Status** | Not started |
-| **QA ref** | QA-103 |
-| **Files** | `src/pages/ProfilePage.tsx`, `src/components/ProfileHeader.tsx` |
-| **Acceptance criteria** | Hardcoded STATS, REVIEWS, and “4.8 rating” hidden or labeled “Sample data”; no fake lender scores in production UI. |
-| **Testing** | Profile page shows only real user data from Auth/Firestore. |
+| **Files** | `listingService.dev.ts`, `messageService.dev.ts`, `mockListings.seed.ts`, `mockMessages.seed.ts` |
+| **Acceptance criteria** | Seed affects **local backend only** today; stop auto-seed on demo path or gate behind dev flag; empty states for feed/inbox; **do not** delete real Firestore data; guest browse + Firestore listings still work. |
+| **Testing** | `firestore` backend + empty Firestore → empty dashboard; local dev can still create listings manually. |
 
 ---
 
@@ -576,7 +591,8 @@ Use before presentation or submission:
 - [ ] Two real accounts: shared listings visible
 - [ ] Message Owner opens chat (Firestore) **or** team discloses local-only messaging
 - [ ] Follow works on real-user listing
-- [ ] No mock stats/reviews presented as real *(listing detail done; profile mock stats remain — D3-006)*
+- [ ] No fake stats/reviews presented as real — real Firestore reviews or empty states (D3-006)
+- [ ] No auto-seed listings/messages in demo path (D3-015)
 - [ ] No dead buttons on listing detail *(guest CTAs redirect to login; signed-in CTAs still unwired — D1-010 / D2-003)*
 - [x] Search partial match demonstrated on title
 - [ ] Google login works (local or deployed)
@@ -624,7 +640,7 @@ After `firebase deploy`:
 |------|-------|
 | Public profile pages (`/users/:id`) | Hide links until built |
 | Followers page | Per PRODUCT_DECISIONS |
-| Real reviews/ratings system | Hide mock content instead |
+| Real reviews/ratings MVP | Dev 3 — D3-006 (transaction-verified reviews: future) |
 | Real-time `onSnapshot` everywhere | Fetch-on-load sufficient |
 | Push notifications, read receipts, typing | Dev 2 sprint out of scope |
 | Firebase Storage for profile photos | URLs/initials/Google only |
@@ -646,9 +662,9 @@ After `firebase deploy`:
 | 5 | D2-001 / D2-003 / D2-008 | Firestore messaging **or** explicit demo-only decision | Dev 2 |
 | 6 | D2-003 | Wire Message Owner / Message requester | Dev 2 |
 | 7 | D1-004 | Verify Firestore listings CRUD two-account | Dev 1 |
-| 8 | D3-006 | Remove or label mock **profile** stats/reviews | Dev 3 |
-| 9 | D1-010 | Wire or hide remaining dead listing CTAs | Dev 1 + Dev 2 |
-| 10 | D3-004 | Guard Firebase analytics init (no `.env` crash) | Dev 3 |
+| 8 | D3-006 | MVP review/rating system (Firestore) | Dev 3 + Dev 1 rules |
+| 9 | D3-015 | Seed data cleanup for demo | Dev 3 |
+| 10 | D3-004 | Remove Firebase Analytics | Dev 3 |
 
 ---
 
@@ -664,10 +680,10 @@ After `firebase deploy`:
 
 - **Dev 1:** D1-005, D1-006, D1-009, D1-010, D1-008  
 - **Dev 2:** D2-003, D2-006, D2-007, D2-009  
-- **Dev 3:** D3-006, D3-007, D3-008, D3-009, D3-010, D3-011  
+- **Dev 3:** D3-004 (remove analytics), D3-006 (review MVP), D3-015 (seed cleanup), D3-005, D3-007–D3-011  
 
 **End of week 2:** Run demo readiness + two-account + deployed smoke checklists.
 
 ---
 
-*Last updated: June 2026 — Dev 3 guest browsing, search, and listing detail layout marked complete.*
+*Last updated: July 2026 — Dev 3 decisions: real reviews MVP, remove analytics, seed cleanup for demo.*

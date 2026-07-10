@@ -1,13 +1,22 @@
 import type { AuthUser } from '../types/user'
 import { Avatar } from './Avatar'
-import { MaterialIcon } from './MaterialIcon'
+import { RatingStars } from './RatingStars'
 
 type ProfileHeaderProps = {
   user: AuthUser
   showPhoto?: boolean
+  averageRating?: number | null
+  reviewCount?: number
 }
 
-export function ProfileHeader({ user, showPhoto = true }: ProfileHeaderProps) {
+export function ProfileHeader({
+  user,
+  showPhoto = true,
+  averageRating = null,
+  reviewCount = 0,
+}: ProfileHeaderProps) {
+  const hasReviews = reviewCount > 0 && averageRating != null
+
   return (
     <section className="flex flex-col items-center gap-lg rounded-xl bg-surface-container-lowest p-lg custom-shadow md:flex-row md:items-start">
       {showPhoto && (
@@ -31,17 +40,19 @@ export function ProfileHeader({ user, showPhoto = true }: ProfileHeaderProps) {
             Marketplace Member
           </span>
         </div>
-        <div className="flex items-center justify-center gap-xs md:justify-start">
-          <div className="flex text-secondary">
-            <MaterialIcon name="star" filled />
-            <MaterialIcon name="star" filled />
-            <MaterialIcon name="star" filled />
-            <MaterialIcon name="star" filled />
-            <MaterialIcon name="star_half" filled />
-          </div>
-          <span className="font-body-md text-body-md text-on-surface-variant">
-            (4.8 rating)
-          </span>
+        <div className="flex flex-col items-center gap-xs md:items-start">
+          {hasReviews ? (
+            <div className="flex items-center justify-center gap-xs md:justify-start">
+              <RatingStars rating={averageRating} iconClassName="text-base text-secondary" />
+              <span className="font-body-md text-body-md text-on-surface-variant">
+                {averageRating} ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+              </span>
+            </div>
+          ) : (
+            <span className="font-body-md text-body-md text-on-surface-variant">
+              No reviews yet
+            </span>
+          )}
         </div>
         {user.bio && (
           <p className="max-w-2xl font-body-md text-body-md text-on-surface-variant">

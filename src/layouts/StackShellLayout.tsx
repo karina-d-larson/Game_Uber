@@ -14,7 +14,7 @@ export function StackShellLayout() {
         Skip to main content
       </a>
 
-      <div className="app-shell__content flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
+      <div className="app-shell__content flex min-h-0 flex-1 flex-col">
         <Outlet />
       </div>
     </div>

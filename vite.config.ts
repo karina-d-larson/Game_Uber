@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Game Uber',
-        short_name: 'GameUber',
-        description: 'Game Uber team web app',
+        name: 'GameShelf',
+        short_name: 'GameShelf',
+        description: 'GameShelf — board game lending marketplace',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',

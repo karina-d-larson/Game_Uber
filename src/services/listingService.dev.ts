@@ -9,6 +9,7 @@
 import { mockListings } from '../data/mockListings.seed'
 import type { Listing } from '../types/listing'
 import { assertLocalListingsBackend } from '../config/listingsBackend'
+import { isDevSeedDataEnabled } from '../config/devSeed'
 import { normalizeListings } from '../utils/listingNormalize'
 import { readJson, writeJson } from '../utils/localStorage'
 
@@ -21,7 +22,10 @@ export async function devFetchListings(): Promise<Listing[]> {
   if (Array.isArray(saved) && saved.length > 0) {
     return normalizeListings(saved)
   }
-  return mockListings
+  if (isDevSeedDataEnabled()) {
+    return mockListings
+  }
+  return []
 }
 
 export async function devSaveListings(listings: Listing[]): Promise<void> {

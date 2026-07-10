@@ -15,6 +15,8 @@
     --container-2xl: 42rem;
     --text-sm: 0.875rem;
     --text-sm--line-height: calc(1.25 / 0.875);
+    --text-base: 1rem;
+    --text-base--line-height: calc(1.5 / 1);
     --text-lg: 1.125rem;
     --text-lg--line-height: calc(1.75 / 1.125);
     --text-xl: 1.25rem;
@@ -417,6 +419,9 @@
   .inline-flex {
     display: inline-flex;
   }
+  .table {
+    display: table;
+  }
   .aspect-\[4\/3\] {
     aspect-ratio: 4/3;
   }
@@ -647,6 +652,9 @@
   .items-center {
     align-items: center;
   }
+  .items-end {
+    align-items: flex-end;
+  }
   .items-start {
     align-items: flex-start;
   }
@@ -750,9 +758,6 @@
   }
   .overflow-y-auto {
     overflow-y: auto;
-  }
-  .overscroll-y-contain {
-    overscroll-behavior-y: contain;
   }
   .scroll-smooth {
     scroll-behavior: smooth;
@@ -880,6 +885,9 @@
   .bg-secondary\/5 {
     background-color: color-mix(in oklab, #0058be 5%, transparent);
   }
+  .bg-secondary\/10 {
+    background-color: color-mix(in oklab, #0058be 10%, transparent);
+  }
   .bg-surface {
     background-color: #fbf9fa;
   }
@@ -993,6 +1001,9 @@
   }
   .py-xs {
     padding-block: 4px;
+  }
+  .pt-md {
+    padding-top: 16px;
   }
   .pt-sm {
     padding-top: 12px;
@@ -1113,6 +1124,10 @@
   .text-9xl {
     font-size: var(--text-9xl);
     line-height: var(--tw-leading, var(--text-9xl--line-height));
+  }
+  .text-base {
+    font-size: var(--text-base);
+    line-height: var(--tw-leading, var(--text-base--line-height));
   }
   .text-lg {
     font-size: var(--text-lg);

@@ -5,6 +5,7 @@ import { AuthDivider, GoogleAuthButton } from '../components/auth/GoogleAuthButt
 import { useAuth } from '../context/AuthContext'
 import { AuthServiceError, sendPasswordReset } from '../services/authService'
 import { getPostAuthPath } from '../utils/authRedirect'
+import { ROUTES } from '../routes/paths'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -157,7 +158,7 @@ export function LoginPage() {
       {!showForgotPassword && (
         <p className="text-center font-body-md text-body-md text-on-surface-variant">
           New to GameShelf?{' '}
-          <Link to="/signup" className="font-semibold text-secondary hover:underline">
+          <Link to={ROUTES.signup} className="font-semibold text-secondary hover:underline">
             Create an account
           </Link>
         </p>

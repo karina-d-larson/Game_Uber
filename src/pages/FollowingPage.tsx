@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { Page } from '../components/shell/Page'
 import { PageHeader } from '../components/shell/PageHeader'
 import { useAuth } from '../context/AuthContext'
+import { ROUTES } from '../routes/paths'
 import {
   UserServiceError,
   getFollowingIds,
@@ -94,9 +96,12 @@ export function FollowingPage() {
                   alt={`${profile.displayName} avatar`}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-headline-md text-headline-md text-primary">
+                  <Link
+                    to={ROUTES.userProfile(profile.id)}
+                    className="block truncate font-headline-md text-headline-md text-primary hover:underline"
+                  >
                     {profile.displayName}
-                  </p>
+                  </Link>
                   <p className="truncate font-body-md text-body-md text-on-surface-variant">
                     @{profile.username}
                   </p>

@@ -6,6 +6,7 @@ import { ROUTES } from '../routes/paths'
 import { MaterialIcon } from '../components/MaterialIcon'
 import { Avatar } from '../components/Avatar'
 import { FollowButton } from '../components/FollowButton'
+import { OwnerReviewsSection } from '../components/OwnerReviewsSection'
 import { useListings } from '../context/ListingsContext'
 import type { Listing } from '../types/listing'
 import type { UserProfile } from '../types/user'
@@ -381,10 +382,21 @@ export function ListingDetailPage() {
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-sm">
-            <span className="font-headline-md text-headline-md text-primary">
-              {listing.ownerName}
-            </span>
-            {!isOwner && user && <FollowButton targetUserId={listing.ownerId} />}
+            <div className="min-w-0">
+              {listing.ownerId ? (
+                <Link
+                  to={ROUTES.userProfile(listing.ownerId)}
+                  className="block font-headline-md text-headline-md text-primary hover:underline"
+                >
+                  {ownerProfile?.displayName ?? listing.ownerName}
+                </Link>
+              ) : (
+                <span className="block font-headline-md text-headline-md text-primary">
+                  {ownerProfile?.displayName ?? listing.ownerName}
+                </span>
+              )}
+            </div>
+            {!isOwner && user && ownerProfile && <FollowButton targetUserId={listing.ownerId} />}
           </div>
           <p className="font-body-md text-body-md text-on-surface-variant">
             {isRequest ? 'Requester' : 'Owner'} •{' '}
@@ -502,6 +514,13 @@ export function ListingDetailPage() {
               </div>
             </section>
           )}
+
+          <OwnerReviewsSection
+            ownerId={listing.ownerId}
+            ownerName={ownerProfile?.displayName ?? listing.ownerName}
+            listingId={listing.id}
+            isOwner={isOwner}
+          />
         </div>
       </div>
     </Page>

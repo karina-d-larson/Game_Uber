@@ -50,6 +50,7 @@ Firebase SDK layer
 - `src/services/listingService.ts` and `listingService.firestore.ts`
 - `src/services/messageService.ts` and `messageService.firestore.ts`
 - `src/services/storageService.ts` (listing image uploads — offers only)
+- `src/services/reviewService.ts` (user reviews)
 
 ---
 
@@ -81,6 +82,7 @@ Centralized in `src/config/firebaseCollections.ts`:
 | `COLLECTIONS.users` | `users` |
 | `COLLECTIONS.conversations` | `conversations` |
 | `COLLECTIONS.messages` | `messages` (or subcollection under conversations — see Dev 2 sprint doc) |
+| `COLLECTIONS.reviews` | `reviews` |
 
 ---
 

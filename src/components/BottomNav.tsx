@@ -45,7 +45,8 @@ const tabs: TabConfig[] = [
     label: 'Profile',
     icon: 'person',
     requiresAuth: true,
-    isActive: (pathname) => pathname.startsWith('/profile'),
+    isActive: (pathname) =>
+      pathname.startsWith('/profile') || pathname === ROUTES.settings,
   },
 ]
 

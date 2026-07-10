@@ -5,6 +5,7 @@ import { AuthDivider, GoogleAuthButton } from '../components/auth/GoogleAuthButt
 import { useAuth } from '../context/AuthContext'
 import { AuthServiceError } from '../services/authService'
 import { getPostAuthPath } from '../utils/authRedirect'
+import { ROUTES } from '../routes/paths'
 
 export function SignupPage() {
   const navigate = useNavigate()
@@ -122,7 +123,7 @@ export function SignupPage() {
 
       <p className="text-center font-body-md text-body-md text-on-surface-variant">
         Already have an account?{' '}
-        <Link to="/login" className="font-semibold text-secondary hover:underline">
+        <Link to={ROUTES.login} className="font-semibold text-secondary hover:underline">
           Sign in
         </Link>
       </p>

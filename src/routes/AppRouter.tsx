@@ -17,6 +17,7 @@ import { EditProfilePage } from '../pages/EditProfilePage'
 import { FollowingPage } from '../pages/FollowingPage'
 import { SettingsPage } from '../pages/SettingsPage'
 import { ProfilePage } from '../pages/ProfilePage'
+import { PublicProfilePage } from '../pages/PublicProfilePage'
 import { SignupPage } from '../pages/SignupPage'
 import { AuthGate, GuestRoute, ProtectedRoute } from './guards'
 
@@ -46,6 +47,7 @@ export function AppRouter() {
             </Route>
             <Route element={<StackShellLayout />}>
               <Route path="listings/:id" element={<ListingDetailPage />} />
+              <Route path="users/:userId" element={<PublicProfilePage />} />
             </Route>
 
             {/* Authenticated-only */}

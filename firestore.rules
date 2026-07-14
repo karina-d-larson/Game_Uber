@@ -1,5 +1,11 @@
 rules_version = '2';
 
+<<<<<<< HEAD
+=======
+// Paste into Firebase Console → Firestore Database → Rules → Publish
+// Or deploy with: firebase deploy --only firestore:rules
+
+>>>>>>> a989709729dd09cfeff6146b4adfb8e76cdf66c9
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {

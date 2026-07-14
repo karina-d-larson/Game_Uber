@@ -16,6 +16,7 @@ export const ROUTES = {
   createListing: '/listings/new',
   listing: (id: string) => `/listings/${id}`,
   editListing: (id: string) => `/listings/${id}/edit`,
+  userProfile: (userId: string) => `/users/${userId}`,
   chat: (conversationId: string) => `/inbox/${conversationId}`,
 } as const
 

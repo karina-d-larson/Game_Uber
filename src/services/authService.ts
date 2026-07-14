@@ -73,6 +73,9 @@ function mapAuthError(err: unknown, fallback: string): AuthServiceError {
   if (code === 'auth/user-not-found' || code === 'auth/invalid-email') {
     return new AuthServiceError('No account found for that email.')
   }
+  if (code.startsWith('auth/')) {
+    return new AuthServiceError(fallback)
+  }
   if (err instanceof Error && err.message) {
     return new AuthServiceError(err.message)
   }
@@ -272,7 +275,8 @@ export async function signup(
       avatar: '',
     }
 
-    await setDoc(doc(db, COLLECTIONS.users, user.uid), newUser)
+    const firestore = requireFirestoreDb()
+    await setDoc(doc(firestore, COLLECTIONS.users, user.uid), newUser)
 
     return newUser
 

@@ -7,6 +7,7 @@ import {
   seedMessagesByConversation,
 } from '../data/mockMessages.seed'
 import type { Conversation, CreateConversationInput, Message, SendMessageInput } from '../types/message'
+import { isDevSeedDataEnabled } from '../config/devSeed'
 import {
   CURRENT_USER_PLACEHOLDER,
   resolveParticipantIds,
@@ -57,6 +58,10 @@ function seedIfEmpty(): { conversations: Conversation[]; messages: MessageStore 
         ]),
       ),
     }
+  }
+
+  if (!isDevSeedDataEnabled()) {
+    return { conversations: [], messages: {} }
   }
 
   const conversations = seedConversations.map((c) => resolveConversation(c, userId))

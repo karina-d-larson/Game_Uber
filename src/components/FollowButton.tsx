@@ -52,7 +52,10 @@ export function FollowButton({ targetUserId, className = '' }: FollowButtonProps
 
   if (following === null) {
     return (
-      <span className={`font-label-md text-label-md text-on-surface-variant ${className}`}>
+      <span
+        className={`font-label-md text-label-md text-on-surface-variant ${className}`}
+        aria-busy="true"
+      >
         …
       </span>
     )
@@ -63,6 +66,7 @@ export function FollowButton({ targetUserId, className = '' }: FollowButtonProps
       <button
         type="button"
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void handleClick()}
         className="rounded-lg border border-outline-variant px-lg py-2 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low active:scale-95 disabled:opacity-60"
       >

@@ -36,8 +36,8 @@ export type AuthUser = {
 
 /**
  * Extended profile stored in Firestore `users/{uid}`.
- * FIREBASE TODO: map in authService or userService.getProfile(uid).
- * ProfilePage mock STATS/REVIEWS should be replaced with these fields + reviews query.
+ * Mapped in authService and userService.getProfile(uid).
+ * Ratings/reviews are loaded from the reviews collection.
  */
 export type UserProfile = AuthUser & {
   bio?: string

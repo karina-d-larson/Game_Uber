@@ -15,6 +15,7 @@ import { formatListingCategoriesLabel } from '../utils/listingCategories'
 import { isOfferListing, isRequestListing } from '../utils/listingHelpers'
 import { getListingImageUrls } from '../utils/listingMedia'
 import { useAuth } from '../context/AuthContext'
+import { useMessages } from '../context/MessagesContext'
 import { useRequireAuth } from '../hooks/useRequireAuth'
 import * as listingService from '../services/listingService'
 import { getProfile } from '../services/userService'
@@ -34,6 +35,7 @@ export function ListingDetailPage() {
   const { updateListing, deleteListing, findListingById } = useListings()
   const { user } = useAuth()
   const requireAuth = useRequireAuth()
+  const { createConversation } = useMessages()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -191,9 +193,27 @@ export function ListingDetailPage() {
     navigate(ROUTES.editListing(id), { state: { listing } })
   }
 
-  function handleGuestAction() {
-    requireAuth()
-  }
+ function handleStartConversation(initialMessage?: string) {
+  if (!listing) return
+
+  const currentListing = listing
+
+  requireAuth(() => {
+    void (async () => {
+      try {
+        const conversation = await createConversation({
+          listingId: currentListing.id,
+          recipientId: currentListing.ownerId,
+          initialMessage,
+        })
+
+        navigate(ROUTES.chat(conversation.id))
+      } catch (error) {
+        console.error('Failed to start conversation:', error)
+      }
+    })()
+  })
+}
 
   const infoPanel = (
     <div className="space-y-md">
@@ -289,14 +309,17 @@ export function ListingDetailPage() {
             <>
               <button
                 type="button"
-                onClick={handleGuestAction}
+                onClick={() =>
+                  handleStartConversation(`Hi, I'd like to request ${listing.title}.`)
+                }
                 className="w-full rounded-lg bg-secondary py-md font-headline-md text-headline-md text-on-primary shadow-md transition-all hover:opacity-90 active:scale-95"
               >
                 Request Game
               </button>
+
               <button
                 type="button"
-                onClick={handleGuestAction}
+                onClick={() => handleStartConversation()}
                 className="w-full rounded-lg bg-surface-container-high py-md font-headline-md text-headline-md text-on-surface transition-all hover:bg-surface-container-highest active:scale-95"
               >
                 Message Owner
@@ -306,14 +329,17 @@ export function ListingDetailPage() {
             <>
               <button
                 type="button"
-                onClick={handleGuestAction}
+                onClick={() =>
+                  handleStartConversation(`Hi, I have ${listing.title}.`)
+                }
                 className="w-full rounded-lg bg-secondary py-md font-headline-md text-headline-md text-on-primary shadow-md transition-all hover:opacity-90 active:scale-95"
               >
                 I have this game
               </button>
+
               <button
                 type="button"
-                onClick={handleGuestAction}
+                onClick={() => handleStartConversation()}
                 className="w-full rounded-lg bg-surface-container-high py-md font-headline-md text-headline-md text-on-surface transition-all hover:bg-surface-container-highest active:scale-95"
               >
                 Message requester

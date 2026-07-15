@@ -14,7 +14,7 @@ import {
   type ReactNode,
 } from 'react'
 import * as messageService from '../services/messageService'
-import type { Conversation, Message, SendMessageInput } from '../types/message'
+import type { Conversation, Message, SendMessageInput, CreateConversationInput } from '../types/message'
 import { useAuth } from './AuthContext'
 
 type MessagesContextValue = {
@@ -25,6 +25,9 @@ type MessagesContextValue = {
   findConversationById: (id: string) => Conversation | undefined
   getMessages: (conversationId: string) => Message[]
   loadMessages: (conversationId: string) => Promise<void>
+  createConversation: (
+    input: CreateConversationInput
+  ) => Promise<Conversation>
   sendMessage: (input: SendMessageInput) => Promise<Message>
 }
 
@@ -75,6 +78,18 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
+  const createConversation = useCallback(
+  async (input: CreateConversationInput) => {
+    const conversation = await messageService.createConversation(input)
+
+    // Refresh the inbox so the new conversation appears
+    await refreshConversations()
+
+    return conversation
+  },
+  [refreshConversations],
+)
+
   const sendMessage = useCallback(
     async (input: SendMessageInput) => {
       const created = await messageService.sendMessage(input)
@@ -113,6 +128,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       findConversationById,
       getMessages,
       loadMessages,
+      createConversation,
       sendMessage,
     }),
     [
@@ -123,6 +139,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       findConversationById,
       getMessages,
       loadMessages,
+      createConversation,
       sendMessage,
     ],
   )

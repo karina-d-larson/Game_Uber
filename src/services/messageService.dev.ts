@@ -14,6 +14,7 @@ import {
 } from '../utils/conversationDisplay'
 import { readJson, writeJson } from '../utils/localStorage'
 import { getCurrentUser } from './authService'
+import { getProfile } from './userService'
 
 export const DEV_CONVERSATIONS_KEY = 'gameshelf_conversations'
 export const DEV_MESSAGES_KEY = 'gameshelf_messages'
@@ -96,12 +97,31 @@ export async function devCreateConversation(
 
   const { conversations, messages } = seedIfEmpty()
 
+  const existingConversation = conversations.find((conversation) => {
+  const sameListing = conversation.listingId === input.listingId
+  const sameParticipants =
+    conversation.participantIds.length === 2 &&
+    conversation.participantIds.includes(user.id) &&
+    conversation.participantIds.includes(input.recipientId)
+
+  return sameListing && sameParticipants
+})
+
+if (existingConversation) {
+  return existingConversation
+}
+
+const recipientProfile = await getProfile(input.recipientId)
+
   const now = Date.now()
 
   const conversation: Conversation = {
     id: `conv-${now}-${Math.random().toString(36).slice(2, 8)}`,
     participantIds: [user.id, input.recipientId],
-    participantNames: [user.displayName, 'Recipient'],
+    participantNames: [
+      user.displayName,
+      recipientProfile?.displayName ?? 'Unknown user',
+    ],
     listingId: input.listingId,
     lastMessageText: input.initialMessage?.trim() ?? '',
     lastMessageAt: now,
@@ -129,19 +149,27 @@ export async function devFetchMessages(conversationId: string): Promise<Message[
   return messages[conversationId] ?? []
 }
 
-export async function devSendMessage(input: SendMessageInput): Promise<Message> {
+export async function devSendMessage(
+  input: SendMessageInput,
+): Promise<Message> {
   const user = getCurrentUser()
+
   if (!user) {
     throw new Error('You must be signed in to send a message.')
   }
 
   const { conversations, messages } = seedIfEmpty()
-  const conversation = conversations.find((c) => c.id === input.conversationId)
+
+  const conversation = conversations.find(
+    (c) => c.id === input.conversationId,
+  )
+
   if (!conversation) {
     throw new Error('Conversation not found.')
   }
 
   const now = Date.now()
+
   const message: Message = {
     id: `msg-${now}-${Math.random().toString(36).slice(2, 8)}`,
     conversationId: input.conversationId,
@@ -152,8 +180,15 @@ export async function devSendMessage(input: SendMessageInput): Promise<Message> 
     read: true,
   }
 
-  const thread = [...(messages[input.conversationId] ?? []), message]
-  const nextMessages: MessageStore = { ...messages, [input.conversationId]: thread }
+  const thread = [
+    ...(messages[input.conversationId] ?? []),
+    message,
+  ]
+
+  const nextMessages: MessageStore = {
+    ...messages,
+    [input.conversationId]: thread,
+  }
 
   const nextConversations = conversations.map((c) =>
     c.id === input.conversationId
@@ -167,6 +202,7 @@ export async function devSendMessage(input: SendMessageInput): Promise<Message> 
   )
 
   persist(nextConversations, nextMessages)
+
   return message
 }
 

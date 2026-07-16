@@ -111,7 +111,14 @@ if (existingConversation) {
   return existingConversation
 }
 
-const recipientProfile = await getProfile(input.recipientId)
+let recipientName = 'Unknown user'
+
+try {
+  const recipientProfile = await getProfile(input.recipientId)
+  recipientName = recipientProfile?.displayName ?? recipientName
+} catch (error) {
+  console.warn('Could not resolve conversation recipient profile:', error)
+}
 
   const now = Date.now()
 
@@ -120,7 +127,7 @@ const recipientProfile = await getProfile(input.recipientId)
     participantIds: [user.id, input.recipientId],
     participantNames: [
       user.displayName,
-      recipientProfile?.displayName ?? 'Unknown user',
+      recipientName,
     ],
     listingId: input.listingId,
     lastMessageText: input.initialMessage?.trim() ?? '',
